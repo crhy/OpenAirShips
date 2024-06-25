@@ -6,5 +6,3 @@ https://discord.gg/wZ6nu7H
 
 ![AirShip2024](https://github.com/crhy/OpenAirShips/assets/21183395/6121e243-0265-4fcf-9096-ede4cbe0af0f)
 
-
-![PinUpGirlLogo](https://github.com/crhy/OpenAirShips/assets/21183395/142b0a53-b7ff-4266-a982-880534969fa2)
