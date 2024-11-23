@@ -7,5 +7,5 @@ https://discord.gg/wZ6nu7H
 Or Download the PDFs of the 2024 Website here:
 https://github.com/crhy/OpenAirShips/tree/main/WhitePaper
 
-![AirShip2024](https://github.com/crhy/OpenAirShips/assets/21183395/6121e243-0265-4fcf-9096-ede4cbe0af0f)
+![AirShip2024]([https://github.com/crhy/OpenAirShips/assets/21183395/6121e243-0265-4fcf-9096-ede4cbe0af0f](https://github.com/crhy/OpenAirShips/blob/main/Art/OpenAirShipsLogo.png))
 
