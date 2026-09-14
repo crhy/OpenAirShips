@@ -170,6 +170,8 @@ details[open] summary::after { content: "–"; }
 .callout strong { display: block; margin-bottom: .4rem; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
 .dark .callout { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.2); }
 .address { overflow-wrap: anywhere; padding: 1rem; border: 1px solid var(--line); background: var(--white); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .8rem; }
+.donation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+.donation-qr { display: block; width: min(100%, 260px) !important; aspect-ratio: 1; object-fit: contain; margin-top: 1rem; background: #fff; }
 
 .site-footer { padding: 4rem 0 2rem; color: var(--white); background: #09171c; }
 .footer-original { text-align: center; }
@@ -240,6 +242,7 @@ details[open] summary::after { content: "–"; }
   .people { grid-template-columns: 1fr 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .media-grid { grid-template-columns: 1fr; }
+  .donation-grid { grid-template-columns: 1fr; }
   .innovation-logos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
