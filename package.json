@@ -1,0 +1,11 @@
+{
+  "name": "openairships-site",
+  "private": true,
+  "scripts": {
+    "dev": "npx wrangler pages dev web",
+    "deploy": "npx wrangler pages deploy web --project-name openairships"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

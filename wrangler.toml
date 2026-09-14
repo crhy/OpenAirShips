@@ -1,0 +1,3 @@
+name = "openairships"
+pages_build_output_dir = "./web"
+compatibility_date = "2026-09-11"
