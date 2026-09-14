@@ -39,6 +39,17 @@ if (menuButton) {
   }));
 }
 
+document.querySelectorAll('[data-contact-form]').forEach((form) => {
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const name = `${data.get('first') || ''} ${data.get('last') || ''}`.trim();
+    const subject = name ? `OpenAirShips contact from ${name}` : 'OpenAirShips contact';
+    const body = `Name: ${name}\nEmail: ${data.get('email') || ''}\n\n${data.get('comment') || ''}`;
+    window.location.href = `mailto:crhy@users.noreply.github.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  });
+});
+
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const reveals = document.querySelectorAll('.reveal');
 if (reduceMotion || !('IntersectionObserver' in window)) reveals.forEach((el) => el.classList.add('visible'));

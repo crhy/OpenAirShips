@@ -203,6 +203,7 @@ details[open] summary::after { content: "–"; }
 .field-pair span { display: block; margin-top: .35rem; }
 .form-grid { align-items: start; }
 .map-frame { width: 100%; height: 500px; border: 0; border-radius: var(--radius); }
+.original-form [data-form-status] { margin: 0; font-weight: 700; }
 .wide-media { display: block; width: 100%; height: auto; margin: 3rem auto; border-radius: var(--radius); }
 .original-faq { padding-top: 2.5rem; padding-bottom: 2.5rem; }
 .contact-gallery figure { text-align: center; }
