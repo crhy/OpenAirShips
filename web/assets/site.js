@@ -46,7 +46,7 @@ document.querySelectorAll('[data-contact-form]').forEach((form) => {
     const name = `${data.get('first') || ''} ${data.get('last') || ''}`.trim();
     const subject = name ? `OpenAirShips contact from ${name}` : 'OpenAirShips contact';
     const body = `Name: ${name}\nEmail: ${data.get('email') || ''}\n\n${data.get('comment') || ''}`;
-    window.location.href = `mailto:crhy@users.noreply.github.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:rhy@leperkhanz.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 });
 
