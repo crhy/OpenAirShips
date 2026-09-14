@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npx wrangler pages dev web",
-    "deploy": "npx wrangler pages deploy web --project-name openairships"
+    "deploy": "npx wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
