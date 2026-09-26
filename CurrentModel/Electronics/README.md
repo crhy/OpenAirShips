@@ -25,7 +25,7 @@ flowchart LR
 - **Thruster numbering:** thruster *i* is on seam *i*, at azimuth 22.5° + 45° × *i*, counter-clockwise from +X seen from above. It plugs into PCA9685 channel *i*.
 - **Wire routing:**
   - Run the motor wires up one arm of the spider and up the shaft to the top opening, so the plenum stays airtight.
-  - Run the servo leads along the outside of the hull.
+  - The servos sit inside the hull; run their leads along the decks to the electronics bay on the main deck.
 
 ## Power budget
 

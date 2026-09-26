@@ -44,5 +44,5 @@ pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
 mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=0.02,
                               AngularDeflection=0.1, Relative=False)
-mesh.write(os.path.join(HERE, "..", "..", "Print Files", "PieSlice926.stl"))
+mesh.write(os.path.join(HERE, "..", "..", "Print Files", "PieSlice926clauderevB.stl"))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)

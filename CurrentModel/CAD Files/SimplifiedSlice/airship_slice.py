@@ -8,8 +8,9 @@ Air path: an impeller in the central shaft pulls air down into the plenum
 between the floor and the keel, and the plenum feeds the thrust pipes. The
 shaft, floor and keel are therefore solid, airtight walls.
 
-The two thrust half-ducts are taken unchanged from the original FreeCAD
-model (thrust_pipes.brep). Everything else is rebuilt from the parameters
+The thrust ducts run inside the skin, so the hull's outside is a smooth
+ellipsoid. Its only openings are the round stem and servo holes at each
+outlet, plus the lightening windows. Everything is built from the parameters
 below: skin, central shaft, floor, main deck and top trough, each a single
 thin wall. The outer skin, main deck and top trough are lightened by
 round-cornered, pointed-top windows.
@@ -51,16 +52,25 @@ UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 
 LEDGE_Z = -46.0            # top of the motor-spider ledge inside the shaft
 LEDGE_W = 1.975            # ledge width: its bore (90.8 mm) still passes the 88 mm impeller
-OUTLET_Z = (-50.0, 23.0)   # skin kept solid (no windows) under the thruster hood
-OUTLET_T = 22.0            # ... within this distance of the seam
 
 PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
 CHAMFER = 0.4              # peg tip and hole mouth (also eats elephant foot)
 BOSS_D, BOSS_L = 7.0, 5.0
 
-PIPES = os.path.join(HERE, "thrust_pipes.brep")          # original ducts, both seams
-PIPE_VOID = os.path.join(HERE, "thrust_pipe_void.brep")  # their bore, cleared through the frame
+# Thrust ducts: one per seam, split in half by the seam plane, entirely
+# inside the skin. Each runs from a mouth on the keel (in the plenum) up the
+# side to a closed end at the equator, where the thruster's stem enters
+# through a round hole with a bearing boss behind it.
+DUCT_BORE = 24.0           # bore diameter (452 mm2; the thruster slot is ~110 mm2)
+DUCT_W = T                 # duct wall
+DUCT_Z_IN = -96.0          # skin height at the duct mouth (on the keel)
+OUT_Z = -13.0              # stem axis height at the skin
+STEM_HOLE = 16.4           # stem is 16 mm
+BOSS_LEN = 6.0             # bearing boss behind the stem hole
+BOSS_R = 11.0
+SERVO_T = 36.0             # servo spline: this far (tangentially) from the seam
+SERVO_HOLE = 8.0
 
 
 # ---- helpers ---------------------------------------------------------------
@@ -79,12 +89,12 @@ def arc(a, b, t0, t1):
     return e if t0 < t1 else cq.Edge(e.wrapped.Reversed())
 
 
-def wedge_edges(*parts):
+def wedge_edges(*parts, half=HALF):
     """Revolve a closed profile of exact edges and (x, z) corner points."""
     wire = cq.Wire.assembleEdges(parts_to_edges(parts))
-    solid = cq.Solid.revolve(cq.Face.makeFromWires(wire), 2 * HALF,
+    solid = cq.Solid.revolve(cq.Face.makeFromWires(wire), 2 * half,
                              cq.Vector(), cq.Vector(0, 0, 1))
-    return solid.rotate((0, 0, 0), (0, 0, 1), -HALF)
+    return solid.rotate((0, 0, 0), (0, 0, 1), -half)
 
 
 def parts_to_edges(parts):
@@ -195,7 +205,7 @@ def frame():
                        arc(A - T, B - T, math.asin(SKIN_TOP / (B - T)), -math.pi / 2))
     lip = wedge([(LIP_R, SHELF_Z), (LIP_R + T, SHELF_Z),
                  (LIP_R + T, SKIN_TOP), (LIP_R, LIP_TOP)])
-    shaft_top = B * math.sqrt(1 - (SHAFT_R / A) ** 2)
+    shaft_top = B * math.sqrt(1 - ((SHAFT_R + T) / A) ** 2)  # rim stays inside the hull
     shaft = wedge([(SHAFT_R, FLOOR_Z), (SHAFT_R + T, FLOOR_Z),
                    (SHAFT_R + T, shaft_top), (SHAFT_R, shaft_top)])
 
@@ -284,12 +294,13 @@ def windows():
 
 
 def outlet_keepout():
-    """Skin under the thruster hoods (both seams) stays solid and airtight."""
-    z0, z1 = OUTLET_Z
+    """Skin kept solid over the ducts (both seams) and around the servo."""
     boxes = []
-    for phi in (-HALF, HALF):
-        b = cq.Solid.makeBox(120, 2 * OUTLET_T, z1 - z0, cq.Vector(150, -OUTLET_T, z0))
-        boxes.append(b.rotate((0, 0, 0), (0, 0, 1), phi))
+    for phi, side in ((-HALF, 1), (HALF, -1)):
+        duct = cq.Solid.makeBox(140, 50, 90, cq.Vector(90, -25, -80))
+        servo = cq.Solid.makeBox(140, 30, 50, cq.Vector(90, side * SERVO_T - 15, OUT_Z - 25))
+        region = duct.fuse(servo) if side > 0 else duct
+        boxes.append(region.rotate((0, 0, 0), (0, 0, 1), phi))
     return boxes[0].fuse(boxes[1])
 
 
@@ -313,18 +324,69 @@ def joint_parts():
     return bosses, holes, pegs
 
 
+def duct_path():
+    """Duct centreline in the seam plane (x = radius, y = 0), mouth to end."""
+    depth = T + DUCT_BORE / 2 + DUCT_W - 0.4         # duct wall merges into the skin
+    p0 = math.asin(DUCT_Z_IN / B)
+    p1 = math.asin(OUT_Z / B)
+    pts = [skin_point(p0 + (p1 - p0) * i / 16, depth) for i in range(17)]
+    return [cq.Vector(x, 0, z) for x, z in pts]
+
+
+def duct_solids():
+    """(walls, bore) of one full duct, seam plane = XZ, in the outlet frame."""
+    pts = duct_path()
+    path = cq.Wire.assembleEdges([cq.Edge.makeSpline(pts)])
+    t0 = (pts[1] - pts[0]).normalized()
+
+    def tube(r, extra=0.0):
+        start = pts[0] - t0 * extra
+        prof = cq.Wire.makeCircle(r, start, t0)
+        body = cq.Solid.sweep(prof, [], path if not extra else cq.Wire.assembleEdges(
+            [cq.Edge.makeLine(start, pts[0]), cq.Edge.makeSpline(pts)]), True, False)
+        return body.fuse(cq.Solid.makeSphere(r, pts[-1], angleDegrees1=-90, angleDegrees2=90))
+
+    outer = tube(DUCT_BORE / 2 + DUCT_W)
+    bore = tube(DUCT_BORE / 2, extra=3.0)           # open mouth into the plenum
+    # stem bearing boss behind the hole, filled up to the skin
+    x_s = hull_r(OUT_Z)
+    boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
+                                 cq.Vector(1, 0, 0))
+    inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
+    walls = outer.fuse(boss.intersect(inside))
+    return walls, bore
+
+
+def stem_and_servo_holes():
+    """Stem hole on the seam; servo spline hole SERVO_T along +tangent (outlet frame)."""
+    ax = cq.Vector(1, 0, 0)
+    stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 40, cq.Vector(180, 0, OUT_Z), ax)
+    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(190, SERVO_T, OUT_Z), ax)
+    return stem, servo
+
+
+def at_seams(shape):
+    """An outlet-frame shape on both seams of this slice, clipped to the slice."""
+    wedge_all = wedge_edges(arc(A + 50, B + 50, -math.pi / 2, math.pi / 2))
+    both = shape.rotate((0, 0, 0), (0, 0, 1), HALF).fuse(
+        shape.rotate((0, 0, 0), (0, 0, 1), -HALF))
+    return both.intersect(wedge_all)
+
+
 def build():
     envelope = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)).cut(
         wedge([(0, -B), (SHAFT_R, -B), (SHAFT_R, B), (0, B)]))  # keep the shaft bore clear
-    pipes = cq.Shape.importBrep(PIPES)
-    void = cq.Shape.importBrep(PIPE_VOID)
+    walls, bore = duct_solids()
+    stem_hole, servo_hole = stem_and_servo_holes()
     bosses, holes, pegs = joint_parts()
 
     body = frame()
     for w in windows():                     # one at a time: a compound cut
         body = body.cut(w)                  # silently drops overlapping tools
     body = body.fuse(cq.Compound.makeCompound(bosses).intersect(envelope))
-    body = body.cut(void).fuse(pipes)
+    body = body.fuse(at_seams(walls)).cut(at_seams(bore))
+    body = body.cut(at_seams(stem_hole))
+    body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo
     body = body.cut(cq.Compound.makeCompound(holes))
     body = body.fuse(cq.Compound.makeCompound(pegs)).clean()
     return body

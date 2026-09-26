@@ -2,19 +2,21 @@
 
 Air path: the impeller at the bottom of the central shaft pulls air down the
 shaft and throws it outward into the plenum between the floor and the keel.
-From there it enters the 8 thrust pipes, which leave the hull at the seams on
-the equator. Each outlet has a hood with a swivel sleeve. A rotating stem
-carries a printed air-multiplier ring, and an MG90S servo turns the stem
-through a 1:1 gear pair. The swivel axis is radial, so each thruster points
-its jet anywhere in the plane made of "up" and the tangential direction.
+From there it enters the 8 thrust ducts, which run inside the skin to the
+equator. The hull's outside stays smooth. At each seam, a rotating stem
+passes through a round hole in the skin, with its flange behind a bearing
+boss inside the duct, and carries a printed air-multiplier ring. An MG90S
+servo inside the hull turns it through a 1:1 gear pair just outside the
+skin. The swivel axis is radial, so each thruster points its jet anywhere in
+the plane made of "up" and the tangential direction.
 
 Parts (all in mm; each is exported already posed for printing):
   impeller        open, backward-curved, 88 mm, clamps on an A2212 prop adapter
   motor_spider    sits on the shaft ledge at z = -46; A2212 hangs under it
-  outlet_hood     glued over each seam's outlet; sleeve + servo bracket
-  stem            rotating swivel tube, inner flange stops it in the sleeve
+  servo_mount     glued inside the skin; holds the MG90S, spline out
+  stem            rotating swivel tube; its flange sits behind the duct's bearing boss
   stem_gear       36T m1, D-bore, glued on the stem
-  servo_gear      36T m1, glued/screwed to an MG90S horn
+  servo_gear      36T m1, hub through the skin onto the MG90S spline
   thruster_ring   air multiplier: Coanda lip, 0.8 mm slot, 64 mm OD
 
 Run: python3 propulsion.py      -> <part>.step (model coordinates) + print/<part>.step
@@ -52,21 +54,25 @@ IMP_PLATE = 1.2
 IMP_T = 1.2                    # blade thickness (3 lines)
 IMP_BETA = 40.0                # backward sweep of the blade, degrees
 
-# ---- outlet hood, swivel, servo ---------------------------------------------
-OUT_Z = -13.0              # swivel axis height
-HOOD_TOP = 219.0           # radial position of the hood's front face
-HOOD_Y, HOOD_Z = 16.0, (-44.0, 17.0)
-WALL = 1.2
-FLANGE = 5.0
-STEM_OD, STEM_ID, SLEEVE_GAP = 16.0, 13.0, 0.4
-SLEEVE_L = 12.0
+# ---- swivel and servo (outlet frame: X = radial along the seam, Z = up) ----
+# The hull stays smooth: only the stem (on the seam) and the servo's gear hub
+# (SERVO_Y to the side) pass through round holes in the skin. The stem's
+# flange sits behind the bearing boss inside the duct; the servo hangs inside
+# the hull on a mount glued to the skin; the gear pair runs just outside.
+OUT_Z = hull.OUT_Z         # swivel axis height
+X_SKIN = hull.hull_r(OUT_Z)                 # skin at the stem, on the seam
+X_BOSS = X_SKIN - hull.BOSS_LEN             # inner face of the bearing boss
+STEM_OD, STEM_ID = 16.0, 13.0
+FLANGE_D, FLANGE_T = 18.4, 1.8   # fits inside the Ø24 duct bore behind the boss
 D_FLAT = 0.7               # depth of the stem's D-flat that keys the gear
 GEAR_M, GEAR_Z, GEAR_T = 1.0, 36, 4.0
-GEAR_X = 232.0             # gear plane (radial), both gears
-SERVO_Y = GEAR_M * GEAR_Z  # 1:1 pair: centre distance = pitch diameter
-SERVO_PLATE_X = 226.0      # MG90S tabs rest on this face
+GEAR_X = 209.0             # hull-side face of both gears (skin peaks at 207.8)
+SERVO_Y = hull.SERVO_T     # 1:1 pair: centre distance = pitch diameter
+assert abs(SERVO_Y - GEAR_M * GEAR_Z) < 1e-6
 MG90S = dict(body=(22.8, 12.2), tabs=32.3, hole_pitch=27.8, shaft_offset=5.4,
-             depth=16.0, screw=2.0)
+             below_tabs=16.0, above_tabs=4.5, spline_tip=11.5, spline_d=4.8)
+TAB_X = 194.0              # servo tab plane: the body top clears the curved skin
+MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
 RT, RO = 20.0, 32.0        # throat radius at the slot, outer radius
@@ -185,55 +191,48 @@ def impeller():
 
 
 # ---- thruster outlet: local frame, X = radial along the seam, Z = up -------
-def outlet_hood():
-    z0, z1 = HOOD_Z
-    env = hull_envelope()
-    outer = cq.Solid.makeBox(HOOD_TOP - 150, 2 * HOOD_Y, z1 - z0,
-                             cq.Vector(150, -HOOD_Y, z0)).cut(env)
-    cavity = cq.Solid.makeBox(HOOD_TOP - WALL - 150, 2 * (HOOD_Y - WALL),
-                              z1 - z0 - 2 * WALL,
-                              cq.Vector(150, -HOOD_Y + WALL, z0 + WALL)).cut(env)
-    flange = (hull_envelope(WALL).cut(env)
-              .intersect(cq.Solid.makeBox(80, 2 * (HOOD_Y + FLANGE), z1 - z0 + 2 * FLANGE,
-                                          cq.Vector(150, -HOOD_Y - FLANGE, z0 - FLANGE))))
-    body = outer.fuse(flange).cut(cavity)
-    ax = cq.Vector(1, 0, 0)
-    sleeve = cq.Solid.makeCylinder(STEM_OD / 2 + 2, SLEEVE_L, cq.Vector(HOOD_TOP - 0.5, 0, OUT_Z), ax)
-    body = body.fuse(sleeve).cut(
-        cq.Solid.makeCylinder(STEM_OD / 2 + SLEEVE_GAP / 2, SLEEVE_L + 5,
-                              cq.Vector(HOOD_TOP - 3, 0, OUT_Z), ax))
+def servo_mount():
+    """Cradle glued to the inside of the skin; the MG90S hangs in it, spline out.
 
-    # servo bracket: plate at SERVO_PLATE_X, arm back to the hood's +Y wall
+    The servo drops in from the hull side and is held by two M2 screws driven
+    from inside the hull through the plate into its tabs.
+    """
     b, w = MG90S["body"]
-    cz = OUT_Z + MG90S["shaft_offset"]              # body centre (shaft is off-centre)
-    px = SERVO_PLATE_X
-    plate = cq.Solid.makeBox(3.0, w + 10, MG90S["tabs"] + 4,
-                             cq.Vector(px - 3, SERVO_Y - w / 2 - 5, cz - MG90S["tabs"] / 2 - 2))
-    arm = cq.Solid.makeBox(px - (HOOD_TOP - 6), SERVO_Y - w / 2 - 5 - HOOD_Y + WALL, 14,
-                           cq.Vector(HOOD_TOP - 6, HOOD_Y - WALL, OUT_Z - 7))
-    bracket = plate.fuse(arm)
-    bracket = bracket.cut(cq.Solid.makeBox(10, w + 0.4, b + 0.4,
-                                           cq.Vector(px - 8, SERVO_Y - w / 2 - 0.2, cz - b / 2 - 0.2)))
-    for s in (1, -1):
-        bracket = bracket.cut(cq.Solid.makeCylinder(
-            0.8, 10, cq.Vector(px - 8, SERVO_Y, cz + s * MG90S["hole_pitch"] / 2), ax))
-    return body.fuse(bracket.cut(env)).cut(seam_pipes()).clean()
+    cz = OUT_Z + MG90S["shaft_offset"]              # body centre (spline is off-centre)
+    inside = hull_envelope(-hull.T)
+    shell = cq.Solid.makeBox(20, w + 12, MG90S["tabs"] + 10,
+                             cq.Vector(TAB_X - MOUNT_T, SERVO_Y - w / 2 - 6, cz - MG90S["tabs"] / 2 - 5))
+    hollow = cq.Solid.makeBox(20, w + 8, MG90S["tabs"] + 6,
+                              cq.Vector(TAB_X, SERVO_Y - w / 2 - 4, cz - MG90S["tabs"] / 2 - 3))
+    body = shell.intersect(inside).cut(hollow)
+    body = body.cut(cq.Solid.makeBox(10, w + 0.4, b + 0.4,
+                                     cq.Vector(TAB_X - 8, SERVO_Y - w / 2 - 0.2, cz - b / 2 - 0.2)))
+    for s_ in (1, -1):
+        body = body.cut(cq.Solid.makeCylinder(0.8, 10, cq.Vector(TAB_X - 8, SERVO_Y,
+                        cz + s_ * MG90S["hole_pitch"] / 2), cq.Vector(1, 0, 0)))
+    # windows in the side walls let glue squeeze out and save a little weight
+    return body.clean()
 
 
-def seam_pipes():
-    """Both slices' thrust-pipe walls at one seam, in the outlet frame."""
-    pipes = cq.Shape.importBrep(hull.PIPES)
-    both = pipes.fuse(pipes.rotate((0, 0, 0), (0, 0, 1), 45))
-    return both.rotate((0, 0, 0), (0, 0, 1), -hull.HALF)
+def servo_dummy():
+    """MG90S envelope, for fit checks."""
+    b, w = MG90S["body"]
+    cz = OUT_Z + MG90S["shaft_offset"]
+    body = cq.Solid.makeBox(MG90S["below_tabs"] + MG90S["above_tabs"], w, b,
+                            cq.Vector(TAB_X - MG90S["below_tabs"], SERVO_Y - w / 2, cz - b / 2))
+    tabs = cq.Solid.makeBox(2.5, w, MG90S["tabs"], cq.Vector(TAB_X, SERVO_Y - w / 2, cz - MG90S["tabs"] / 2))
+    spline = cq.Solid.makeCylinder(MG90S["spline_d"] / 2, MG90S["spline_tip"] - MG90S["above_tabs"],
+                                   cq.Vector(TAB_X + MG90S["above_tabs"], SERVO_Y, OUT_Z), cq.Vector(1, 0, 0))
+    return body.fuse(tabs, spline)
 
 
 def stem():
-    """Rotating swivel tube: flange inside the hood, D-flat for the gear."""
-    x0 = HOOD_TOP - WALL - 1.8                      # flange sits on the hood's inner face
+    """Rotating swivel tube; its flange sits behind the bearing boss in the duct."""
+    x0 = X_BOSS - FLANGE_T - 0.3
     length = (GEAR_X + GEAR_T + 3) - x0 + 8          # into the ring socket by 8
     ax = cq.Vector(1, 0, 0)
     tube = cq.Solid.makeCylinder(STEM_OD / 2, length, cq.Vector(x0, 0, OUT_Z), ax)
-    flange = cq.Solid.makeCylinder(STEM_OD / 2 + 3, 1.8, cq.Vector(x0, 0, OUT_Z), ax)
+    flange = cq.Solid.makeCylinder(FLANGE_D / 2, FLANGE_T, cq.Vector(x0, 0, OUT_Z), ax)
     body = tube.fuse(flange)
     flat = cq.Solid.makeBox(GEAR_T + 2, 2 * STEM_OD, 3,
                             cq.Vector(GEAR_X - 1, -STEM_OD, OUT_Z + STEM_OD / 2 - D_FLAT))
@@ -242,19 +241,29 @@ def stem():
                                           cq.Vector(x0 - 1, 0, OUT_Z), ax)).clean()
 
 
+def on_axis(g, y):
+    """Gear built flat on XY (thickness +Z) -> hull-side face at GEAR_X, axis X."""
+    return g.rotate((0, 0, 0), (0, 1, 0), 90).translate((GEAR_X, y, OUT_Z))
+
+
 def stem_gear():
     bore = d_bore(STEM_OD + 0.2, D_FLAT + 0.1, GEAR_T)
-    g = spur_gear(GEAR_Z, GEAR_M, GEAR_T, bore)
-    return g.rotate((0, 0, 0), (0, 1, 0), 90).translate((GEAR_X + GEAR_T, 0, OUT_Z))
+    return on_axis(spur_gear(GEAR_Z, GEAR_M, GEAR_T, bore), 0)
 
 
 def servo_gear():
-    """36T gear; glue an MG90S single-arm horn into the pocket on its face."""
+    """36T gear with a hub that reaches through the skin onto the MG90S spline.
+
+    Press it on the spline and fix it with the servo's M2 horn screw from outside.
+    """
+    hub_len = GEAR_X - (TAB_X + MG90S["spline_tip"] - 3.0)   # 3 mm on the spline
     g = spur_gear(GEAR_Z, GEAR_M, GEAR_T)
-    g = g.cut(cq.Solid.makeCylinder(3.8, GEAR_T, cq.Vector(0, 0, 0)))       # spline/horn hub
-    g = g.cut(cq.Workplane("XY").workplane(offset=GEAR_T - 1.6)
-                .slot2D(17, 5.6).extrude(2).val().translate((6.5 - 8.5 + 8.5 / 1, 0, 0)))
-    return g.rotate((0, 0, 0), (0, 1, 0), 90).translate((GEAR_X + GEAR_T, SERVO_Y, OUT_Z))
+    hub = cq.Solid.makeCylinder(3.7, hub_len, cq.Vector(0, 0, -hub_len))
+    g = g.fuse(hub)
+    g = g.cut(cq.Solid.makeCylinder(MG90S["spline_d"] / 2, 3.0, cq.Vector(0, 0, -hub_len)))  # slip fit + glue
+    g = g.cut(cq.Solid.makeCylinder(1.1, hub_len + GEAR_T, cq.Vector(0, 0, -hub_len)))
+    g = g.cut(cq.Solid.makeCylinder(2.2, 2.0, cq.Vector(0, 0, GEAR_T - 2.0)))  # screw head
+    return on_axis(g, SERVO_Y)
 
 
 def thruster_ring():
@@ -328,7 +337,7 @@ if __name__ == "__main__":
     parts = {
         "impeller": (impeller(), flat),
         "motor_spider": (motor_spider(), flat),
-        "outlet_hood": (outlet_hood(), axis_x_up),
+        "servo_mount": (servo_mount(), axis_x_up),
         "stem": (stem(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
         "stem_gear": (stem_gear(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
         "servo_gear": (servo_gear(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
