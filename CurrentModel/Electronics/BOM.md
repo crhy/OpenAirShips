@@ -28,7 +28,7 @@ The links are **Amazon search links**, not specific listings. Listings and price
 | # | Part | Qty | Must match | ~USD | Link |
 |---|---|---|---|---|---|
 | 12 | M3 socket-head screw assortment | 1 | Motor mount needs 4 × M3 × 6 | 10–14 | [search](https://www.amazon.com/s?k=M3+socket+head+screw+assortment) |
-| 13 | PLA filament, 1.75 mm, 1 kg | 2 | Hull ≈ 440 g, propulsion ≈ 260 g | 18–22 each | [search](https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg) |
+| 13 | PLA filament, 1.75 mm, 1 kg | 2 | Hull ≈ 540 g, propulsion ≈ 255 g | 18–22 each | [search](https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg) |
 | 14 | 5-minute epoxy (airtight seams: shaft, floor, keel, ducts; servo mounts) | 1 | | 7–10 | [search](https://www.amazon.com/s?k=5+minute+epoxy) |
 | 15 | CA glue, thin + gel | 1 | | 7–10 | [search](https://www.amazon.com/s?k=CA+glue+thin+gel) |
 | 16 | PTFE thread-seal tape (swivel bearing wrap) | 1 | | 3–5 | [search](https://www.amazon.com/s?k=PTFE+tape) |
