@@ -31,7 +31,10 @@ for i, (label, alias, value) in enumerate([
     sheet.setAlias(f"B{i}", alias)
 
 doc.recompute()
-doc.saveAs(os.path.join(HERE, NAME + ".FCStd"))
+out = os.path.join(HERE, NAME + ".FCStd")
+if os.path.exists(out):
+    os.remove(out)                       # no .FCBak backup next to it
+doc.saveAs(out)
 print("valid", body.Shape.isValid(), "volume", round(body.Shape.Volume))
 
 # Print STL: lie on the -22.5 deg (hole) seam, so the seam is flat on the bed
