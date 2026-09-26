@@ -49,6 +49,11 @@ ROOF_ANGLE = 55.0          # window roof pitch, in the wall plane
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
 UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 
+LEDGE_Z = -46.0            # top of the motor-spider ledge inside the shaft
+LEDGE_W = 1.975            # ledge width: its bore (90.8 mm) still passes the 88 mm impeller
+OUTLET_Z = (-50.0, 23.0)   # skin kept solid (no windows) under the thruster hood
+OUTLET_T = 22.0            # ... within this distance of the seam
+
 PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
 CHAMFER = 0.4              # peg tip and hole mouth (also eats elephant foot)
@@ -198,7 +203,9 @@ def frame():
         return wedge([(SHAFT_R, z), (r1, z), (r1, z + T), (SHAFT_R, z + T)])
 
     inner = lambda z: hull_r(z, A - T / 2, B - T / 2)
-    body = skin.fuse(lip, shaft, deck(SHELF_Z, LIP_R + T),
+    ledge = wedge([(SHAFT_R - LEDGE_W, LEDGE_Z - 2), (SHAFT_R + T / 2, LEDGE_Z - 2),
+                   (SHAFT_R + T / 2, LEDGE_Z), (SHAFT_R - LEDGE_W, LEDGE_Z)])
+    body = skin.fuse(lip, shaft, ledge, deck(SHELF_Z, LIP_R + T),
                      deck(FLOOR_Z, inner(FLOOR_Z)), deck(DECK_Z, inner(DECK_Z)))
     return body.clean()
 
@@ -272,7 +279,18 @@ def windows():
             r = wedge([(r0 + RIB / 2, z - 1), (r1 - RIB / 2, z - 1),
                        (r1 - RIB / 2, z + T + 1), (r0 + RIB / 2, z + T + 1)])
             cut.append(r.intersect(whole))
-    return [rounded(c) for c in cut]
+    keep = outlet_keepout()
+    return [rounded(c).cut(keep) for c in cut]
+
+
+def outlet_keepout():
+    """Skin under the thruster hoods (both seams) stays solid and airtight."""
+    z0, z1 = OUTLET_Z
+    boxes = []
+    for phi in (-HALF, HALF):
+        b = cq.Solid.makeBox(120, 2 * OUTLET_T, z1 - z0, cq.Vector(150, -OUTLET_T, z0))
+        boxes.append(b.rotate((0, 0, 0), (0, 0, 1), phi))
+    return boxes[0].fuse(boxes[1])
 
 
 def joint_parts():

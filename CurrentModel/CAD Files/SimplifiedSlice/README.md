@@ -11,6 +11,9 @@ The impeller in the central shaft pulls air down into the plenum between the flo
 
 ## What changed from 125
 - Kept: the hull ellipse (207.765 × 104 mm), the top trough, the central shaft, the floor and main deck, and the solid keel.
+- New for the propulsion system:
+  - a 2 mm ledge inside the shaft at z = −46, which carries the motor spider (see `../Propulsion`)
+  - solid skin under each thruster outlet hood, so air can't leak into the hull
 - Kept: both thrust half-ducts, copied unchanged (`thrust_pipes.brep`). Two neighbouring slices close them into one full duct.
 - Removed: the third deck (z = −55), the doubled inner wall of the top trough, and the hand-drawn window sketches.
 - The skin is exact ellipse surfaces (234 faces in total), not a faceted spline.
@@ -29,7 +32,7 @@ Checked: the part is a single valid solid, a slice rotated 45° overlaps its nei
   - Nearly everything that overhangs past 55° is the thrust-duct arch (about 2,300 of 2,400 mm²).
   - Use supports **on build plate only**, and paint them only inside the duct lying on the bed. Nothing else needs support.
 - **Bed contact:** about 800 mm², all thin seam edges. Add a 3 mm brim; the Y axis has room for it (205 + 2 × 3 < 210).
-- **Weight:** 44.6 cm³, about 55 g of PLA per slice and 440 g for the ship.
+- **Weight:** 45.5 cm³, about 56 g of PLA per slice and 450 g for the ship.
   - The original 125 was 27 cm³ at 0.625 mm walls, which is below two perimeters and too thin to print reliably; at 0.86 mm walls it would weigh about 37 cm³.
   - The rest of the difference comes from the airtight shaft, floor and keel, and from the stronger joint bosses.
 
