@@ -1,4 +1,4 @@
-"""Propulsion parts for the 926 pie-slice airship (tethered bench demo), v0.
+"""Propulsion parts for the 926 pie-slice airship (tethered bench demo), rev E.
 
 Air path: the impeller at the bottom of the central shaft pulls air down the
 shaft and throws it outward into the plenum between the floor and the keel.
@@ -11,13 +11,13 @@ skin. The swivel axis is radial, so each thruster points its jet anywhere in
 the plane made of "up" and the tangential direction.
 
 Parts (all in mm; each is exported already posed for printing):
-  impeller        open, backward-curved, 88 mm, clamps on an A2212 prop adapter
-  motor_spider    sits on the shaft ledge at z = -46; A2212 hangs under it
+  impeller        open, backward-curved, 88 mm; a cup over the motor bell clamps on its shaft
+  motor_pedestal  glued into the keel socket at the axis; the 2207 stands on it, bell up
   servo_mount     glued inside the skin; holds the MG90S, spline out
   stem            rotating swivel tube; its flange sits behind the duct's bearing boss
   stem_gear       36T m1, D-bore, glued on the stem
   servo_gear      36T m1, hub through the skin onto the MG90S spline
-  thruster_ring   air multiplier: Coanda lip, 0.8 mm slot, 64 mm OD
+  thruster_ring   air multiplier: Coanda lip, 1.2 mm slot, 64 mm OD
 
 Run: python3 propulsion.py      -> <part>.step (model coordinates) + print/<part>.step
      freecadcmd make_fcstd.py     -> propulsion 926.FCStd + print/<part>.stl
@@ -33,28 +33,31 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "SimplifiedSlice"))
 import airship_slice as hull  # noqa: E402
 
-# ---- motor: A2212 outrunner (1000 KV class) ---------------------------------
+# ---- motor: 2207 1750KV racing outrunner on 4S (see Analysis/AIRFLOW.md), ~32 g
 MOTOR_D = 28.0             # bell diameter
-MOTOR_L = 30.0             # mount face to bell front
-MOUNT_HOLES = (16.0, 19.0)  # cross mount, M3
-ADAPTER_SHOULDER = 8.0     # bell front to the prop-adapter shoulder
-HUB_BORE = 5.2             # M5 prop-adapter thread
+MOTOR_L = 20.0             # mount face to bell top
+MOUNT_SQUARE = 16.0        # M3 holes on a 16 x 16 mm square (the usual 2207 pattern)
+HUB_BORE = 5.2             # M5 motor shaft
 
-# ---- motor spider -----------------------------------------------------------
-SPIDER_H = 6.0
-SPIDER_OD = 2 * hull.SHAFT_R - 0.4
-PLATE_D, PLATE_T = 34.0, 3.0
-ARM_W = 3.0
+# ---- motor pedestal: nothing in the intake shaft; the motor stands on the keel
+# The impeller's cup sits on the bell top and is clamped by the prop nut, so
+# the bell top sets the impeller height. Blade tops end 0.8 mm under the floor.
+CUP_TOP_T = 2.0            # cup top disc (clamped between bell and nut)
+CUP_R = 15.5               # cup wall inner radius (bell is 14)
+BELL_TOP = hull.FLOOR_Z - 0.8 - 5.8 - CUP_TOP_T   # the nut sits inside the blade hub zone
+PED_TOP = BELL_TOP - MOTOR_L
+PED_R = hull.SOCKET_R - 0.2
+PED_PLATE = 2.0
 
 # ---- impeller ---------------------------------------------------------------
-IMP_R1, IMP_R2 = 22.0, 44.0    # blade inlet / tip radius (OD 88 passes the ledge)
+IMP_R1, IMP_R2 = 31.0, 44.0    # eye (blade inlet) / tip radius (OD 88 drops through the 94.75 shaft)
 IMP_BLADES = 7
-IMP_B1, IMP_B2 = 12.0, 9.0     # blade height at inlet / tip
+IMP_B1, IMP_B2 = 13.0, 11.0    # blade height at inlet / tip (from the airflow analysis)
 IMP_PLATE = 0.8                # backplate: 4 layers; the blades stiffen it
 IMP_T = 0.86                   # blade thickness (2 lines)
 IMP_BETA = 40.0                # backward sweep of the blade, degrees
 IMP_SCALLOP_MARGIN = 2.0       # backplate kept this far beyond each blade face
-IMP_SCALLOP_R = 32.0           # scallops start here (the eye and inner passages keep a full floor)
+IMP_SCALLOP_R = 38.0           # scallops start here (the eye and inner passages keep a full floor)
 
 # ---- swivel and servo (outlet frame: X = radial along the seam, Z = up) ----
 # The hull stays smooth: only the stem (on the seam) and the servo's gear hub
@@ -64,8 +67,8 @@ IMP_SCALLOP_R = 32.0           # scallops start here (the eye and inner passages
 OUT_Z = hull.OUT_Z         # swivel axis height
 X_SKIN = hull.hull_r(OUT_Z)                 # skin at the stem, on the seam
 X_BOSS = X_SKIN - hull.BOSS_LEN             # inner face of the bearing boss
-STEM_OD, STEM_ID = 16.0, 13.0
-FLANGE_D, FLANGE_T = 17.8, 1.8   # fits inside the Ø24 duct bore behind the boss
+STEM_OD, STEM_ID = 25.0, 22.0    # Ø22 bore: see Analysis/AIRFLOW.md
+FLANGE_D, FLANGE_T = 28.0, 1.8    # sits in the duct's end bulb, behind the bearing sleeve
 D_FLAT = 0.7               # depth of the stem's D-flat that keys the gear
 GEAR_M, GEAR_Z, GEAR_T = 1.0, 36, 4.0
 GEAR_X = 209.0             # hull-side face of both gears (skin peaks at 207.8)
@@ -78,10 +81,10 @@ MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
 RT, RO = 20.0, 32.0        # throat radius at the slot, outer radius
-HD = 24.0                  # diffuser height (exit at a = 0, slot near the top)
+HD = 32.0                  # diffuser height (exit at a = 0, slot near the top); tall enough for the Ø22 feed
 TAPER = 15.0               # diffuser half-angle
 RC = 3.0                   # Coanda lip radius
-SLOT = 0.8
+SLOT = 1.2                 # from the airflow analysis
 RING_W = 0.86              # 2 perimeters
 STEM_IN = RO + 12.0        # stem socket length from the ring axis
 
@@ -93,7 +96,7 @@ def revolve(pts, arcs=()):
     return w.revolve(360, (0, 0, 0), (0, 1, 0)).val()
 
 
-def spur_gear(z, m, t, bore=None):
+def spur_gear(z, m, t, bore=None, hub_r=10.0):
     """Involute spur gear, flat on XY, `t` thick."""
     rp, ra, rf = m * z / 2, m * z / 2 + m, m * z / 2 - 1.25 * m
     rb = rp * math.cos(math.radians(20))
@@ -115,11 +118,12 @@ def spur_gear(z, m, t, bore=None):
     g = cq.Workplane("XY").polyline(pts).close().extrude(t)
     if bore:
         g = g.cut(bore)
-    for k in range(6):                                  # lightening holes
-        a = 2 * math.pi * k / 6
-        rr = (rf - 2 + 10.0) / 2                        # between hub (r 10) and root
-        g = g.cut(cq.Workplane("XY").center(rr * math.cos(a), rr * math.sin(a))
-                    .circle((rf - 2 - 10.0) / 2).extrude(t))
+    if rf - 2 - hub_r >= 3.0:                           # room for lightening holes?
+        for k in range(6):
+            a = 2 * math.pi * k / 6
+            rr = (rf - 2 + hub_r) / 2                   # between hub and root
+            g = g.cut(cq.Workplane("XY").center(rr * math.cos(a), rr * math.sin(a))
+                        .circle((rf - 2 - hub_r) / 2).extrude(t))
     return g.val()
 
 
@@ -137,31 +141,30 @@ def hull_envelope(margin=0.0):
                             cq.Vector(), cq.Vector(0, 0, 1))
 
 
-# ---- impeller and motor spider (hull coordinates, axis = Z) ------------------
-def motor_spider():
-    z0 = hull.LEDGE_Z
-    ring = revolve([(SPIDER_OD / 2 - 2.2, z0), (SPIDER_OD / 2, z0),
-                    (SPIDER_OD / 2, z0 + SPIDER_H), (SPIDER_OD / 2 - 2.2, z0 + SPIDER_H)])
-    plate = cq.Solid.makeCylinder(PLATE_D / 2, PLATE_T, cq.Vector(0, 0, z0))
-    body = ring.fuse(plate)
-    for k in range(3):
-        arm = cq.Solid.makeBox(SPIDER_OD / 2 - 1, ARM_W, SPIDER_H,
-                               cq.Vector(0, -ARM_W / 2, z0))
-        body = body.fuse(arm.rotate((0, 0, 0), (0, 0, 1), 90 + 120 * k))
-    body = body.cut(cq.Solid.makeCylinder(5.0, 20, cq.Vector(0, 0, z0 - 5)))
-    for i, p in enumerate(MOUNT_HOLES):              # cross pattern, both pitches
-        for s in (1, -1):
-            a = math.radians(45 + 90 * i)
-            c = cq.Vector(s * p / 2 * math.cos(a), s * p / 2 * math.sin(a), z0 - 5)
-            body = body.cut(cq.Solid.makeCylinder(1.7, 20, c))
-    # wire slot along one arm
+# ---- impeller and motor pedestal (hull coordinates, axis = Z) ---------------
+def motor_pedestal():
+    """A low drum glued into the keel socket. Its bottom follows the keel; the
+    motor bolts to its top plate from below (4 x M3, before gluing)."""
+    inside = hull_envelope(-hull.T - 0.1)
+    drum = cq.Solid.makeCylinder(PED_R, PED_TOP + hull.B + 1, cq.Vector(0, 0, -hull.B - 1))
+    body = drum.intersect(inside)
+    body = body.cut(cq.Solid.makeCylinder(PED_R - hull.T, PED_TOP - PED_PLATE + hull.B + 1,
+                                          cq.Vector(0, 0, -hull.B - 1)))
+    body = body.cut(cq.Solid.makeCylinder(4.5, 10, cq.Vector(0, 0, PED_TOP - 5)))  # circlip
+    for k in range(4):
+        a = math.radians(45 + 90 * k)
+        c = MOUNT_SQUARE / math.sqrt(2)
+        body = body.cut(cq.Solid.makeCylinder(1.7, 10, cq.Vector(c * math.cos(a), c * math.sin(a),
+                                                                 PED_TOP - 5)))
+    # wire exit: a notch in the drum wall, down to the keel (then one sealed hole in the keel)
+    body = body.cut(cq.Solid.makeBox(8, 10, 6, cq.Vector(PED_R - 4, -5, -hull.B - 1)))
     return body.clean()
 
 
 def impeller_z():
     """Top of the blades, and the backplate underside, in hull z."""
-    shoulder = hull.LEDGE_Z - MOTOR_L - ADAPTER_SHOULDER
-    return shoulder + IMP_B1 + IMP_PLATE, shoulder
+    top = hull.FLOOR_Z - 0.8
+    return top, top - IMP_B1 - IMP_PLATE
 
 
 def impeller():
@@ -188,8 +191,12 @@ def impeller():
         scallop = (cq.Workplane("XY").workplane(offset=base - 0.5)
                      .polyline(lead + outer + trail + inner).close().extrude(IMP_PLATE + 1).val())
         plate = plate.cut(scallop)
-    hub = cq.Solid.makeCylinder(7.0, IMP_PLATE + 4, cq.Vector(0, 0, base))
-    body = plate.fuse(hub)
+    # cup over the motor bell: the backplate opens inside it, and its top disc
+    # sits on the bell and is clamped by the prop nut
+    plate = plate.cut(cq.Solid.makeCylinder(CUP_R, 5, cq.Vector(0, 0, base - 1)))
+    cup = cq.Solid.makeCylinder(CUP_R + IMP_T, BELL_TOP + CUP_TOP_T - base, cq.Vector(0, 0, base)).cut(
+        cq.Solid.makeCylinder(CUP_R, BELL_TOP - base, cq.Vector(0, 0, base)))
+    body = plate.fuse(cup)
     # blade: circular arc from r1 to r2, swept back by IMP_BETA
     for k in range(IMP_BLADES):
         a0 = 2 * math.pi * k / IMP_BLADES
@@ -270,7 +277,7 @@ def on_axis(g, y):
 
 def stem_gear():
     bore = d_bore(STEM_OD + 0.2, D_FLAT + 0.1, GEAR_T)
-    return on_axis(spur_gear(GEAR_Z, GEAR_M, GEAR_T, bore), 0)
+    return on_axis(spur_gear(GEAR_Z, GEAR_M, GEAR_T, bore, hub_r=STEM_OD / 2 + 1.5), 0)
 
 
 def servo_gear():
@@ -358,7 +365,7 @@ def axis_x_up(shape):
 if __name__ == "__main__":
     parts = {
         "impeller": (impeller(), flat),
-        "motor_spider": (motor_spider(), flat),
+        "motor_pedestal": (motor_pedestal(), lambda s: flat(s.rotate((0, 0, 0), (1, 0, 0), 180))),
         "servo_mount": (servo_mount(), axis_x_up),
         "stem": (stem(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
         "stem_gear": (stem_gear(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),

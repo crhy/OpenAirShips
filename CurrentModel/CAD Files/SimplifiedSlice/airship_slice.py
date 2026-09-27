@@ -1,27 +1,25 @@
-"""Airship pie slice (1 of 8), rev D: the 125 design, rebuilt cleanly.
+"""Airship pie slice (1 of 8), rev E: the bench model.
 
 The hull is an ellipse A x B revolved about Z and cut into 8 identical
 45-degree slices. Each slice carries pegs on its +22.5 deg seam and matching
 holes on its -22.5 deg seam, so slice k+1 plugs straight into slice k.
 
-Air path: an impeller in the central shaft pulls air down into the plenum
-between the floor and the keel, and the plenum feeds the thrust pipes. The
-shaft, floor and keel are therefore solid, airtight walls.
+Air path: an impeller at the bottom of the central shaft pulls air down the
+shaft into the fan housing (plenum) above the keel, which feeds the 8 thrust
+ducts. The shaft, the housing ceiling, the keel under the housing and the
+duct walls are solid, airtight walls; the shaft bore has nothing in it.
 
-The thrust ducts run inside the skin, so the hull's outside is a smooth
-ellipsoid. Its only openings are the round stem and servo holes at each
-outlet, plus the lightening windows. Everything is built from the parameters
-below, laid out like 125: the skin, the central shaft with its rolled top
-rim, the floor, the lower and main decks, and the top trough. Each is a
-single thin wall. For minimum weight, the skin above the main deck is two
-columns of ovals with 2.0 mm ribs and large hollow diamond junctions
-(half-diamonds on the seams stop short of a continuous edge strip), with 125's slots below it. The
-decks, the trough shelf and its rim wall carry window grids too.
+The ducts run inside the skin, so the hull's outside is a smooth ellipsoid
+that rolls over a bellmouth into the shaft at the top. Its only openings are
+the round stem and servo holes at each outlet, plus the lattice. Everything
+else is lattice: two columns of ovals with 2.0 mm ribs and hollow diamond
+junctions (half-diamonds on the seams stop short of a continuous edge strip).
+There are no decks. See ../../DESIGN-CONSTRAINTS.md.
 
 Run: pip install cadquery && python3 airship_slice.py
      -> "airship pie slice 926.step"
      then: freecadcmd make_fcstd.py
-     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevD.stl laid
+     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevE.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
 """
 import math
@@ -38,36 +36,32 @@ HALF = 180.0 / N           # half-angle of one slice, degrees
 
 SHAFT_R = 47.375           # central shaft wall, inner radius
 FLOOR_Z = -70.0            # floor, underside
-DECK_Z = -40.625           # main deck, underside
-DECK2_Z = -55.3125         # lower deck, underside (as in 125)
-SHELF_Z = 82.375           # top trough floor, underside
-LIP_R = 94.56              # top trough outer lip, inner radius
-LIP_TOP = 91.67
-RIM_R = 50.18              # top rim: inner wall of the trough, rolled over to the shaft
-SKIN_TOP = 92.37           # skin ends where it meets the lip
+DECK2_Z = -55.3125         # 125's lower deck height: now just a skin ring rib (no decks on the bench model)
+INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
 RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
-# Skin lattice: two full-width slots between the floor and the main deck, as
-# in 125. Above the main deck, UPPER_ROWS rows of two side columns (split by a
-# centre rib): the bottom row is a rounded rectangle, the rest are ovals that
-# fill their cells. Where four ovals meet, the junction gets its own small
-# diamond window. Printed lying on the seam, each oval's top is a small round
-# arch (radius ~9 mm), which prints without supports.
-UPPER_ROWS = 6
+# Skin lattice: from the fan housing to the intake bellmouth, KEEL_ROWS +
+# ROWS_BELOW_EQ + ROWS_ABOVE_EQ rows of two side columns of ovals (split by a
+# centre rib). Where four ovals meet, the junction is a hollow diamond window.
+# Printed lying on the seam, each oval's top is a small round arch, which
+# prints without supports.
+ROWS_BELOW_EQ = 3          # skin rows between the DECK2_Z rib and the equator
+ROWS_ABOVE_EQ = 6          # ... and between the equator and the intake bellmouth (equal arc lengths)
 WIDE_FROM_Z = 1e9          # rows above this would be one wide oval per slice (off: two columns all the way up)
 OVAL_N = 1.8               # superellipse exponent: 2 = ellipse; lower = bigger junction diamonds
 WIDE_OVAL_N = 4.0
-DECK_RINGS = {DECK_Z: [72.0, 96.0, 120.0, 144.0, 168.0],   # every 24 mm, as in 125
-              DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: []}  # None = shelf
 ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None = plain
 
 # Printing (Prusa MK3S+, 0.4 nozzle, 0.2 layers, 0.45 lines): the slice lies
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
 UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 
-LEDGE_Z = -46.0            # top of the motor-spider ledge inside the shaft
-LEDGE_W = 1.975            # ledge width: its bore (90.8 mm) still passes the 88 mm impeller
+# Motor pedestal socket: a low ring on the keel at the axis. The printed
+# pedestal (../Propulsion) is glued into it and the motor stands on that, so
+# nothing sits in the intake shaft: its bore is smooth from top to bottom.
+SOCKET_R = 20.5            # socket ring, inner radius (pedestal is 40.6 mm)
+SOCKET_H = 3.0
 
 PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
@@ -80,11 +74,21 @@ BOSS_D, BOSS_L = 7.0, 5.0
 # through a round hole with a bearing boss behind it.
 DUCT_BORE = 24.0           # bore diameter (452 mm2; the thruster slot is ~110 mm2)
 DUCT_W = T                 # duct wall
-DUCT_Z_IN = -96.0          # skin height at the duct mouth (on the keel)
+DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
+DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
+
+# Plenum (fan housing): only as big as the fan and the duct mouths. Flat under
+# the floor out past the mouths, then a sloped ceiling down to the keel.
+# Everything outside it, keel included, is oval/diamond lattice: the ducts
+# carry the air from here and their own walls keep it airtight.
+PLENUM_FLAT_R = 66.0
+PLENUM_KEEL_R = 80.0
+KEEL_ROWS = 3              # skin rows between the fan housing and the DECK2_Z rib
 # OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
 # ring rib, so the stem and servo holes' collars are part of that rib.
-STEM_HOLE = 16.4           # stem is 16 mm
-BOSS_LEN = 6.0             # bearing boss behind the stem hole
+STEM_HOLE = 25.4           # stem is 25 mm OD / 22 mm bore (see Analysis/AIRFLOW.md)
+BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
+DUCT_BULB = 32.0           # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
 SERVO_T = 36.0             # servo spline: this far (tangentially) from the seam
 SERVO_HOLE = 8.0
@@ -188,30 +192,72 @@ def seam_axis(r, z, phi):
     return p, t
 
 
+def keel_edge_z():
+    """Skin height of the first ring rib above where the plenum meets the keel."""
+    return -B * math.sqrt(1 - (PLENUM_KEEL_R / A) ** 2) + RIB + 1.0
+
+
+def ellipse_arc(p0, p1, n=200):
+    """Length of the outer skin between two ellipse angles."""
+    h = (p1 - p0) / n
+    return sum(math.hypot(A * math.sin(p0 + (i + .5) * h), B * math.cos(p0 + (i + .5) * h))
+               for i in range(n)) * h
+
+
 def skin_ribs():
-    """Ellipse angles of the skin's ring ribs, bottom to top."""
+    """Ellipse angles of the skin's ring ribs, bottom to top. One sits exactly
+    on the equator (z = 0), where the thrusters are."""
     psi = lambda z: math.asin(z / B)
-    lo, top = psi(DECK_Z + T / 2), psi(SHELF_Z + T / 2)
-    return ([psi(FLOOR_Z + T / 2), psi(DECK2_Z + T / 2)]
-            + [lo + (top - lo) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
+    ke, lo = psi(keel_edge_z()), psi(DECK2_Z + T / 2)
+    top = intake()[1] - (RIB / 2) / math.hypot(A * math.sin(intake()[1]), B * math.cos(intake()[1]))
+    L = ellipse_arc(0.0, top)
+    up, acc, h = [0.0], 0.0, top / 2000
+    for i in range(2000):                            # equal arc lengths above the equator
+        p = (i + .5) * h
+        acc += math.hypot(A * math.sin(p), B * math.cos(p)) * h
+        if acc >= L * len(up) / ROWS_ABOVE_EQ and len(up) < ROWS_ABOVE_EQ:
+            up.append((i + 1) * h)
+    return ([ke + (lo - ke) * i / KEEL_ROWS for i in range(KEEL_ROWS)]
+            + [lo - lo * i / ROWS_BELOW_EQ for i in range(ROWS_BELOW_EQ)]
+            + up + [top])
 
 
-OUT_THRUST_RIB = 3                                  # the ring rib just below the equator
-OUT_Z = B * math.sin(skin_ribs()[OUT_THRUST_RIB])  # stem and servo axis height
+def intake():
+    """The bellmouth where the skin rolls into the shaft: (centre (r, z),
+    ellipse angle where it leaves the skin, z where it meets the shaft)."""
+    lo, hi = 0.3, math.pi / 2
+    for _ in range(80):                              # skin_point(p, R).r == SHAFT_R + R
+        mid = (lo + hi) / 2
+        if skin_point(mid, INTAKE_R)[0] > SHAFT_R + INTAKE_R:
+            lo = mid
+        else:
+            hi = mid
+    c = skin_point(lo, INTAKE_R)
+    return c, lo, c[1]
+
+
+# The thrusters must sit exactly on the equator (z = 0), for navigation.
+OUT_Z = 0.0
+OUT_THRUST_RIB = skin_ribs().index(0.0)
 
 
 def node(p1, theta, ovals):
-    """Diamond window in a junction of ovals, on rib p1 at azimuth theta.
-
-    Its corners point along the two ribs. It is sized so that a full RIB
-    width of skin stays between it and every oval around it (`ovals`: the
-    outlines nearby, including the neighbouring slice's across a seam).
-    """
+    """Diamond window in a junction of skin ovals, on ring rib p1 at azimuth theta."""
     x, z = skin_point(p1, T / 2)
     radial = cq.Vector(math.cos(theta), math.sin(theta), 0)
     origin = radial * x + cq.Vector(0, 0, z)
     n = (radial * (B * math.cos(p1)) + cq.Vector(0, 0, A * math.sin(p1))).normalized()
     u = cq.Vector(-math.sin(theta), math.cos(theta), 0)
+    return diamond(origin, n, u, ovals, depth=4)
+
+
+def diamond(origin, n, u, ovals, depth):
+    """Diamond window at a junction of ovals (skin or deck).
+
+    Its corners point along the two ribs. It is sized so that a full RIB
+    width stays between it and every oval around it (`ovals`: the outlines
+    nearby, including the neighbouring slice's across a seam).
+    """
     v = n.cross(u)
     pts = []
     for ring in ovals:                                   # oval outlines (3D points on the skin)
@@ -232,7 +278,7 @@ def node(p1, theta, ovals):
         return s_
 
     ry, rz = min(reach(1, 0), reach(-1, 0)), min(reach(0, 1), reach(0, -1))
-    if min(ry, rz) < 2.0:
+    if min(ry, rz) < 1.0:                                # every junction big enough is hollow
         return None
     k = 1.0
     while k > 0.2:                                       # shrink until every edge clears
@@ -242,9 +288,9 @@ def node(p1, theta, ovals):
         if all(clear(py, pz) for py, pz in edge):
             break
         k -= 0.05
-    sk = cq.Sketch().polygon(corners + corners[:1]).vertices().fillet(min(1.5, rz * k / 3))
+    sk = cq.Sketch().polygon(corners + corners[:1]).vertices().fillet(min(1.5, min(ry, rz) * k / 3))
     return (cq.Workplane(cq.Plane(origin=origin, xDir=u, normal=n))
-              .placeSketch(sk).extrude(4, both=True).val())
+              .placeSketch(sk).extrude(depth, both=True).val())
 
 
 def lens(p0, p1, side, grow=0.0):
@@ -303,43 +349,51 @@ def joints():
     edge = T + HOLE_D / 2 + 1.0                     # hole centre depth under skin
     r_shaft = SHAFT_R + T + HOLE_D / 2 + 0.6        # boss on the outside of the shaft
     ribs = skin_ribs()
-    return [(r_shaft, 97.0),                        # shaft top
-            (96.3, 88.0),                           # trough lip
-            (r_shaft, -37.0),                       # shaft / main deck
+    return [(r_shaft, intake()[2] - 4.0),           # shaft top, under the bellmouth
+            skin_point(ribs[-3], edge),             # upper skin, on a ring rib
+            (r_shaft, -37.0),                       # shaft, mid-height
             (r_shaft, -66.5),                       # shaft / floor
             skin_point(-math.acos(r_shaft / A), edge)]  # keel, near the axis
 
 
 # ---- body ------------------------------------------------------------------
 def frame():
-    top_psi = math.asin(SKIN_TOP / B)
-    skin = wedge_edges(arc(A, B, -math.pi / 2, top_psi),
-                       arc(A - T, B - T, math.asin(SKIN_TOP / (B - T)), -math.pi / 2))
-    lip = wedge([(LIP_R, SHELF_Z), (LIP_R + T, SHELF_Z),
-                 (LIP_R + T, SKIN_TOP), (LIP_R, LIP_TOP)])
-    rim_top = B * math.sqrt(1 - ((RIM_R + T) / A) ** 2)   # stays inside the hull
-    shaft = wedge([(SHAFT_R, FLOOR_Z), (SHAFT_R + T, FLOOR_Z),
-                   (SHAFT_R + T, rim_top), (SHAFT_R, rim_top)])
-    rim = wedge([(RIM_R, SHELF_Z), (RIM_R + T, SHELF_Z), (RIM_R + T, rim_top),
-                 (SHAFT_R, rim_top), (SHAFT_R, rim_top - T), (RIM_R, rim_top - T)])
-
-    def deck(z, r1):
-        return wedge([(SHAFT_R, z), (r1, z), (r1, z + T), (SHAFT_R, z + T)])
-
-    inner = lambda z: hull_r(z, A - T / 2, B - T / 2)
-    ledge = wedge([(SHAFT_R - LEDGE_W, LEDGE_Z - 2), (SHAFT_R + T / 2, LEDGE_Z - 2),
-                   (SHAFT_R + T / 2, LEDGE_Z), (SHAFT_R - LEDGE_W, LEDGE_Z)])
-    body = skin.fuse(lip, shaft, rim, ledge, deck(SHELF_Z, LIP_R + T),
-                     deck(FLOOR_Z, inner(FLOOR_Z)), deck(DECK2_Z, inner(DECK2_Z)),
-                     deck(DECK_Z, inner(DECK_Z)))
+    # skin and shaft are one wall: the skin arc rolls over a bellmouth into the shaft
+    (cr, cz), p_top, _ = intake()
+    o_top = skin_point(p_top, 0.0)
+    def roll(r):                                    # bellmouth arc at radius r
+        a0 = math.atan2(o_top[1] - cz, o_top[0] - cr)
+        pts = [cq.Vector(cr + r * math.cos(a0 + (math.pi - a0) * t), 0,
+                         cz + r * math.sin(a0 + (math.pi - a0) * t)) for t in (0, .5, 1)]
+        return cq.Edge.makeThreePointArc(*pts)
+    ri = INTAKE_R - T
+    q = roll(ri).startPoint()
+    p_in = math.atan2(q.z / (B - T), q.x / (A - T))  # the inner skin, where it meets the inner roll
+    wall = wedge_edges(arc(A, B, -math.pi / 2, p_top), roll(INTAKE_R),
+                       (SHAFT_R, FLOOR_Z), (SHAFT_R + T, FLOOR_Z),
+                       cq.Edge(roll(ri).wrapped.Reversed()),
+                       arc(A - T, B - T, p_in, -math.pi / 2))
+    zs = -(B - T) * math.sqrt(1 - ((SOCKET_R + T) / (A - T)) ** 2)   # keel inside, at the socket
+    socket = wedge([(SOCKET_R, zs - 1), (SOCKET_R + T, zs - 1),
+                    (SOCKET_R + T, zs + SOCKET_H), (SOCKET_R, zs + SOCKET_H)]).intersect(
+        wedge_edges(arc(A - T / 2, B - T / 2, -math.pi / 2, math.pi / 2)))
+    body = wall.fuse(socket, plenum_ceiling())
     return body.clean()
 
 
-def ellipse_arc(p0, p1, n=200):
-    """Length of the outer skin between two ellipse angles."""
-    h = (p1 - p0) / n
-    return sum(math.hypot(A * math.sin(p0 + (i + .5) * h), B * math.cos(p0 + (i + .5) * h))
-               for i in range(n)) * h
+def plenum_ceiling():
+    """The fan chamber's ceiling: flat at FLOOR_Z out to PLENUM_FLAT_R, then
+    sloping down to meet the keel at PLENUM_KEEL_R."""
+    zk = -(B - T) * math.sqrt(1 - (PLENUM_KEEL_R / (A - T)) ** 2)
+    d = (PLENUM_KEEL_R - PLENUM_FLAT_R, zk - FLOOR_Z)
+    L = math.hypot(*d)
+    d = (d[0] / L, d[1] / L)
+    nrm = (-d[1], d[0])                               # upper side of the slope
+    ext = (PLENUM_KEEL_R + d[0] * 1.5, zk + d[1] * 1.5)   # into the skin
+    kink = PLENUM_FLAT_R + T * math.tan(math.atan2(-d[1], d[0]) / 2)
+    pts = [(SHAFT_R, FLOOR_Z), (PLENUM_FLAT_R, FLOOR_Z), ext,
+           (ext[0] + nrm[0] * T, ext[1] + nrm[1] * T), (kink, FLOOR_Z + T), (SHAFT_R, FLOOR_Z + T)]
+    return wedge(pts).intersect(wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)))
 
 
 def roofed(cell, origin, normal):
@@ -369,12 +423,11 @@ def roofed(cell, origin, normal):
 
 
 def windows():
-    """The 125 lattice, regularised: round-cornered windows, pointed on top.
+    """The lattice: two columns of ovals with hollow diamond junctions.
 
-    The two rows between the floor and the main deck are full-width slots;
-    above them each row has two windows either side of a centre rib, as in
-    125. The decks and the trough shelf get the same treatment. The shaft,
-    floor and keel stay solid: they are the fan duct and plenum.
+    It covers the whole skin from just outside the fan housing up to the
+    intake bellmouth. The shaft, the housing ceiling and the keel under it
+    stay solid: they are the intake and the plenum.
     """
     halves, whole = [column(-1), column(+1)], column(0)
     cut = []
@@ -390,13 +443,10 @@ def windows():
              p1 - (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1)))]
         return wedge([a0, a1, b1, b0])
 
-    # one more row of ovals in the skin between the trough shelf and the top edge,
-    # leaving a full rib along the edge
-    top = math.asin(SKIN_TOP / B)
-    rows = skin_ribs() + [top - (RIB / 2) / math.hypot(A * math.sin(top), B * math.cos(top))]
+    rows = skin_ribs()
     wide = lambda p0, p1: B * math.sin((p0 + p1) / 2) > WIDE_FROM_Z
     sides = {k: ([0] if wide(p0, p1) else [-1, 1])
-             for k, (p0, p1) in enumerate(zip(rows, rows[1:])) if k >= 3}
+             for k, (p0, p1) in enumerate(zip(rows, rows[1:]))}
     ovals = {k: [oval_outline(rows[k], rows[k + 1], sd)[0] for sd in sides[k]] for k in sides}
 
     def turn(rings, deg):
@@ -415,36 +465,6 @@ def windows():
                 if d is not None:
                     # seam diamonds stop RIB/2 short of the seam: the side edge stays continuous
                     cut.append(d if th == 0.0 else d.intersect(whole))
-    for k, (p0, p1) in enumerate(zip(rows, rows[1:])):
-        if k >= 3:
-            continue
-        cols = [(whole, 0.4)] if k < 2 else [(halves[0], -0.5), (halves[1], 0.5)]
-        pm = (p0 + p1) / 2
-        x, z = skin_point(pm, T / 2)
-        for col, frac in cols:
-            th = math.radians(HALF) * (frac + 0.3)       # roof frame in the upper part
-            o = radial(th) * x + cq.Vector(0, 0, z)
-            nrm = radial(th) * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))
-            cut.append(roofed(band(p0, p1).intersect(col), o, nrm))
-
-    # the trough's inner rim wall (not the air shaft): one window per column
-    rim_top = B * math.sqrt(1 - ((RIM_R + T) / A) ** 2)
-    band_ = wedge([(RIM_R - 1, SHELF_Z + T + RIB / 2), (RIM_R + T + 1, SHELF_Z + T + RIB / 2),
-                   (RIM_R + T + 1, rim_top - T - RIB / 2), (RIM_R - 1, rim_top - T - RIB / 2)])
-    cut += [band_.intersect(c) for c in halves]
-
-    # decks and the trough shelf: ring bands, two columns
-    for z, rings in DECK_RINGS.items():
-        z = SHELF_Z if z is None else z
-        r_out = LIP_R if z == SHELF_Z else hull_r(z) - 1.5
-        radii = [SHAFT_R + T if z != SHELF_Z else RIM_R + T] + rings + [r_out]
-        for r0, r1 in zip(radii, radii[1:]):
-            ring = wedge([(r0 + RIB / 2, z - 1), (r1 - RIB / 2, z - 1),
-                          (r1 - RIB / 2, z + T + 1), (r0 + RIB / 2, z + T + 1)])
-            for col, frac in ((halves[0], -0.5), (halves[1], 0.5)):
-                th = math.radians(HALF) * (frac + 0.3)
-                o = radial(th) * ((r0 + r1) / 2) + cq.Vector(0, 0, z)
-                cut.append(roofed(ring.intersect(col), o, cq.Vector(0, 0, 1)))
     keep = outlet_keepout()
     out = []
     for c in cut:
@@ -513,13 +533,21 @@ def duct_solids():
             [cq.Edge.makeLine(start, pts[0]), cq.Edge.makeSpline(pts)]), True, False)
         return body.fuse(cq.Solid.makeSphere(r, pts[-1], angleDegrees1=-90, angleDegrees2=90))
 
-    outer = tube(DUCT_BORE / 2 + DUCT_W)
-    bore = tube(DUCT_BORE / 2, extra=3.0)           # open mouth into the plenum
+    # the end swells into a bulb (bore DUCT_BULB) so the wide stem and its
+    # flange fit; the bulb's centre moves inward so it stays inside the skin
+    p1 = math.asin(OUT_Z / B)
+    n_end = cq.Vector(B * math.cos(p1), 0, A * math.sin(p1)).normalized()
+    centre = pts[-1] - n_end * (DUCT_BULB / 2 - DUCT_BORE / 2)
+    # (the tube's rounded end sits inside the bulb, so a plain sphere joins them)
+    inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
+    outer = tube(DUCT_BORE / 2 + DUCT_W).fuse(
+        cq.Solid.makeSphere(DUCT_BULB / 2 + DUCT_W, centre, angleDegrees1=-90, angleDegrees2=90))
+    bore = tube(DUCT_BORE / 2, extra=3.0).fuse(
+        cq.Solid.makeSphere(DUCT_BULB / 2, centre, angleDegrees1=-90, angleDegrees2=90))
     # stem bearing boss behind the hole, filled up to the skin
     x_s = hull_r(OUT_Z)
     boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
                                  cq.Vector(1, 0, 0))
-    inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
     walls = outer.fuse(boss.intersect(inside))
     return walls, bore
 

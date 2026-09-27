@@ -50,7 +50,11 @@ MOTORS = {
     "A2212 1000KV, 3S": dict(kv=1000, volts=11.1, amps=15.0, grams=50),
     "A2212 1000KV, 4S": dict(kv=1000, volts=14.8, amps=15.0, grams=50),
     "A2212 1400KV, 3S": dict(kv=1400, volts=11.1, amps=18.0, grams=50),
+    "2207 1750KV, 4S": dict(kv=1750, volts=14.8, amps=25.0, grams=32),
+    "2207 2400KV, 4S": dict(kv=2400, volts=14.8, amps=35.0, grams=32),
 }
+V0 = dict(slot=0.8, stem=13.0, eye=22.0, b2=9.0, motor="A2212 1000KV, 3S")   # the first design
+TIP_MAX = 75.0                    # m/s: rim speed limit for a printed (PETG) impeller
 
 # ---- geometry from the CAD model --------------------------------------------
 path = hull.duct_path()
@@ -159,7 +163,7 @@ def report():
     w(f"- Air: ρ = {RHO} kg/m³ (20 °C, sea level).")
     w(f"- **Ducts:** 8 × Ø{DUCT_D*1000:.0f} mm, {DUCT_L*1000:.0f} mm long, with the mouth at r = {DUCT_MOUTH_R*1000:.0f} mm on the keel.")
     w(f"- **Stem bore:** Ø{prop.STEM_ID:.0f} mm.")
-    w(f"- **Air-multiplier slot:** at a radius of {SLOT_R*1000:.0f} mm, currently {prop.SLOT} mm wide.")
+    w(f"- **Air-multiplier slot:** at a radius of {SLOT_R*1000:.0f} mm, {prop.SLOT} mm wide in rev E.")
     w(f"- **Impeller:** Ø{D2*1000:.0f} mm, eye (blade inlet) radius {prop.IMP_R1:.0f} mm, blade height {prop.IMP_B1:.0f}→{prop.IMP_B2:.0f} mm.")
     w(f"- **Coefficients (the main uncertainties):**")
     w(f"  - slot C_d = {CD}, C_v = {CV}")
@@ -190,11 +194,11 @@ def report():
     w("- **Fast jets:** above 40 m/s the jet power alone is over 100 W, before any losses. With fan and motor efficiency, the motor would need more than 400 W.")
     w("- **So the bench demo's job is to show controlled, vectored thrust, not to hover.**\n")
 
-    w("## 2. The current v0 design (0.8 mm slot, Ø13 stem)\n")
+    w("## 2. The first design, v0 (0.8 mm slot, Ø13 stem)\n")
     rows = []
-    for name, m in MOTORS.items():
+    for name, m in list(MOTORS.items())[:2]:
         p_shaft, rpm_max = motor_limits(m)
-        r = solve_motor(m, prop.SLOT / 1000, prop.STEM_ID / 1000)
+        r = solve_motor(m, V0["slot"] / 1000, V0["stem"] / 1000)
         f = fan_for(r["dp"], r["q"])
         rows.append((name, p_shaft, r, f, rpm_max))
     w("| Motor | Limited by | Shaft W used | Flow L/s | Plenum pressure Pa | Jet m/s | Stem m/s | Thrust N (gf) | Fan rpm |")
@@ -213,7 +217,7 @@ def report():
     w("**Findings:**")
     w("1. **Fan speed, not motor power, is the limit.** On an 88 mm open impeller, the A2212's loaded speed caps the plenum pressure (about 600 Pa on 3S, about 1,070 Pa on 4S) before the motor reaches its power.")
     w("2. **The 0.8 mm slot makes a small, fast jet** that spends its power on speed rather than on moving air.")
-    w(f"3. **The Ø{prop.STEM_ID:.0f} mm stem is a choke:** air in it moves about as fast as in the slot, so it throws away a similar amount of pressure.")
+    w(f"3. **The Ø{V0['stem']:.0f} mm stem is a choke:** air in it moves about as fast as in the slot, so it throws away a similar amount of pressure.")
     w("")
 
     # ---- design sweep -------------------------------------------------------
@@ -224,32 +228,37 @@ def report():
     best = None
     for name, m in MOTORS.items():
         for slot in (0.8, 1.2, 1.6, 2.0, 2.5):
-            for stem in (13, 18, 22):
+            for stem in (18, 22):
                 r = solve_motor(m, slot / 1000, stem / 1000)
                 f = fan_for(r["dp"], r["q"])
-                ok = f["eye_r"] * 1000 <= prop.IMP_R2 - 10 and f["b2"] * 1000 <= 20
+                ok = (f["eye_r"] * 1000 <= prop.IMP_R2 - 10 and f["b2"] * 1000 <= 20
+                      and f["u2"] <= TIP_MAX)
                 w(f"| {name} | {slot} | {stem} | {r['limit']} | {r['q']*1000:.0f} | {r['dp']:.0f} | {r['v_j']:.0f} | "
-                  f"{r['thrust']:.2f} ({r['thrust']/9.81e-3:.0f}) | {f['rpm']:.0f} | "
+                  f"{r['thrust']:.2f} ({r['thrust']/9.81e-3:.0f}) | {f['rpm']:.0f}{'' if f['u2'] <= TIP_MAX else ' ✗'} | "
                   f"{f['eye_r']*1000:.0f}{'' if f['eye_r']*1000 <= prop.IMP_R2 - 10 else ' ✗'} | "
                   f"{f['b2']*1000:.0f}{'' if f['b2']*1000 <= 20 else ' ✗'} |")
                 if ok and (best is None or r["thrust"] > best[0]["thrust"] + 1e-3):
                     best = (r, f, slot, stem, name)
-    w("\n✗ = doesn't fit: the impeller eye must stay 10 mm inside the 44 mm rim, and the exit width is limited to 20 mm by the plenum height over the impeller.\n")
+    w(f"\n✗ = doesn't fit or isn't safe:")
+    w(f"- the impeller eye must stay 10 mm inside the 44 mm rim")
+    w(f"- the exit width is limited to 20 mm by the plenum height over the impeller")
+    w(f"- the rim speed must stay ≤ {TIP_MAX:.0f} m/s for a printed impeller (PETG). The 2207 2400KV would make more thrust, but only above that speed.\n")
 
     r, f, slot, stem, mname = best
     m = MOTORS[mname]
     w("## 4. Recommended design point\n")
     w(f"The best feasible combination in the sweep: **{mname}**.\n")
-    w(f"| | Now (v0) | Recommended |")
+    w(f"| | v0 | Recommended (built into rev E) |")
     w(f"|---|---|---|")
-    w(f"| Air-multiplier slot | {prop.SLOT} mm | **{slot} mm** |")
-    w(f"| Stem bore | Ø{prop.STEM_ID:.0f} mm | **Ø{stem} mm** (stem hole in the hull grows to Ø{stem + 3.4:.0f}) |")
+    w(f"| Air-multiplier slot | {V0['slot']} mm | **{slot} mm** |")
+    w(f"| Stem bore | Ø{V0['stem']:.0f} mm | **Ø{stem} mm** (stem hole in the hull grows to Ø{stem + 3.4:.0f}) |")
     w(f"| Duct bore | Ø{DUCT_D*1000:.0f} mm | Ø{DUCT_D*1000:.0f} mm along its length (duct speed {r['v_d']:.0f} m/s: friction is negligible), "
       f"**flared to about Ø{stem + 10} mm over its last 25 mm** so the wider stem enters it cleanly |")
-    w(f"| Impeller eye radius | {prop.IMP_R1:.0f} mm | **{math.ceil(f['eye_r']*1000):.0f} mm** (inlet speed ≤ {C_EYE_MAX:.0f} m/s) |")
-    w(f"| Impeller exit width b2 | {prop.IMP_B2:.0f} mm | **{math.ceil(f['b2']*1000):.0f} mm** |")
-    w(f"| Motor / battery | A2212 1000KV, 3S | **{mname}** |")
-    w(f"| Fan speed | — | **{f['rpm']:.0f} rpm** (tip speed {f['u2']:.0f} m/s); motor shaft power used {r['p_shaft_used']:.0f} W |")
+    w(f"| Impeller eye radius | {V0['eye']:.0f} mm | **{math.ceil(f['eye_r']*1000):.0f} mm** (inlet speed ≤ {C_EYE_MAX:.0f} m/s) |")
+    w(f"| Impeller exit width b2 | {V0['b2']:.0f} mm | **{math.ceil(f['b2']*1000):.0f} mm** |")
+    w(f"| Motor / battery | {V0['motor']} | **{mname}** |")
+    w(f"| Fan speed | — | **{f['rpm']:.0f} rpm** (tip speed {f['u2']:.0f} m/s); motor shaft power used {r['p_shaft_used']:.0f} W, "
+      f"about {r['p_shaft_used']/ETA_MOTOR/m['volts']:.0f} A at {m['volts']} V |")
     w(f"| Airflow | — | {r['q']*1000:.0f} L/s total, {r['q']*1000/N_THR:.1f} L/s per thruster |")
     w(f"| Plenum pressure | — | {r['dp']:.0f} Pa |")
     w(f"| Jet speed | — | {r['v_j']:.0f} m/s |")
@@ -268,10 +277,9 @@ def report():
         w(f"| {rr:.0f} | {q / (2 * math.pi * rr / 1000 * C_PLENUM_MAX) * 1000:.0f} |")
     w("")
     w(f"- **Impeller height:** the recommended impeller is about {math.ceil(f['b2']*1000)+2:.0f} mm tall at the rim, so the chamber needs about that height over the impeller (r ≤ {prop.IMP_R2:.0f} mm). The current floor at z = −70 above a keel at about −101 gives 31 mm there. That's enough, so **the floor can't come down much over the impeller**.")
-    w(f"- **Outer plenum:** beyond the duct mouths (r > {DUCT_MOUTH_R*1000 + 12:.0f} mm) the plenum is dead volume. Its ceiling can slope down to meet the keel just outside the duct mouths, at about 20 mm height near r = {DUCT_MOUTH_R*1000:.0f} mm and zero beyond r ≈ {DUCT_MOUTH_R*1000 + 15:.0f} mm.")
-    w("  - The keel skin outside that radius then no longer has to be airtight and can get lightening windows.")
-    w("  - The floor shrinks to a sloped ring with lightening windows beyond the plenum.")
-    w("  - That's the weight saving to build into the model: roughly 5 g per slice.\n")
+    w(f"- **As built (rev E):** the ceiling is flat out to r = {hull.PLENUM_FLAT_R:.0f} mm, then slopes down to the keel at r = {hull.PLENUM_KEEL_R:.0f} mm. The duct mouths sit at r ≈ {DUCT_MOUTH_R*1000:.0f} mm, just outside the impeller tip.")
+    w("  - The keel is solid only under this housing. Outside it the skin is the oval/diamond lattice; the ducts carry the air from there, and their own walls keep it airtight.")
+    w("  - The intake mouth at the top is a rounded bellmouth (the skin rolls into the shaft over a 12 mm radius), which keeps the entry loss small. The shaft has no ledge or spider in it: the motor stands on a pedestal on the keel.\n")
 
     w("## 6. What to measure on the bench\n")
     w("1. **Fan curve:** plenum pressure (MPXV7002DP) and motor power (INA226) against throttle, with the thrusters blanked off and then open.")

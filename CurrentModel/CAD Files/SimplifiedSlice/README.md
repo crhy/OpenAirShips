@@ -1,66 +1,64 @@
-# Airship pie slice 926, rev D: the 125 design, cleaned up, with an oval upper lattice
+# Airship pie slice 926, rev E: bench model, lattice everywhere except the air path
 
 One 45° slice of the hull. Eight identical copies plug together into the full ship.
-It follows `../airship pie slice 125.FCStd` closely, rebuilt as clean parametric geometry.
+It keeps the outline of `../airship pie slice 125.FCStd` (the 207.765 × 104 mm ellipse), rebuilt as clean parametric geometry and cut down for the bench demo.
+See [../../DESIGN-CONSTRAINTS.md](../../DESIGN-CONSTRAINTS.md) for the fixed rules.
 
 ![slice, outside](slice_front.png)
 ![slice](slice.png)
 ![slice, inside](slice_inside.png)
+![slice from below](slice_below.png)
 ![8 slices assembled](assembly.png)
 
-## Kept from 125
-- **Hull:** the ellipse (207.765 × 104 mm), and the top trough with its outer lip and **rolled double-wall rim** around the top opening.
-- **Central shaft and three decks:** the floor at z = −70, the lower deck at −55 and the main deck at −40, with the solid keel below the floor.
-- **Lower skin:** two full-width slots between the floor and the main deck, as in 125.
-- **Deck windows:** two columns, with ring ribs every 24 mm as in 125. The trough shelf has 2 × 2 windows.
-
-## Changed
-- **Upper lattice (rev D), built for minimum weight:**
-  - Above the main deck, **two side columns of full ovals** either side of a centre rib, all the way up to the trough. The bottom row is a rounded rectangle. A last row of ovals fills the skin between the trough and the top edge.
-  - **All ribs are 2.0 mm wide.** Each slice's side edge is a continuous 1 mm strip, broken only by the stem hole. The two slices' strips glue into one full rib.
-  - **Every junction is hollow:** a large diamond window where four ovals meet on the centre rib. On the seams, each slice has a triangular half-diamond that stops at the edge strip.
-  - The trough's inner rim wall has windows, and the trough shelf has one ring of windows.
-  - The ovals taper slightly toward their tips (superellipse, `OVAL_N = 1.8`), which leaves room for the large junction diamonds. That's also the lightest of the shapes tried.
-  - Printed lying on the seam, oval tips and diamond corners point up, so every rib is carried by sloping edges rather than bridges.
-- **Smooth outside:**
-  - The 125 thrust pipes bulged out through the hull. They're now Ø24 mm ducts that run entirely inside the skin, along the same route: a mouth on the keel in the plenum, up the side, to the equator. Each duct is split by the seam, so two slices close it.
-  - The only openings besides the windows are the stem hole on each seam (Ø16.4 mm, backed by a thin 1.3 mm bearing sleeve inside the duct) and an Ø8 mm hole for the servo gear hub.
-  - The lattice runs straight over the ducts: their own walls keep them airtight. Solid skin is kept only as small collars around the stem and servo holes.
-  - The thruster axis sits on the ring rib just below the equator (z ≈ −18 mm), so the stem-hole and servo-hole collars are part of that rib.
-  - Nothing sticks out except the joint pegs, which plug into the neighbouring slice.
-- **Airtight air path:** the shaft, floor, keel and duct walls are solid. **The central shaft must stay solid over its whole height, not just below the fan:** the intake draws air over the hull top and down the shaft, and that Coanda flow over the craft depends on an unbroken shaft wall. Don't add windows to it to save weight. The check covers the duct walls too: their only openings are the stem holes. (Rev D also fixes a leak in revB/C, where the stem hole was drilled through the back wall of the duct.)
-- **Motor ledge:** a 2 mm ledge inside the shaft at z = −46 carries the motor spider (see `../Propulsion`).
-- **Walls:** 0.86 mm everywhere, including the duct, keel, floor and shaft. That's 2 perimeters of 0.45 mm at 0.2 mm layers, the minimum that prints reliably airtight; a single 0.45 mm perimeter leaks and splits between layers. 125's 0.625 mm is below two perimeters. The ribs are narrow (2.0 mm) but keep that 2-perimeter thickness.
-- **Joints:** 5 bosses along each seam (shaft top, trough lip, shaft/main deck, shaft/floor, keel), all at the same (r, z) positions. The skin needs none: its seam ribs and the duct walls glue together along their whole length.
+## What's in a slice
+- **Skin:** a smooth ellipsoid outside. The skin runs in one arc from the keel up over the top and **rolls into the intake shaft over a 12 mm bellmouth**. There's no trough, shelf or lip any more.
+- **Intake shaft:** a plain 0.86 mm tube (Ø94.75 mm bore) from the bellmouth down to the fan housing. **Nothing is inside it:** no ledge, no spider, no windows. It must stay solid and smooth for the craft's Coanda intake flow.
+- **Fan housing (plenum):** the only floor. It is flat at z = −70 out to r = 66 mm, then slopes down to meet the keel at r = 80 mm. It holds the impeller (r 44) and the 8 duct mouths (r ≈ 58–60). **The keel is solid only under this housing.**
+- **Motor socket:** a 3 mm ring on the keel at the axis. The printed motor pedestal glues into it (see `../Propulsion`).
+- **Ducts:** 8 × Ø24 mm, run *inside* the skin from their mouths in the fan housing up to the equator. Each is split by the seam plane, so two slices close it. They end in a Ø32 bulb behind the stem hole (Ø25.4) and its bearing sleeve. Their own 0.86 mm walls keep them airtight; the lattice runs straight over them.
+- **Lattice:** everything else is structure only.
+  - Two columns of large oval cells, with 2.0 mm ribs.
+  - Three rows over the keel outside the fan housing, three from there to the equator and six above it (equal arc lengths).
+  - A **ring rib on the equator (z = 0)** carries the thruster stem and servo holes. Thrusters stay exactly on the equator, for navigation.
+  - **Every junction is a hollow diamond.** On the seams each slice has a hollow half-diamond that stops at a continuous 1 mm edge strip, so the two slices' strips glue into one full rib.
+- **No decks.** The main and lower decks are gone in this bench model.
+- **Joints:** 5 bosses along each seam (shaft under the bellmouth, upper skin, shaft mid-height, shaft at the floor, keel), all at the same (r, z) positions.
   - The +22.5° seam has Ø3 × 3.6 mm pegs; the −22.5° seam has Ø3.3 × 4.2 mm holes.
   - Both have 0.4 mm chamfers, giving 0.15 mm clearance per side.
 
-Checked:
+## Checked
 - The part is a single valid solid.
+- Only the 5 pegs stick out of the hull.
 - A slice rotated 45° overlaps its neighbour by 0 mm³.
-- The keel skin has no openings.
+- The keel under the fan housing, the housing ceiling and the shaft wall are complete. Their only openings are where the ducts leave the housing.
+- The duct walls' only openings are the stem holes.
+- No material sits inside the shaft bore.
 - The STL is watertight.
-- `../Propulsion/check_fit.py` passes.
+- `../Propulsion/check_fit.py` passes: the impeller, motor, pedestal, prop nut, stems, servos, gears and rings at −90…+90°.
+
+## Weight and volume
+- **Printed slice:** about 32.5 cm³, about 40 g of PLA per slice and **about 325 g for the hull**. Rev D was 48 g per slice.
+- **Free interior space** (inside the skin, outside the shaft, fan housing and ducts): about **2.0 L per slice, 16 L for the ship**.
+  - Filled with hydrogen, that lifts about 2.2 g per slice, about 18 g for the ship.
+  - It's there for ballonet experiments; it won't float the bench model.
 
 ## Printing (Prusa MK3S+, PrusaSlicer, PLA)
-- **File:** `Print Files/PieSlice926clauderevD.stl`. It is already laid flat on the −22.5° (hole) seam.
-  - Footprint: 208 × 205 mm; long side along X.
-  - Height: 147 mm.
-  - Revs A–C are kept alongside it for comparison. RevB and revC have the duct leak described above, so don't print them.
+- **File:** `Print Files/PieSlice926clauderevE.stl`. It is already laid flat on the −22.5° (hole) seam.
+  - Footprint: about 207 × 204 mm.
+  - Height: 146 mm.
+  - Revs A–D are kept for comparison. RevB and revC have a duct leak, so don't print them.
 - **Walls:** 0.20 mm QUALITY profile with 2 perimeters. Don't let "detect thin walls" change them.
 - **Overhangs:**
   - The skin never overhangs more than 45°.
-  - The ovals' tops are small round arches. The two lower rows of slots, and the row of rounded rectangles above the main deck, bridge about 17–25 mm.
+  - Printed on the seam, oval tips and diamond corners point up, so the ribs are carried by sloping edges rather than bridges.
 - **Supports:** use supports **on build plate only**, and paint them inside the duct arch lying on the bed. Nothing else needs support.
 - **Brim:** add a 3 mm brim.
-- **Weight:** about 39 cm³, about 48 g of PLA per slice and 390 g for the ship.
-  - The airtight air path is most of it: duct walls about 10 cm³, keel skin 8, floor 6 and shaft 5.5, all at the 0.86 mm minimum.
-  - The decks are about 1–1.4 cm³ each.
+- **Airtight seams:** when assembling, epoxy the seams of the shaft, the fan-housing ceiling, the keel under it, and the ducts.
 
 ## Files
 - `airship pie slice 926.FCStd`: FreeCAD document. It contains the part as the base feature of a PartDesign Body, plus a parameter spreadsheet.
 - `airship pie slice 926.step`: the same part as STEP.
-- `airship_slice.py`: the parametric source (CadQuery). The lattice, decks, ducts and joints are all set at the top of the file.
+- `airship_slice.py`: the parametric source (CadQuery). The lattice, housing, ducts and joints are all set at the top of the file.
 - `make_fcstd.py`: builds the FCStd and the print STL.
 
 To regenerate: `pip install cadquery && python3 airship_slice.py && freecadcmd make_fcstd.py`
