@@ -1,4 +1,4 @@
-"""Airship pie slice (1 of 8), rev C: the 125 design, rebuilt cleanly.
+"""Airship pie slice (1 of 8), rev D: the 125 design, rebuilt cleanly.
 
 The hull is an ellipse A x B revolved about Z and cut into 8 identical
 45-degree slices. Each slice carries pegs on its +22.5 deg seam and matching
@@ -13,13 +13,14 @@ ellipsoid. Its only openings are the round stem and servo holes at each
 outlet, plus the lightening windows. Everything is built from the parameters
 below, laid out like 125: the skin, the central shaft with its rolled top
 rim, the floor, the lower and main decks, and the top trough. Each is a
-single thin wall. The skin, the two decks and the trough shelf carry 125's
-lattice of round-cornered windows, with a sparser lattice up top.
+single thin wall. The skin carries two columns of large ovals above the
+main deck, with hollow diamond junctions, and 125's slots below it. The
+decks and the trough shelf carry 125's window grids.
 
 Run: pip install cadquery && python3 airship_slice.py
      -> "airship pie slice 926.step"
      then: freecadcmd make_fcstd.py
-     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevC.stl laid
+     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevD.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
 """
 import math
@@ -46,12 +47,13 @@ SKIN_TOP = 92.37           # skin ends where it meets the lip
 
 RIB = 4.0                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
-# Skin lattice, laid out like 125: two full-width slots between the floor and
-# the main deck, then two columns of windows (split by a centre rib) in
-# MID_ROWS rows up to Z_UPPER, and UPPER_ROWS larger rows up to the trough.
-Z_UPPER = 38.0
-MID_ROWS = 3
-UPPER_ROWS = 2             # 125 had 4 smaller rows here: bigger, sparser windows up top
+# Skin lattice: two full-width slots between the floor and the main deck, as
+# in 125. Above the main deck, UPPER_ROWS rows of two side columns (split by a
+# centre rib): the bottom row is a rounded rectangle, the rest are ovals that
+# fill their cells. Where four ovals meet, the junction gets its own small
+# diamond window. Printed lying on the seam, each oval's top is a small round
+# arch (radius ~9 mm), which prints without supports.
+UPPER_ROWS = 6
 DECK_RINGS = {DECK_Z: [72.0, 96.0, 120.0, 144.0, 168.0],   # every 24 mm, as in 125
               DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: [72.0]}  # None = shelf
 ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None = plain
@@ -184,10 +186,84 @@ def seam_axis(r, z, phi):
 def skin_ribs():
     """Ellipse angles of the skin's ring ribs, bottom to top."""
     psi = lambda z: math.asin(z / B)
-    lo, mid, top = psi(DECK_Z + T / 2), psi(Z_UPPER), psi(SHELF_Z + T / 2)
+    lo, top = psi(DECK_Z + T / 2), psi(SHELF_Z + T / 2)
     return ([psi(FLOOR_Z + T / 2), psi(DECK2_Z + T / 2)]
-            + [lo + (mid - lo) * i / MID_ROWS for i in range(MID_ROWS)]
-            + [mid + (top - mid) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
+            + [lo + (top - lo) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
+
+
+def node(p0, p1, p2):
+    """Diamond window in the junction of four ovals, on the centre rib at p1.
+
+    Its corners point along the two ribs. It is sized so that a full RIB
+    width of skin stays between it and each of the four ovals around it.
+    """
+    x, z = skin_point(p1, T / 2)
+    origin = cq.Vector(x, 0, z)
+    n = cq.Vector(B * math.cos(p1), 0, A * math.sin(p1)).normalized()
+    u = cq.Vector(0, 1, 0)
+    v = n.cross(u)
+    # the four ovals' outlines, projected into the junction's tangent plane
+    pts = []
+    for a_, b_ in ((p0, p1), (p1, p2)):
+        for sd in (-1, 1):
+            for e in lens(a_, b_, sd).Edges():
+                for t in [i / 60 for i in range(61)]:
+                    q = e.positionAt(t) - origin
+                    if abs(q.dot(n)) < 1.0:                 # outline on the skin
+                        pts.append((q.dot(u), q.dot(v)))
+
+    def clear(py, pz):
+        return all(math.hypot(py - a_, pz - b_) >= RIB for a_, b_ in pts)
+
+    def reach(dy, dz):
+        s_ = 0.0
+        while clear(dy * (s_ + 0.25), dz * (s_ + 0.25)) and s_ < 60:
+            s_ += 0.25
+        return s_
+
+    ry, rz = min(reach(1, 0), reach(-1, 0)), min(reach(0, 1), reach(0, -1))
+    k = 1.0
+    while k > 0.2:                                       # shrink until every edge clears
+        corners = [(ry * k, 0), (0, rz * k), (-ry * k, 0), (0, -rz * k)]
+        edge = [(c0[0] + (c1[0] - c0[0]) * t / 20, c0[1] + (c1[1] - c0[1]) * t / 20)
+                for c0, c1 in zip(corners, corners[1:] + corners[:1]) for t in range(21)]
+        if all(clear(py, pz) for py, pz in edge):
+            break
+        k -= 0.05
+    sk = cq.Sketch().polygon(corners + corners[:1]).vertices().fillet(min(1.5, rz * k / 3))
+    return (cq.Workplane(cq.Plane(origin=origin, xDir=u, normal=n))
+              .placeSketch(sk).extrude(4, both=True).val())
+
+
+def lens(p0, p1, side, grow=0.0):
+    """Oval (elliptical) window in one side column between ribs p0 and p1.
+
+    It is drawn in the skin's tangent plane at the cell centre and cut
+    through the wall along the normal. Its width spans the column (RIB/2 in
+    from the centre rib and the seam rib) and its height spans the row (RIB/2
+    in from each ring rib).
+    """
+    pm = (p0 + p1) / 2
+    d0 = (RIB / 2) / math.hypot(A * math.sin(p0), B * math.cos(p0))
+    d1 = (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1))
+    x, z = skin_point(pm, T / 2)
+    # column bounds at this radius: centre rib edge and seam rib edge
+    th_in = math.asin((RIB / 2) / x)
+    th_out = math.radians(HALF) - math.asin((RIB / 2) / x)
+    thc = side * (th_in + th_out) / 2
+    width = x * (th_out - th_in)
+    radial = cq.Vector(math.cos(thc), math.sin(thc), 0)
+    origin = radial * x + cq.Vector(0, 0, z)
+    n = (radial * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))).normalized()
+    u = cq.Vector(-math.sin(thc), math.cos(thc), 0)           # along the ring
+    pts = [skin_point(p, T / 2) for p in (p0 + d0, p1 - d1)]
+    v = n.cross(u)
+    vs = [((radial * px + cq.Vector(0, 0, pz)) - origin).dot(v) for px, pz in pts]
+    height, vc = abs(vs[1] - vs[0]), (vs[0] + vs[1]) / 2
+    sk = cq.Sketch().push([(0, vc)]).ellipse(width / 2 + grow, height / 2 + grow)
+    plane = cq.Plane(origin=origin, xDir=u, normal=n)
+    depth = 10 if grow else 4                        # grown copies must out-reach the node box
+    return cq.Workplane(plane).placeSketch(sk).extrude(depth, both=True).val()
 
 
 def joints():
@@ -290,6 +366,11 @@ def windows():
 
     rows = skin_ribs()
     for k, (p0, p1) in enumerate(zip(rows, rows[1:])):
+        if k >= 3:                                   # pointed ovals above the first row
+            cut += [lens(p0, p1, -1), lens(p0, p1, +1)]
+            if k + 1 < len(rows) - 1:                # hollow diamond where four ovals meet
+                cut.append(node(rows[k], rows[k + 1], rows[k + 2]))
+            continue
         cols = [(whole, 0.4)] if k < 2 else [(halves[0], -0.5), (halves[1], 0.5)]
         pm = (p0 + p1) / 2
         x, z = skin_point(pm, T / 2)
@@ -317,22 +398,24 @@ def windows():
         try:
             clipped = c.cut(keep)
             if clipped.Volume() > 0.35 * c.Volume():   # drop slivers; round what stays
-                out.append(rounded(clipped) if clipped.Volume() < c.Volume() - 1 else rounded(c))
+                out.append(rounded(clipped) if clipped.Volume() < c.Volume() - 1 else
+                           (c if c.Faces()[0].geomType() != "PLANE" or len(c.Faces()) < 7
+                            else rounded(c)))
         except ValueError:                  # empty: fully inside the keep-out
             pass
     return out
 
 
 def outlet_keepout():
-    """Skin kept solid over the ducts (both seams) and around the servo."""
-    boxes = []
-    for phi, side in ((-HALF, 1), (HALF, -1)):
-        w = DUCT_BORE / 2 + DUCT_W + 3.0             # duct + 3 mm glue margin
-        duct = cq.Solid.makeBox(140, 2 * w, 82, cq.Vector(90, -w, -80))
-        servo = cq.Solid.makeBox(140, 28, 45, cq.Vector(90, side * SERVO_T - 14, OUT_Z - 17))
-        region = duct.fuse(servo) if side > 0 else duct
-        boxes.append(region.rotate((0, 0, 0), (0, 0, 1), phi))
-    return boxes[0].fuse(boxes[1])
+    """Solid skin only where it must be: a collar round each stem hole (both
+    seams) and round this slice's servo-hub hole. Elsewhere the lattice runs
+    straight over the ducts; their own walls keep them airtight."""
+    ax = cq.Vector(1, 0, 0)
+    stem = cq.Solid.makeCylinder(BOSS_R + 1.5, 60, cq.Vector(170, 0, OUT_Z), ax)
+    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2 + 3.5, 60, cq.Vector(170, SERVO_T, OUT_Z), ax)
+    return (stem.rotate((0, 0, 0), (0, 0, 1), HALF)
+            .fuse(stem.rotate((0, 0, 0), (0, 0, 1), -HALF))
+            .fuse(servo.rotate((0, 0, 0), (0, 0, 1), -HALF)))
 
 
 def joint_parts():
@@ -391,7 +474,8 @@ def duct_solids():
 def stem_and_servo_holes():
     """Stem hole on the seam; servo spline hole SERVO_T along +tangent (outlet frame)."""
     ax = cq.Vector(1, 0, 0)
-    stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 40, cq.Vector(180, 0, OUT_Z), ax)
+    x0 = hull_r(OUT_Z) - BOSS_LEN - 2.0             # stop inside the bore: don't pierce its back wall
+    stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 30, cq.Vector(x0, 0, OUT_Z), ax)
     servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(190, SERVO_T, OUT_Z), ax)
     return stem, servo
 

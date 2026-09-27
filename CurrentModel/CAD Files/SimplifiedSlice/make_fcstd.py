@@ -21,7 +21,7 @@ body.BaseFeature = base
 sheet = doc.addObject("Spreadsheet::Sheet", "Spreadsheet")
 for i, (label, alias, value) in enumerate([
         ("Hull Thickness", "hulthickness", "0.86 mm"),
-        ("Upper Window Rows", "upperrows", "2"),
+        ("Upper Window Rows", "upperrows", "6"),
         ("Hull Radius", "hullradius", "207.765 mm"),
         ("Hull Half Height", "hullhalfheight", "104 mm"),
         ("Rib Width", "rib", "4 mm"),
@@ -45,5 +45,5 @@ pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
 mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=0.02,
                               AngularDeflection=0.1, Relative=False)
-mesh.write(os.path.join(HERE, "..", "..", "Print Files", "PieSlice926clauderevC.stl"))
+mesh.write(os.path.join(HERE, "..", "..", "Print Files", "PieSlice926clauderevD.stl"))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)
