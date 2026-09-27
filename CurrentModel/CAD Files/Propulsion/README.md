@@ -2,6 +2,7 @@
 
 ![thruster](thruster.png)
 ![fan unit](fan_unit.png)
+![impeller](impeller.png)
 ![ship with thrusters](ship_with_thrusters.png)
 
 ## How the air moves
@@ -16,7 +17,7 @@ Print from `print/*.stl`. Each file is already posed for printing: PLA, 0.2 mm l
 
 | Part | Qty | cm³ each | Print notes |
 |---|---|---|---|
-| `impeller` | 1 | 9.7 | Backplate on the bed; no supports. Open (unshrouded) backward-curved rotor, 88 mm, 7 blades. Balance it on a pencil and sand the heavy side. |
+| `impeller` | 1 | 4.8 | Backplate on the bed; no supports. Open (unshrouded) backward-curved rotor, 88 mm, 7 blades. Lightened: 0.8 mm backplate, 0.86 mm blades, and a scalloped rim (the backplate is cut away between the blades beyond a 32 mm radius), about 5.9 g. It is balanced by design; still check it on a pencil. |
 | `motor_spider` | 1 | 8.0 | Flat; no supports. Sits on the 2 mm ledge inside the shaft at z = −46. The A2212 bolts **under** it (4 × M3 × 6, 16 or 19 mm pattern). |
 | `servo_mount` | 8 | 3.8 | Plate down; no supports. Epoxy it to the inside of the skin, centred on the Ø8 servo hole. The servo drops in with its spline outward and is held by two M2 screws driven from inside the hull. |
 | `stem` | 8 | 1.9 | Flange down; no supports. Put it into the stem hole from inside the half-duct **before** joining the neighbouring slice. Wrap it in PTFE tape. |
@@ -24,7 +25,7 @@ Print from `print/*.stl`. Each file is already posed for printing: PLA, 0.2 mm l
 | `servo_gear` | 8 | 3.8 | Hub down. Its hub reaches through the Ø8 skin hole onto the servo spline. Glue it and fix it with the servo's horn screw from outside. |
 | `thruster_ring` | 8 | 11.1 | Exit down, axis vertical; no supports. Every surface faces up or overhangs 45° or less. Check the 0.8 mm slot is clear; a blade of 0.6 mm shim works. |
 
-- **Total printed propulsion:** about 205 cm³, roughly 255 g of PLA.
+- **Total printed propulsion:** about 200 cm³, roughly 250 g of PLA.
 - **Parametric source:** `propulsion.py`. All dimensions are at the top.
 - **Fit checks:** `check_fit.py` checks the parts against the hull: the motor unit, the stems, the servos and their mounts, the gears, and the rings at −90…+90°, including against the neighbouring thruster. They all pass.
 
@@ -43,7 +44,7 @@ Print from `print/*.stl`. Each file is already posed for printing: PLA, 0.2 mm l
 5. Wire it up as in [../../Electronics/README.md](../../Electronics/README.md).
 
 ## Known limits of v0 (to bench-test)
-- **Impeller:** it's open, so some air slips over the blade tops. If plenum pressure comes out low, a printed shroud ring is the next step.
+- **Impeller:** it's open, so some air slips over the blade tops. The scalloped rim also lets some air fall back from the plenum into the passages. If plenum pressure comes out low, try `IMP_SCALLOP_R = 44` (no scallops, +3.5 g) before adding a printed shroud ring.
 - **Motor choice:** the A2212 is the cheap, common choice but heavy (~50 g). A 2205–2207 drone motor saves ~25 g if the fan needs less power than expected.
 - **Swivel seal:** it's a plain bore through the skin and boss, with PTFE tape, and some leakage is expected. Measure it before adding an O-ring.
 - **Servo height:** it depends on your MG90S. If the gear hub doesn't reach the spline, shim under the servo's tabs.

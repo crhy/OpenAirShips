@@ -50,9 +50,11 @@ ARM_W = 3.0
 IMP_R1, IMP_R2 = 22.0, 44.0    # blade inlet / tip radius (OD 88 passes the ledge)
 IMP_BLADES = 7
 IMP_B1, IMP_B2 = 12.0, 9.0     # blade height at inlet / tip
-IMP_PLATE = 1.2
-IMP_T = 1.2                    # blade thickness (3 lines)
+IMP_PLATE = 0.8                # backplate: 4 layers; the blades stiffen it
+IMP_T = 0.86                   # blade thickness (2 lines)
 IMP_BETA = 40.0                # backward sweep of the blade, degrees
+IMP_SCALLOP_MARGIN = 2.0       # backplate kept this far beyond each blade face
+IMP_SCALLOP_R = 32.0           # scallops start here (the eye and inner passages keep a full floor)
 
 # ---- swivel and servo (outlet frame: X = radial along the seam, Z = up) ----
 # The hull stays smooth: only the stem (on the seam) and the servo's gear hub
@@ -165,10 +167,30 @@ def impeller_z():
 def impeller():
     top, base = impeller_z()
     plate = cq.Solid.makeCylinder(IMP_R2, IMP_PLATE, cq.Vector(0, 0, base))
+    # scalloped rim: the backplate is cut away between neighbouring blades from
+    # IMP_SCALLOP_R out to the rim, keeping a strip under each blade
+    sweep = math.radians(IMP_BETA)
+    ang = lambda k, r: (2 * math.pi * k / IMP_BLADES
+                        - sweep * (min(max(r, IMP_R1), IMP_R2) - IMP_R1) ** 1.3
+                        / (IMP_R2 - IMP_R1) ** 1.3)
+    keep = IMP_T / 2 + IMP_SCALLOP_MARGIN
+    rs = [IMP_SCALLOP_R + (IMP_R2 + 2 - IMP_SCALLOP_R) * i / 12 for i in range(13)]
+    for k in range(IMP_BLADES):
+        lead = [(r * math.cos(ang(k, r) + keep / r), r * math.sin(ang(k, r) + keep / r)) for r in rs]
+        trail = [(r * math.cos(ang(k + 1, r) - keep / r), r * math.sin(ang(k + 1, r) - keep / r))
+                 for r in reversed(rs)]
+        def arc_(r, a0, a1, n=10):                   # the scallop's ends follow circles
+            return [(r * math.cos(a0 + (a1 - a0) * j / n), r * math.sin(a0 + (a1 - a0) * j / n))
+                    for j in range(1, n)]
+        r_out, r_in = rs[-1], rs[0]
+        outer = arc_(r_out, ang(k, r_out) + keep / r_out, ang(k + 1, r_out) - keep / r_out)
+        inner = arc_(r_in, ang(k + 1, r_in) - keep / r_in, ang(k, r_in) + keep / r_in)
+        scallop = (cq.Workplane("XY").workplane(offset=base - 0.5)
+                     .polyline(lead + outer + trail + inner).close().extrude(IMP_PLATE + 1).val())
+        plate = plate.cut(scallop)
     hub = cq.Solid.makeCylinder(7.0, IMP_PLATE + 4, cq.Vector(0, 0, base))
     body = plate.fuse(hub)
     # blade: circular arc from r1 to r2, swept back by IMP_BETA
-    sweep = math.radians(IMP_BETA)
     for k in range(IMP_BLADES):
         a0 = 2 * math.pi * k / IMP_BLADES
         mid = [(IMP_R1 + (IMP_R2 - IMP_R1) * i / 8,
