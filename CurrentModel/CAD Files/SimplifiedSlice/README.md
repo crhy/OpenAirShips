@@ -26,6 +26,7 @@ It follows `../airship pie slice 125.FCStd` closely, rebuilt as clean parametric
   - The 125 thrust pipes bulged out through the hull. They're now Ø24 mm ducts that run entirely inside the skin, along the same route: a mouth on the keel in the plenum, up the side, to the equator. Each duct is split by the seam, so two slices close it.
   - The only openings besides the windows are the stem hole on each seam (Ø16.4 mm, with a bearing boss behind it) and an Ø8 mm hole for the servo gear hub.
   - The lattice runs straight over the ducts: their own walls keep them airtight. Solid skin is kept only as small collars around the stem and servo holes.
+  - The thruster axis sits on the ring rib just below the equator (z ≈ −18 mm), so the stem-hole and servo-hole collars are part of that rib.
   - Nothing sticks out except the joint pegs, which plug into the neighbouring slice.
 - **Airtight air path:** the shaft, floor, keel and duct walls are solid. The check covers the duct walls too: their only openings are the stem holes. (Rev D also fixes a leak in revB/C, where the stem hole was drilled through the back wall of the duct.)
 - **Motor ledge:** a 2 mm ledge inside the shaft at z = −46 carries the motor spider (see `../Propulsion`).

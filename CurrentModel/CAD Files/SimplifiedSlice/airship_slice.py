@@ -81,7 +81,8 @@ BOSS_D, BOSS_L = 7.0, 5.0
 DUCT_BORE = 24.0           # bore diameter (452 mm2; the thruster slot is ~110 mm2)
 DUCT_W = T                 # duct wall
 DUCT_Z_IN = -96.0          # skin height at the duct mouth (on the keel)
-OUT_Z = -13.0              # stem axis height at the skin
+# OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
+# ring rib, so the stem and servo holes' collars are part of that rib.
 STEM_HOLE = 16.4           # stem is 16 mm
 BOSS_LEN = 6.0             # bearing boss behind the stem hole
 BOSS_R = 11.0
@@ -193,6 +194,10 @@ def skin_ribs():
     lo, top = psi(DECK_Z + T / 2), psi(SHELF_Z + T / 2)
     return ([psi(FLOOR_Z + T / 2), psi(DECK2_Z + T / 2)]
             + [lo + (top - lo) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
+
+
+OUT_THRUST_RIB = 3                                  # the ring rib just below the equator
+OUT_Z = B * math.sin(skin_ribs()[OUT_THRUST_RIB])  # stem and servo axis height
 
 
 def node(p1, theta, ovals):

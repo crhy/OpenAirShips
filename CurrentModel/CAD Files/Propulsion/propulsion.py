@@ -63,7 +63,7 @@ OUT_Z = hull.OUT_Z         # swivel axis height
 X_SKIN = hull.hull_r(OUT_Z)                 # skin at the stem, on the seam
 X_BOSS = X_SKIN - hull.BOSS_LEN             # inner face of the bearing boss
 STEM_OD, STEM_ID = 16.0, 13.0
-FLANGE_D, FLANGE_T = 18.4, 1.8   # fits inside the Ø24 duct bore behind the boss
+FLANGE_D, FLANGE_T = 17.8, 1.8   # fits inside the Ø24 duct bore behind the boss
 D_FLAT = 0.7               # depth of the stem's D-flat that keys the gear
 GEAR_M, GEAR_Z, GEAR_T = 1.0, 36, 4.0
 GEAR_X = 209.0             # hull-side face of both gears (skin peaks at 207.8)
@@ -71,7 +71,7 @@ SERVO_Y = hull.SERVO_T     # 1:1 pair: centre distance = pitch diameter
 assert abs(SERVO_Y - GEAR_M * GEAR_Z) < 1e-6
 MG90S = dict(body=(22.8, 12.2), tabs=32.3, hole_pitch=27.8, shaft_offset=5.4,
              below_tabs=16.0, above_tabs=4.5, spline_tip=11.5, spline_d=4.8)
-TAB_X = 194.0              # servo tab plane: the body top clears the curved skin
+TAB_X = 192.5              # servo tab plane: the body top clears the curved skin
 MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
