@@ -13,9 +13,10 @@ ellipsoid. Its only openings are the round stem and servo holes at each
 outlet, plus the lightening windows. Everything is built from the parameters
 below, laid out like 125: the skin, the central shaft with its rolled top
 rim, the floor, the lower and main decks, and the top trough. Each is a
-single thin wall. The skin carries two columns of large ovals above the
-main deck, with hollow diamond junctions, and 125's slots below it. The
-decks and the trough shelf carry 125's window grids.
+single thin wall. For minimum weight, the skin above the main deck is two
+columns of full ovals with 2.5 mm ribs and hollow diamond junctions
+(including half-diamonds on the seams), with 125's slots below it. The
+decks, the trough shelf and its rim wall carry window grids too.
 
 Run: pip install cadquery && python3 airship_slice.py
      -> "airship pie slice 926.step"
@@ -45,7 +46,7 @@ LIP_TOP = 91.67
 RIM_R = 50.18              # top rim: inner wall of the trough, rolled over to the shaft
 SKIN_TOP = 92.37           # skin ends where it meets the lip
 
-RIB = 4.0                  # frame rib width (a seam rib is RIB/2 on each slice)
+RIB = 2.5                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
 # Skin lattice: two full-width slots between the floor and the main deck, as
 # in 125. Above the main deck, UPPER_ROWS rows of two side columns (split by a
@@ -54,8 +55,11 @@ WIN_R = 2.5                # window corner radius
 # diamond window. Printed lying on the seam, each oval's top is a small round
 # arch (radius ~9 mm), which prints without supports.
 UPPER_ROWS = 6
+WIDE_FROM_Z = 1e9          # rows above this would be one wide oval per slice (off: two columns all the way up)
+OVAL_N = 2.6               # superellipse exponent: 2 = ellipse, higher = fuller corners
+WIDE_OVAL_N = 4.0
 DECK_RINGS = {DECK_Z: [72.0, 96.0, 120.0, 144.0, 168.0],   # every 24 mm, as in 125
-              DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: [72.0]}  # None = shelf
+              DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: []}  # None = shelf
 ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None = plain
 
 # Printing (Prusa MK3S+, 0.4 nozzle, 0.2 layers, 0.45 lines): the slice lies
@@ -191,26 +195,27 @@ def skin_ribs():
             + [lo + (top - lo) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
 
 
-def node(p0, p1, p2):
-    """Diamond window in the junction of four ovals, on the centre rib at p1.
+def node(p1, theta, ovals):
+    """Diamond window in a junction of ovals, on rib p1 at azimuth theta.
 
     Its corners point along the two ribs. It is sized so that a full RIB
-    width of skin stays between it and each of the four ovals around it.
+    width of skin stays between it and every oval around it (`ovals`: the
+    outlines nearby, including the neighbouring slice's across a seam).
     """
     x, z = skin_point(p1, T / 2)
-    origin = cq.Vector(x, 0, z)
-    n = cq.Vector(B * math.cos(p1), 0, A * math.sin(p1)).normalized()
-    u = cq.Vector(0, 1, 0)
+    radial = cq.Vector(math.cos(theta), math.sin(theta), 0)
+    origin = radial * x + cq.Vector(0, 0, z)
+    n = (radial * (B * math.cos(p1)) + cq.Vector(0, 0, A * math.sin(p1))).normalized()
+    u = cq.Vector(-math.sin(theta), math.cos(theta), 0)
     v = n.cross(u)
-    # the four ovals' outlines, projected into the junction's tangent plane
     pts = []
-    for a_, b_ in ((p0, p1), (p1, p2)):
-        for sd in (-1, 1):
-            for e in lens(a_, b_, sd).Edges():
-                for t in [i / 60 for i in range(61)]:
-                    q = e.positionAt(t) - origin
-                    if abs(q.dot(n)) < 1.0:                 # outline on the skin
-                        pts.append((q.dot(u), q.dot(v)))
+    for ring in ovals:                                   # oval outlines (3D points on the skin)
+        for i, p in enumerate(ring):
+            p2 = ring[(i + 1) % len(ring)]
+            for t in (0.0, 0.25, 0.5, 0.75):
+                q = p + (p2 - p) * t - origin
+                if q.Length < 80:
+                    pts.append((q.dot(u), q.dot(v)))
 
     def clear(py, pz):
         return all(math.hypot(py - a_, pz - b_) >= RIB for a_, b_ in pts)
@@ -222,6 +227,8 @@ def node(p0, p1, p2):
         return s_
 
     ry, rz = min(reach(1, 0), reach(-1, 0)), min(reach(0, 1), reach(0, -1))
+    if min(ry, rz) < 2.0:
+        return None
     k = 1.0
     while k > 0.2:                                       # shrink until every edge clears
         corners = [(ry * k, 0), (0, rz * k), (-ry * k, 0), (0, -rz * k)]
@@ -236,7 +243,17 @@ def node(p0, p1, p2):
 
 
 def lens(p0, p1, side, grow=0.0):
-    """Oval (elliptical) window in one side column between ribs p0 and p1.
+    """The window solid for oval_outline()."""
+    ring, n = oval_outline(p0, p1, side, grow)
+    depth = 10 if grow else 4
+    edge = cq.Edge.makeSpline([p - n * depth for p in ring], periodic=True)
+    face = cq.Face.makeFromWires(cq.Wire.assembleEdges([edge]))
+    return cq.Solid.extrudeLinear(face, n * (2 * depth))
+
+
+def oval_outline(p0, p1, side, grow=0.0):
+    """Oval (elliptical) window between ribs p0 and p1: side -1/+1 is one side
+    column, side 0 one wide oval spanning the slice seam to seam.
 
     It is drawn in the skin's tangent plane at the cell centre and cut
     through the wall along the normal. Its width spans the column (RIB/2 in
@@ -248,8 +265,8 @@ def lens(p0, p1, side, grow=0.0):
     d1 = (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1))
     x, z = skin_point(pm, T / 2)
     # column bounds at this radius: centre rib edge and seam rib edge
-    th_in = math.asin((RIB / 2) / x)
     th_out = math.radians(HALF) - math.asin((RIB / 2) / x)
+    th_in = -th_out if side == 0 else math.asin((RIB / 2) / x)
     thc = side * (th_in + th_out) / 2
     width = x * (th_out - th_in)
     radial = cq.Vector(math.cos(thc), math.sin(thc), 0)
@@ -260,10 +277,16 @@ def lens(p0, p1, side, grow=0.0):
     v = n.cross(u)
     vs = [((radial * px + cq.Vector(0, 0, pz)) - origin).dot(v) for px, pz in pts]
     height, vc = abs(vs[1] - vs[0]), (vs[0] + vs[1]) / 2
-    sk = cq.Sketch().push([(0, vc)]).ellipse(width / 2 + grow, height / 2 + grow)
-    plane = cq.Plane(origin=origin, xDir=u, normal=n)
-    depth = 10 if grow else 4                        # grown copies must out-reach the node box
-    return cq.Workplane(plane).placeSketch(sk).extrude(depth, both=True).val()
+    ex = WIDE_OVAL_N if side == 0 else OVAL_N
+    a_, b_ = width / 2 + grow, height / 2 + grow
+    ring = []
+    for i in range(72):
+        t = 2 * math.pi * i / 72
+        c_, s_ = math.cos(t), math.sin(t)
+        pu = a_ * math.copysign(abs(c_) ** (2 / ex), c_)
+        pv = vc + b_ * math.copysign(abs(s_) ** (2 / ex), s_)
+        ring.append(origin + u * pu + v * pv)
+    return ring, n
 
 
 def joints():
@@ -277,8 +300,6 @@ def joints():
     ribs = skin_ribs()
     return [(r_shaft, 97.0),                        # shaft top
             (96.3, 88.0),                           # trough lip
-            skin_point(ribs[-2], edge),             # upper skin, on a ring rib
-            skin_point(ribs[-3], edge),             # skin, above the nozzle
             (r_shaft, -37.0),                       # shaft / main deck
             (r_shaft, -66.5),                       # shaft / floor
             skin_point(-math.acos(r_shaft / A), edge)]  # keel, near the axis
@@ -364,12 +385,32 @@ def windows():
              p1 - (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1)))]
         return wedge([a0, a1, b1, b0])
 
-    rows = skin_ribs()
+    # one more row of ovals in the skin between the trough shelf and the top edge,
+    # leaving a full rib along the edge
+    top = math.asin(SKIN_TOP / B)
+    rows = skin_ribs() + [top - (RIB / 2) / math.hypot(A * math.sin(top), B * math.cos(top))]
+    wide = lambda p0, p1: B * math.sin((p0 + p1) / 2) > WIDE_FROM_Z
+    sides = {k: ([0] if wide(p0, p1) else [-1, 1])
+             for k, (p0, p1) in enumerate(zip(rows, rows[1:])) if k >= 3}
+    ovals = {k: [oval_outline(rows[k], rows[k + 1], sd)[0] for sd in sides[k]] for k in sides}
+
+    def turn(rings, deg):
+        c, s_ = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        return [[cq.Vector(p.x * c - p.y * s_, p.x * s_ + p.y * c, p.z) for p in r] for r in rings]
+
+    for k in sides:
+        cut += [lens(rows[k], rows[k + 1], sd) for sd in sides[k]]
+        if k + 1 in sides:                           # hollow junctions on the rib above row k
+            near = ovals[k] + ovals[k + 1]
+            spots = [(-HALF, near + turn(near, -2 * HALF)), (HALF, near + turn(near, 2 * HALF))]
+            if len(sides[k]) == 2:                   # the centre rib ends at this rib
+                spots.append((0.0, near))
+            for th, around in spots:
+                d = node(rows[k + 1], math.radians(th), around)
+                if d is not None:
+                    cut.append(d)
     for k, (p0, p1) in enumerate(zip(rows, rows[1:])):
-        if k >= 3:                                   # pointed ovals above the first row
-            cut += [lens(p0, p1, -1), lens(p0, p1, +1)]
-            if k + 1 < len(rows) - 1:                # hollow diamond where four ovals meet
-                cut.append(node(rows[k], rows[k + 1], rows[k + 2]))
+        if k >= 3:
             continue
         cols = [(whole, 0.4)] if k < 2 else [(halves[0], -0.5), (halves[1], 0.5)]
         pm = (p0 + p1) / 2
@@ -379,6 +420,12 @@ def windows():
             o = radial(th) * x + cq.Vector(0, 0, z)
             nrm = radial(th) * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))
             cut.append(roofed(band(p0, p1).intersect(col), o, nrm))
+
+    # the trough's inner rim wall (not the air shaft): one window per column
+    rim_top = B * math.sqrt(1 - ((RIM_R + T) / A) ** 2)
+    band_ = wedge([(RIM_R - 1, SHELF_Z + T + RIB / 2), (RIM_R + T + 1, SHELF_Z + T + RIB / 2),
+                   (RIM_R + T + 1, rim_top - T - RIB / 2), (RIM_R - 1, rim_top - T - RIB / 2)])
+    cut += [band_.intersect(c) for c in halves]
 
     # decks and the trough shelf: ring bands, two columns
     for z, rings in DECK_RINGS.items():
