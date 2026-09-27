@@ -19,7 +19,7 @@ There are no decks. See ../../DESIGN-CONSTRAINTS.md.
 Run: pip install cadquery && python3 airship_slice.py
      -> "airship pie slice 926.step"
      then: freecadcmd make_fcstd.py
-     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevE.stl laid
+     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926-v0.1-8T.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
 """
 import math
@@ -28,15 +28,32 @@ import cadquery as cq
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# ---- variant ------------------------------------------------------------------
+# OAS_VARIANT=8T (default): 8 thrusters, 8 identical slices, a duct on every seam.
+# OAS_VARIANT=4T: 4 thrusters on alternate seams, with ducts, stems and rings
+#   sized for twice the flow each (see Analysis/AIRFLOW-4T.md). The slices come
+#   in two hands that alternate round the ring: OAS_SIDE=L carries its duct on
+#   its +22.5 deg seam, OAS_SIDE=R on its -22.5 deg seam (and the servo).
+VARIANT = os.environ.get("OAS_VARIANT", "8T").upper()
+SIDE = os.environ.get("OAS_SIDE", "L").upper()
+FOUR = VARIANT == "4T"
+assert VARIANT in ("8T", "4T") and SIDE in ("L", "R")
+# OAS_SCALE: hull size factor (1 = the 415 mm bench model; 1.9 = the largest
+# that prints on an Anycubic Kobra Max, 400 x 400 x 450 mm). Only the hull
+# outline and its lattice grow; walls, ribs, joints, the fan, ducts,
+# thrusters and servos keep their size, so mass grows ~S^2 while volume
+# grows S^3.
+SCALE = float(os.environ.get("OAS_SCALE", "1"))
+
 # ---- parameters (mm) -------------------------------------------------------
-A, B = 207.765, 104.0      # hull outer semi-axes (radius, half-height)
+A, B = 207.765 * SCALE, 104.0 * SCALE   # hull outer semi-axes (radius, half-height)
 T = 0.86                   # wall: exactly 2 perimeters of 0.45 mm at 0.2 mm layers
 N = 8                      # slices in the ring
 HALF = 180.0 / N           # half-angle of one slice, degrees
 
-SHAFT_R = 47.375           # central shaft wall, inner radius
-FLOOR_Z = -71.3            # fan-housing ceiling (the shroud over the blade tips), underside
-DECK2_Z = -55.3125         # 125's lower deck height: now just a skin ring rib (no decks on the bench model)
+FLOOR_Z = -B + (43.0 if FOUR else 32.7)   # fan-housing ceiling (the shroud over the blade tips), underside;
+                                     # 4T: higher, so the Ø34 duct mouths fit under it
+DECK2_Z = -55.3125 * SCALE  # 125's lower deck height: now just a skin ring rib (no decks on the bench model)
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
 RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
@@ -63,16 +80,21 @@ UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 # wall, housing air can't leak back up the shaft: the fan works as a shrouded
 # fan. Nothing but this smooth nozzle is inside the shaft.
 EYE_R = 33.0               # impeller eye (blade inlet) radius, from Analysis/AIRFLOW.md
+# The intake shaft is the eye's diameter all the way up (Ø66). It was Ø95 only so
+# the impeller could drop in from the top; it now comes in through the keel
+# hatch. The narrower shaft costs ~1% of the fan pressure and gives the
+# ballonet space more room.
+SHAFT_R = EYE_R            # central shaft wall, inner radius
 SHROUD_RC = 8.0            # turn from axial to radial over the blades
-NOZZLE_L = 30.0            # length of the contraction from the shaft to the eye
+NOZZLE_L = 30.0            # straight run above the shroud turn (a contraction if SHAFT_R > EYE_R)
 SHROUD_GAP = 1.5           # blade tip clearance under the shroud
 # The keel under the fan is a removable hatch (../Propulsion: fan_hatch) that
 # carries the motor and impeller. It locks with a bayonet: each slice has a lug
 # at the bottom of a ring wall round the opening, and a stop post.
 HATCH_R = 47.0             # opening in the keel (the 88 mm impeller passes through)
-HATCH_WALL_TOP = -93.0     # ring wall round the opening
+HATCH_WALL_TOP = -B + 11.0   # ring wall round the opening
 LUG_R = 44.6               # lug inner radius (0.6 mm past the impeller tip)
-LUG_Z = (-99.0, -97.0)
+LUG_Z = (-B + 5.0, -B + 7.0)
 LUG_HALF = 6.0             # lug: +-6 deg about the slice centre
 POST = (-6.0, -3.0)        # stop post over the lug: the hatch locks turning clockwise (from above)
 
@@ -85,7 +107,7 @@ BOSS_D, BOSS_L = 7.0, 5.0
 # inside the skin. Each runs from a mouth on the keel (in the plenum) up the
 # side to a closed end at the equator, where the thruster's stem enters
 # through a round hole with a bearing boss behind it.
-DUCT_BORE = 24.0           # bore diameter (452 mm2; the thruster slot is ~110 mm2)
+DUCT_BORE = 34.0 if FOUR else 24.0   # bore diameter; 4T: twice the area for twice the flow
 DUCT_W = T                 # duct wall
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
@@ -99,11 +121,12 @@ PLENUM_KEEL_R = 80.0
 KEEL_ROWS = 3              # skin rows between the fan housing and the DECK2_Z rib
 # OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
 # ring rib, so the stem and servo holes' collars are part of that rib.
-STEM_HOLE = 25.4           # stem is 25 mm OD / 22 mm bore (see Analysis/AIRFLOW.md)
+STEM_HOLE = 34.4 if FOUR else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (see Analysis/AIRFLOW*.md)
 BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
-DUCT_BULB = 32.0           # the duct's end swells to this bore so the stem's flange fits
+DUCT_BULB = 44.0 if FOUR else 32.0   # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
-SERVO_T = 36.0             # servo spline: this far (tangentially) from the seam
+SERVO_T = 44.0 if FOUR else 36.0     # servo spline: this far (tangentially) from the seam
+                                     # (= the 1:1 gear pitch diameter: 44T or 36T, module 1)
 SERVO_HOLE = 8.0
 
 
@@ -531,11 +554,12 @@ def outlet_keepout():
     seams) and round this slice's servo-hub hole. Elsewhere the lattice runs
     straight over the ducts; their own walls keep them airtight."""
     ax = cq.Vector(1, 0, 0)
-    stem = cq.Solid.makeCylinder(BOSS_R + 1.5, 60, cq.Vector(170, 0, OUT_Z), ax)
-    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2 + 3.5, 60, cq.Vector(170, SERVO_T, OUT_Z), ax)
-    return (stem.rotate((0, 0, 0), (0, 0, 1), HALF)
-            .fuse(stem.rotate((0, 0, 0), (0, 0, 1), -HALF))
-            .fuse(servo.rotate((0, 0, 0), (0, 0, 1), -HALF)))
+    stem = cq.Solid.makeCylinder(BOSS_R + 1.5, 60, cq.Vector(A - 37.765, 0, OUT_Z), ax)
+    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2 + 3.5, 60, cq.Vector(A - 37.765, SERVO_T, OUT_Z), ax)
+    keep = stem.rotate((0, 0, 0), (0, 0, 1), duct_seams()[0])
+    for a_ in duct_seams()[1:]:
+        keep = keep.fuse(stem.rotate((0, 0, 0), (0, 0, 1), a_))
+    return keep.fuse(servo.rotate((0, 0, 0), (0, 0, 1), -HALF)) if has_servo() else keep
 
 
 def joint_parts():
@@ -604,16 +628,34 @@ def stem_and_servo_holes():
     ax = cq.Vector(1, 0, 0)
     x0 = hull_r(OUT_Z) - BOSS_LEN - 2.0             # stop inside the bore: don't pierce its back wall
     stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 30, cq.Vector(x0, 0, OUT_Z), ax)
-    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(190, SERVO_T, OUT_Z), ax)
+    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(A - 17.765, SERVO_T, OUT_Z), ax)
     return stem, servo
 
 
+def duct_seams():
+    """Angles of the seams that carry a duct and thruster on this slice."""
+    if not FOUR:
+        return (HALF, -HALF)
+    return (HALF,) if SIDE == "L" else (-HALF,)
+
+
+def has_servo():
+    return not FOUR or SIDE == "R"
+
+
 def at_seams(shape):
-    """An outlet-frame shape on both seams of this slice, clipped to the slice."""
+    """An outlet-frame shape on this slice's duct seams, clipped to the slice."""
     wedge_all = wedge_edges(arc(A + 50, B + 50, -math.pi / 2, math.pi / 2))
-    both = shape.rotate((0, 0, 0), (0, 0, 1), HALF).fuse(
-        shape.rotate((0, 0, 0), (0, 0, 1), -HALF))
-    return both.intersect(wedge_all)
+    seams = duct_seams()
+    out = shape.rotate((0, 0, 0), (0, 0, 1), seams[0])
+    for a_ in seams[1:]:
+        out = out.fuse(shape.rotate((0, 0, 0), (0, 0, 1), a_))
+    return out.intersect(wedge_all)
+
+
+def slice_name():
+    return ("airship pie slice 926" + ("" if not FOUR else " 4T " + ("left" if SIDE == "L" else "right"))
+            + ("" if SCALE == 1 else f" x{SCALE:g}"))
 
 
 def build():
@@ -629,7 +671,8 @@ def build():
     body = body.fuse(cq.Compound.makeCompound(bosses).intersect(envelope))
     body = body.fuse(at_seams(walls)).cut(at_seams(bore))
     body = body.cut(at_seams(stem_hole))
-    body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo
+    if has_servo():
+        body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo
     body = body.cut(cq.Compound.makeCompound(holes))
     body = body.fuse(cq.Compound.makeCompound(pegs))
     body = body.cut(hatch_hole()).clean()
@@ -640,5 +683,4 @@ if __name__ == "__main__":
     s = build()
     print(f"volume {s.Volume() / 1000:.2f} cm3, faces {len(s.Faces())}, "
           f"solids {len(s.Solids())}, valid {s.isValid()}")
-    name = "airship pie slice 926"
-    cq.exporters.export(s, os.path.join(HERE, name + ".step"))
+    cq.exporters.export(s, os.path.join(HERE, slice_name() + ".step"))

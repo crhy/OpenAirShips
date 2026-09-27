@@ -8,9 +8,17 @@ import MeshPart
 import Part
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-NAME = "airship pie slice 926"
+# the same variant settings as airship_slice.py (OAS_VARIANT, OAS_SIDE, OAS_SCALE)
+FOUR = os.environ.get("OAS_VARIANT", "8T").upper() == "4T"
+SIDE = os.environ.get("OAS_SIDE", "L").upper()
+SCALE = float(os.environ.get("OAS_SCALE", "1"))
+HAND = ("left" if SIDE == "L" else "right")
+NAME = ("airship pie slice 926" + (f" 4T {HAND}" if FOUR else "")
+        + ("" if SCALE == 1 else f" x{SCALE:g}"))
+STL = ("PieSlice926-v0.1-" + (f"4T-{HAND}" if FOUR else "8T")
+       + ("" if SCALE == 1 else "-KobraMax") + ".stl")
 
-doc = App.newDocument("airship_pie_slice_926")
+doc = App.newDocument(NAME.replace(" ", "_").replace(".", "_"))
 shape = Part.Shape()
 shape.read(os.path.join(HERE, NAME + ".step"))
 base = doc.addObject("Part::Feature", "SimplifiedSlice")
@@ -22,8 +30,11 @@ sheet = doc.addObject("Spreadsheet::Sheet", "Spreadsheet")
 for i, (label, alias, value) in enumerate([
         ("Hull Thickness", "hulthickness", "0.86 mm"),
         ("Rows Above Equator", "rowsaboveeq", "6"),
-        ("Hull Radius", "hullradius", "207.765 mm"),
-        ("Hull Half Height", "hullhalfheight", "104 mm"),
+        ("Hull Radius", "hullradius", f"{207.765 * SCALE:.3f} mm"),
+        ("Hull Half Height", "hullhalfheight", f"{104 * SCALE:.3f} mm"),
+        ("Thrusters", "thrusters", "4" if FOUR else "8"),
+        ("Intake Shaft Diameter", "shaftd", "66 mm"),
+        ("Duct Bore", "ductbore", "34 mm" if FOUR else "24 mm"),
         ("Rib Width", "rib", "2 mm"),
         ("Intake Bellmouth Radius", "intaker", "12 mm"),
         ("Fan Housing Radius At Keel", "housingr", "80 mm"),
@@ -47,5 +58,5 @@ pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
 mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=0.02,
                               AngularDeflection=0.1, Relative=False)
-mesh.write(os.path.join(HERE, "..", "..", "Print Files", "PieSlice926clauderevE.stl"))
+mesh.write(os.path.join(HERE, "..", "..", "Print Files", STL))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)

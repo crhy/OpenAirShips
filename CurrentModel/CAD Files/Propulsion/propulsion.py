@@ -75,24 +75,25 @@ IMP_SCALLOP_R = 38.0           # scallops start here (the eye and inner passages
 OUT_Z = hull.OUT_Z         # swivel axis height
 X_SKIN = hull.hull_r(OUT_Z)                 # skin at the stem, on the seam
 X_BOSS = X_SKIN - hull.BOSS_LEN             # inner face of the bearing boss
-STEM_OD, STEM_ID = 25.0, 22.0    # Ø22 bore: see Analysis/AIRFLOW.md
-FLANGE_D, FLANGE_T = 28.0, 1.8    # sits in the duct's end bulb, behind the bearing sleeve
+FOUR = hull.FOUR           # OAS_VARIANT=4T: 4 thrusters sized for twice the flow each
+STEM_OD, STEM_ID = (34.0, 31.0) if FOUR else (25.0, 22.0)   # bore: see Analysis/AIRFLOW*.md
+FLANGE_D, FLANGE_T = STEM_OD + 3.0, 1.8    # sits in the duct's end bulb, behind the bearing sleeve
 D_FLAT = 0.7               # depth of the stem's D-flat that keys the gear
-GEAR_M, GEAR_Z, GEAR_T = 1.0, 36, 4.0
-GEAR_X = 209.0             # hull-side face of both gears (skin peaks at 207.8)
+GEAR_M, GEAR_Z, GEAR_T = 1.0, (44 if FOUR else 36), 4.0   # 4T: 44T to clear the Ø34 stem
+GEAR_X = X_SKIN + 1.235    # hull-side face of both gears, just outside the skin
 SERVO_Y = hull.SERVO_T     # 1:1 pair: centre distance = pitch diameter
 assert abs(SERVO_Y - GEAR_M * GEAR_Z) < 1e-6
 MG90S = dict(body=(22.8, 12.2), tabs=32.3, hole_pitch=27.8, shaft_offset=5.4,
              below_tabs=16.0, above_tabs=4.5, spline_tip=11.5, spline_d=4.8)
-TAB_X = 192.5              # servo tab plane: the body top clears the curved skin
+TAB_X = X_SKIN - 15.265    # servo tab plane: the body top clears the curved skin
 MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
-RT, RO = 20.0, 32.0        # throat radius at the slot, outer radius
-HD = 32.0                  # diffuser height (exit at a = 0, slot near the top); tall enough for the Ø22 feed
+RT, RO = (24.0, 36.0) if FOUR else (20.0, 32.0)   # throat radius at the slot, outer radius
+HD = 42.0 if FOUR else 32.0   # diffuser height (exit at a = 0, slot near the top); tall enough for the stem feed
 TAPER = 15.0               # diffuser half-angle
-RC = 3.0                   # Coanda lip radius
-SLOT = 1.6                 # from the airflow analysis (shrouded fan)
+RC = 4.0 if FOUR else 3.0  # Coanda lip radius
+SLOT = 2.0 if FOUR else 1.6   # from the airflow analysis (shrouded fan)
 RING_W = 0.86              # 2 perimeters
 STEM_IN = RO + 12.0        # stem socket length from the ring axis
 
@@ -150,6 +151,15 @@ def hull_envelope(margin=0.0):
 
 
 # ---- impeller and motor pedestal (hull coordinates, axis = Z) ---------------
+def keel_cap(margin=0.0, r_max=70.0, height=60.0):
+    """The bottom of the hull (grown by `margin`) out to r_max, as a solid of
+    revolution. Unlike the whole ellipsoid, it has no degenerate top pole."""
+    a, b = hull.A + margin, hull.B + margin
+    p1 = -math.acos(r_max / a)
+    return hull.wedge_edges(hull.arc(a, b, -math.pi / 2, p1),
+                            (r_max, -hull.B + height), (0, -hull.B + height), half=180.0)
+
+
 def fan_hatch(locked=True):
     """The keel under the fan: a dish flush with the hull, a spigot wall and 8
     bayonet tabs, and the motor pedestal. Insert it with the tabs on the seams,
@@ -158,9 +168,9 @@ def fan_hatch(locked=True):
     turns counter-clockwise) holds it against the posts; the housing pressure
     holds the tabs down on the lugs. Tape the outside seam for the air seal."""
     r_d = hull.HATCH_R - HATCH_CLR
-    shell = hull_envelope(0).cut(hull_envelope(-hull.T))
+    shell = keel_cap(0).cut(keel_cap(-hull.T))
     dish = shell.intersect(cq.Solid.makeCylinder(r_d, 20, cq.Vector(0, 0, -hull.B - 5)))
-    inside = hull_envelope(-hull.T / 2)
+    inside = keel_cap(-hull.T / 2)
     spigot = cq.Solid.makeCylinder(hull.LUG_R - 0.2, FLANGE_Z[1] + hull.B + 1,
                                    cq.Vector(0, 0, -hull.B - 1)).cut(
         cq.Solid.makeCylinder(hull.LUG_R - 0.2 - hull.T, 30, cq.Vector(0, 0, -hull.B - 1))).intersect(inside)
@@ -380,15 +390,22 @@ def thruster_ring_placed(angle=0.0):
 
 # ---- export -----------------------------------------------------------------
 def at_seam(shape, k=0):
-    """Outlet-frame part -> hull coordinates on seam k (between slice k and k+1)."""
-    return shape.rotate((0, 0, 0), (0, 0, 1), hull.HALF + 45 * k)
+    """Outlet-frame part -> hull coordinates on thruster seam k (8T: every seam,
+    between slice k and k+1; 4T: every other seam, between left slice 2k and
+    right slice 2k+1)."""
+    return shape.rotate((0, 0, 0), (0, 0, 1), hull.HALF + (90 if FOUR else 45) * k)
+
+
+OUT_DIR = os.path.join(HERE, "4T") if FOUR else HERE   # the 4-thruster parts live in 4T/
+if hull.SCALE != 1:
+    OUT_DIR = os.path.join(OUT_DIR, f"x{hull.SCALE:g}")
 
 
 def export(name, shape, pose):
     """STEP in model coordinates, plus the print pose for make_fcstd.py."""
-    cq.exporters.export(shape, os.path.join(HERE, name + ".step"))
-    os.makedirs(os.path.join(HERE, "print"), exist_ok=True)
-    cq.exporters.export(pose(shape), os.path.join(HERE, "print", name + ".step"))
+    cq.exporters.export(shape, os.path.join(OUT_DIR, name + ".step"))
+    os.makedirs(os.path.join(OUT_DIR, "print"), exist_ok=True)
+    cq.exporters.export(pose(shape), os.path.join(OUT_DIR, "print", name + ".step"))
     print(f"{name:14} {shape.Volume() / 1000:6.2f} cm3  valid {shape.isValid()}")
 
 

@@ -6,8 +6,14 @@ sys.path.insert(0, HERE)
 import propulsion as p
 from propulsion import hull
 
-sl = cq.importers.importStep(os.path.join(HERE, "..", "SimplifiedSlice", "airship pie slice 926.step")).val()
-ship = cq.Compound.makeCompound([sl.rotate((0, 0, 0), (0, 0, 1), 45 * k) for k in range(8)])
+SL = os.path.join(HERE, "..", "SimplifiedSlice")
+if p.FOUR:                                   # left and right slices alternate
+    hands = [cq.importers.importStep(os.path.join(SL, f"airship pie slice 926 4T {h}" + ("" if hull.SCALE == 1 else f" x{hull.SCALE:g}") + ".step")).val()
+             for h in ("left", "right")]
+    ship = cq.Compound.makeCompound([hands[k % 2].rotate((0, 0, 0), (0, 0, 1), 45 * k) for k in range(8)])
+else:
+    sl = cq.importers.importStep(os.path.join(SL, "airship pie slice 926" + ("" if hull.SCALE == 1 else f" x{hull.SCALE:g}") + ".step")).val()
+    ship = cq.Compound.makeCompound([sl.rotate((0, 0, 0), (0, 0, 1), 45 * k) for k in range(8)])
 motor = cq.Solid.makeCylinder(p.MOTOR_D / 2, p.MOTOR_L, cq.Vector(0, 0, p.PED_TOP))
 nut = cq.Solid.makeCylinder(4.5, 5.8, cq.Vector(0, 0, p.BELL_TOP + p.CUP_TOP_T))   # M5 nylock
 def clash(a, b_, name, tol=0.05):
