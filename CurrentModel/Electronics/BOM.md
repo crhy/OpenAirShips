@@ -6,7 +6,7 @@ The links are **Amazon search links**, not specific listings. Listings and price
 
 | # | Part | Qty | Must match | ~USD | Link |
 |---|---|---|---|---|---|
-| 1 | A2212 1000 KV brushless outrunner **+ 30 A ESC** combo | 1 set | 28 mm bell, cross mount with M3 holes on 16/19 mm, prop adapter with M5 thread | 15–25 | [search](https://www.amazon.com/s?k=A2212+1000KV+brushless+motor+30A+ESC+combo) |
+| 1 | A2212 **1400 KV** brushless outrunner **+ 30 A ESC** combo (the airflow analysis needs about 12,000 rpm; the 1000 KV version only gets there on 4S) | 1 set | 28 mm bell, cross mount with M3 holes on 16/19 mm, prop adapter with M5 thread | 15–25 | [search](https://www.amazon.com/s?k=A2212+1400KV+brushless+motor+30A+ESC) |
 | 2 | MG90S metal-gear micro servo | 8 (+2 spare) | 22.8 × 12.2 mm body, 27.8 mm screw pitch, 180° travel | 25–30 for 10 | [search](https://www.amazon.com/s?k=MG90S+metal+gear+micro+servo+10+pack) |
 | 3 | ESP32-WROOM-32 DevKitC (38-pin) | 1 (+spare) | Classic ESP32 with Wi-Fi | 15–20 for 3 | [search](https://www.amazon.com/s?k=ESP32+WROOM-32+DevKitC+38+pin) |
 | 4 | PCA9685 16-channel 12-bit PWM / servo driver | 1 | Address 0x40; has a V+ screw terminal | 8–12 for 2 | [search](https://www.amazon.com/s?k=PCA9685+16+channel+servo+driver) |
