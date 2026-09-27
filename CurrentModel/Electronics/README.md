@@ -7,11 +7,11 @@
 
 ```mermaid
 flowchart LR
-  PSU["12 V 10 A bench supply"] -->|"+12 V"| FUSE["15 A inline fuse"]
-  FUSE -->|"tether, 2-3 m, 16 AWG"| XT["XT60 on the ship"]
-  XT --> ESC["30 A ESC"]
+  PSU["4S LiPo 1500 mAh (or 15 V 350 W supply)"] -->|"+14.8 V"| FUSE["30 A inline fuse"]
+  FUSE -->|"≤ 30 cm, 12 AWG"| XT["XT60 on the ship"]
+  XT --> ESC["45 A BLHeli_S ESC"]
   XT --> UBEC["5 V 5 A UBEC"]
-  ESC -->|"3 phase wires"| MOTOR["A2212 1000 KV + impeller"]
+  ESC -->|"3 phase wires"| MOTOR["2207 1750 KV + impeller"]
   ESC -->|"BEC 5 V + GND"| ESP["ESP32 DevKitC: 5V / GND pins"]
   UBEC -->|"5 V servo rail"| PCA["PCA9685: V+ terminal"]
   ESP -->|"3V3 -> VCC, GPIO21 -> SDA, GPIO22 -> SCL, GND"| PCA
@@ -24,18 +24,23 @@ flowchart LR
 - **Separate supplies:** the servos run from the UBEC. The ESP32 and the PCA9685 logic run from the ESC's BEC, so servo stalls can't brown out the ESP32.
 - **Thruster numbering:** thruster *i* is on seam *i*, at azimuth 22.5° + 45° × *i*, counter-clockwise from +X seen from above. It plugs into PCA9685 channel *i*.
 - **Wire routing:**
-  - Run the motor wires up one arm of the spider and up the shaft to the top opening, so the plenum stays airtight.
-  - Run the servo leads along the outside of the hull.
+  - **Motor wires:** nothing may cross the intake shaft. The three phase wires leave through the Ø6 hole in the fan hatch. Seal the hole around the wires (hot glue or silicone, so the hatch can still come off).
+  - **Motor direction:** the impeller must turn **counter-clockwise seen from above**. The bayonet hatch also relies on that direction to stay locked. If it runs the wrong way, swap any two motor wires.
+  - **Servo leads:** the servos sit inside the hull, between the skin and the shaft. That space isn't part of the air path, so run the leads along the ribs and out through a lower lattice window to the electronics on the bench.
+  - **Electronics:** for the tethered bench demo the ESP32, PCA9685 and UBEC ride on the bench, not in the ship; there are no decks in the bench model. The ESC sits on the test stand just under the keel, next to the hatch, so the phase wires stay short.
+  - **Battery leads:** keep the battery within about 30 cm of the ESC. For a longer tether, solder a 470 µF / 35 V low-ESR capacitor across the ESC's power input.
 
 ## Power budget
 
 | Load | Typical | Peak |
 |---|---|---|
-| Fan (A2212 + 88 mm impeller, capped at 60 % in firmware) | 30–60 W | ~100 W |
+| Fan (2207 1750 KV + 88 mm impeller) | ~75 W at the firmware's 60 % cap | ~340 W (~25 A at 14.8 V) at full throttle |
 | 8 × MG90S | 1–1.5 A at 5 V | 5.6 A at 5 V if all stall (the UBEC limits this) |
 | ESP32 + PCA9685 | 0.25 A at 5 V | 0.5 A |
 
-A 12 V 10 A supply covers this with margin.
+- **Power source:** a 4S LiPo (1300–1800 mAh, 75C or better) is the simplest source that handles 25 A. At full throttle it runs about 3 minutes, which is plenty for thrust runs.
+- **Mains alternative:** a 15 V 350 W supply (≈23 A). Keep the firmware's `THROTTLE_LIMIT` at 0.9 or below with it.
+- **Don't use 12 V:** the fan needs about 15,700 rpm, and a 1750 KV motor only reaches that on 4S (see [../Analysis/AIRFLOW.md](../Analysis/AIRFLOW.md)).
 
 ## Bench bring-up
 1. **Flash the firmware.**

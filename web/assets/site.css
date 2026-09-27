@@ -141,6 +141,7 @@ button { color: inherit; }
 .gallery img { width: 100%; height: clamp(260px, 34vw, 520px); object-fit: cover; transition: transform .5s; }
 .gallery video { width: 100%; height: clamp(260px, 34vw, 520px); object-fit: cover; }
 .gallery figure:hover img { transform: scale(1.02); }
+.gallery.fit img { object-fit: contain; background: #0f1720; }
 .gallery figcaption { position: absolute; inset: auto 1rem 1rem; padding: .4rem .6rem; color: var(--white); background: rgba(16,32,39,.82); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
 
 .people { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 3rem; background: var(--line); border: 1px solid var(--line); }

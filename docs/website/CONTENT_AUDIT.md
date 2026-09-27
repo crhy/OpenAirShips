@@ -21,7 +21,7 @@ The live Weebly site was inventoried page by page before the redesign. This docu
 - The 2019 whitepaper is copied without modification to `web/assets/docs/openairships-whitepaper-2019.pdf`.
 - The 2026 51-page builder guide is copied without modification to `web/assets/docs/openairships-builder-guide.pdf`.
 - The current printable wedge is copied to `web/assets/models/openairship-wedge.stl`.
-- The source FreeCAD file remains in `CurrentModel/CAD Files/airship pie slice 125.FCStd`.
+- The source FreeCAD file is archived in `OldFiles/CAD/airship pie slice 125.FCStd`; the current buildable model is in `CurrentModel/` (see its `CHANGELOG.md`).
 - Original art, videos, project models and repository history remain in their existing top-level folders. The redesign copies selected web-optimized assets; it does not delete the archive.
 
 ## Editorial policy used in the remodel
