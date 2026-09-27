@@ -53,7 +53,7 @@ Checked:
   - The ovals' tops are small round arches. The two lower rows of slots, and the row of rounded rectangles above the main deck, bridge about 17–25 mm.
 - **Supports:** use supports **on build plate only**, and paint them inside the duct arch lying on the bed. Nothing else needs support.
 - **Brim:** add a 3 mm brim.
-- **Weight:** 38.1 cm³, about 47 g of PLA per slice and 380 g for the ship.
+- **Weight:** about 39 cm³, about 48 g of PLA per slice and 390 g for the ship.
   - The airtight air path is most of it: duct walls about 10 cm³, keel skin 8, floor 6 and shaft 5.5, all at the 0.86 mm minimum.
   - The decks are about 1–1.4 cm³ each.
 
