@@ -1,6 +1,6 @@
 const page = document.body.dataset.page || '';
 const navItems = [
-  ['home', '/', 'Home'], ['plan', '/plan', 'Plan'], ['build', '/build', 'Build v0'], ['involved', '/get-involved', 'Get Involved'],
+  ['home', '/', 'Home'], ['plan', '/plan', 'Plan'], ['build', '/build', 'Build'], ['involved', '/get-involved', 'Get Involved'],
   ['faq', '/faq', 'FAQ'], ['team', '/team', 'Team'], ['hindenburg', '/hindenburg', 'Hindenburg'],
   ['open-source', '/open-source', 'Open Source'], ['alberto', '/alberto', 'Alberto'], ['contact', '/contact', 'Contact']
 ];

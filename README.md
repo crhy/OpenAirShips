@@ -5,34 +5,39 @@ All relevant information is on http://OpenAirShips.com. Pop in and join the conv
 
 ![OpenAirShipsLogo](https://github.com/user-attachments/assets/ed0b83d8-38ed-4dbf-87db-a51a390f2581)
 
-## Build it: the 926 bench model, v0
+## Build it: the 926 model, v0.1.1
 
-![OpenAirShips 926 bench model v0](CurrentModel/CAD%20Files/Propulsion/ship_with_thrusters.png)
+![OpenAirShips 926 v0.1, 4 thrusters, Kobra Max size](CurrentModel/Renders/v0.1-4T-KobraMax-ship.png)
 
-The first buildable OpenAirShip is a 415 mm, 3D-printable, tethered bench model. It is made of 8 identical hull slices, a shrouded fan in the central shaft, and 8 vectoring air-multiplier thrusters on the equator. It's built to measure and control thrust on the bench, not to fly yet. Everything is open source.
+The first buildable OpenAirShip is a 3D-printable, tethered model. It's made of 8 hull slices, a shrouded fan in a smooth central intake, and vectoring air-multiplier thrusters on the equator. It comes in two designs and two sizes. Everything is open source.
 
-![section through a seam](CurrentModel/CAD%20Files/SimplifiedSlice/section.png)
+| | 8 thrusters | 4 thrusters |
+|---|---|---|
+| **Bench size, 415 mm** (Prusa MK3S+) | [PieSlice926-v0.1-8T.stl](CurrentModel/Print%20Files/PieSlice926-v0.1-8T.stl), print 8 | [left](CurrentModel/Print%20Files/PieSlice926-v0.1-4T-left.stl) and [right](CurrentModel/Print%20Files/PieSlice926-v0.1-4T-right.stl), print 4 of each |
+| **Kobra Max size, 790 mm** (Anycubic Kobra Max) | [PieSlice926-v0.1-8T-KobraMax.stl](CurrentModel/Print%20Files/PieSlice926-v0.1-8T-KobraMax.stl), print 8 | [left](CurrentModel/Print%20Files/PieSlice926-v0.1-4T-left-KobraMax.stl) and [right](CurrentModel/Print%20Files/PieSlice926-v0.1-4T-right-KobraMax.stl), print 4 of each |
+| **Propulsion parts (STL)** | [bench](CurrentModel/CAD%20Files/Propulsion/print) · [Kobra Max](CurrentModel/CAD%20Files/Propulsion/x1.9/print) | [bench](CurrentModel/CAD%20Files/Propulsion/4T/print) · [Kobra Max](CurrentModel/CAD%20Files/Propulsion/4T/x1.9/print) |
+| **Expected thrust** | ≈ 408 gf | ≈ 422 gf |
 
 | | |
 |---|---|
-| **Printable STL** | Hull slice, print 8: [PieSlice926clauderevE.stl](CurrentModel/Print%20Files/PieSlice926clauderevE.stl) · Propulsion parts: [CAD Files/Propulsion/print](CurrentModel/CAD%20Files/Propulsion/print) |
-| **CAD (FreeCAD)** | [airship pie slice 926.FCStd](CurrentModel/CAD%20Files/SimplifiedSlice/airship%20pie%20slice%20926.FCStd) · [propulsion 926.FCStd](CurrentModel/CAD%20Files/Propulsion/propulsion%20926.FCStd) · plus STEP and parametric Python sources |
-| **Bill of materials** | [Electronics/BOM.md](CurrentModel/Electronics/BOM.md): about $230–320 for the core parts, with Amazon links |
+| **CAD (FreeCAD, STEP, parametric Python)** | [Hull slices](CurrentModel/CAD%20Files/SimplifiedSlice) · [Propulsion](CurrentModel/CAD%20Files/Propulsion) |
+| **Bill of materials** | [Electronics/BOM.md](CurrentModel/Electronics/BOM.md): about $230–320 for the core parts, with Amazon links, and a lightweight-PLA option |
 | **Build notes** | [Hull slice](CurrentModel/CAD%20Files/SimplifiedSlice/README.md) · [Propulsion](CurrentModel/CAD%20Files/Propulsion/README.md) · [Electronics and firmware](CurrentModel/Electronics/README.md) |
-| **Engineering** | [Airflow analysis](CurrentModel/Analysis/AIRFLOW.md) · [Design constraints](CurrentModel/DESIGN-CONSTRAINTS.md) · [Open questions](CurrentModel/OPEN-QUESTIONS.md) |
-| **Changelog** | [v0 changelog](CurrentModel/CHANGELOG.md) |
+| **Engineering** | [Will it float?](CurrentModel/Analysis/FLOAT.md) · [Airflow](CurrentModel/Analysis/AIRFLOW.md) · [Airflow, 4 thrusters](CurrentModel/Analysis/AIRFLOW-4T.md) · [Design constraints](CurrentModel/DESIGN-CONSTRAINTS.md) · [Open questions](CurrentModel/OPEN-QUESTIONS.md) |
+| **Changelog** | [v0 → v0.1 → v0.1.1](CurrentModel/CHANGELOG.md) |
 
-**At a glance**
-- **Hull:** 8 × ≈ 40 g PLA slices (≈ 320 g) on a Prusa MK3S+. The outside is a smooth ellipsoid. It's lattice everywhere except the airtight air path.
-- **Fan:** a 2207 1750 KV motor on 4S drives an 88 mm PETG impeller, and the hull's housing wall is its shroud. It comes out through a bayonet hatch in the keel.
-- **Thrust:** about 410 gf expected (306–564 gf until measured), from 8 thrusters that each swivel ±90° on MG90S servos.
-- **Control:** an ESP32 and a PCA9685, with a Wi-Fi control page and a link-loss failsafe.
+**Will it float?** Not yet on hydrogen alone. The 4-thruster Kobra Max model in lightweight PLA weighs about 624–742 g and holds 124 L of hydrogen, which lifts 139 g (19–22% of its weight). With the fan running, it's 67–185 g short of hovering. The bench-size 4-thruster model in fully foamed lightweight PLA *can* hover on its fan. Floating on hydrogen alone needs a hull about 1.7–1.9 m across. The full budget is in [FLOAT.md](CurrentModel/Analysis/FLOAT.md).
 
 <p>
-<img src="CurrentModel/CAD%20Files/SimplifiedSlice/slice.png" width="32%" alt="one slice">
-<img src="CurrentModel/CAD%20Files/Propulsion/fan_unit.png" width="32%" alt="shrouded fan">
-<img src="CurrentModel/CAD%20Files/Propulsion/thruster.png" width="32%" alt="air-multiplier thruster">
+<img src="CurrentModel/Renders/v0.1-8T-section.png" width="49%" alt="8 thrusters, section through a seam">
+<img src="CurrentModel/Renders/v0.1-4T-KobraMax-top.png" width="49%" alt="4 thrusters, Kobra Max size, from above">
 </p>
+
+**At a glance**
+- **Hull:** 8 slices with 0.86 mm airtight walls. The outside is a smooth ellipsoid, and it's lattice everywhere except the air path. The intake is Ø66 from the bellmouth down to the fan.
+- **Fan:** a 2207 1750 KV motor on 4S drives an 88 mm PETG impeller, and the hull's housing wall is its shroud. It comes out through a bayonet hatch in the keel.
+- **Thrusters:** 8 or 4, each swivelling ±90° on an MG90S servo, exactly on the equator.
+- **Control:** an ESP32 and a PCA9685, with a Wi-Fi control page and a link-loss failsafe.
 
 ## Repository layout
 | Folder | What's in it |
