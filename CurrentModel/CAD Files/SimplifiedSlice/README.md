@@ -24,13 +24,13 @@ It follows `../airship pie slice 125.FCStd` closely, rebuilt as clean parametric
   - Printed lying on the seam, oval tips and diamond corners point up, so every rib is carried by sloping edges rather than bridges.
 - **Smooth outside:**
   - The 125 thrust pipes bulged out through the hull. They're now Ø24 mm ducts that run entirely inside the skin, along the same route: a mouth on the keel in the plenum, up the side, to the equator. Each duct is split by the seam, so two slices close it.
-  - The only openings besides the windows are the stem hole on each seam (Ø16.4 mm, with a bearing boss behind it) and an Ø8 mm hole for the servo gear hub.
+  - The only openings besides the windows are the stem hole on each seam (Ø16.4 mm, backed by a thin 1.3 mm bearing sleeve inside the duct) and an Ø8 mm hole for the servo gear hub.
   - The lattice runs straight over the ducts: their own walls keep them airtight. Solid skin is kept only as small collars around the stem and servo holes.
   - The thruster axis sits on the ring rib just below the equator (z ≈ −18 mm), so the stem-hole and servo-hole collars are part of that rib.
   - Nothing sticks out except the joint pegs, which plug into the neighbouring slice.
 - **Airtight air path:** the shaft, floor, keel and duct walls are solid. The check covers the duct walls too: their only openings are the stem holes. (Rev D also fixes a leak in revB/C, where the stem hole was drilled through the back wall of the duct.)
 - **Motor ledge:** a 2 mm ledge inside the shaft at z = −46 carries the motor spider (see `../Propulsion`).
-- **Walls:** 0.86 mm (2 perimeters). 125's 0.625 mm is too thin for two perimeters; the ribs are narrow (2.0 mm) but keep that 2-perimeter thickness.
+- **Walls:** 0.86 mm everywhere, including the duct, keel, floor and shaft. That's 2 perimeters of 0.45 mm at 0.2 mm layers, the minimum that prints reliably airtight; a single 0.45 mm perimeter leaks and splits between layers. 125's 0.625 mm is below two perimeters. The ribs are narrow (2.0 mm) but keep that 2-perimeter thickness.
 - **Joints:** 5 bosses along each seam (shaft top, trough lip, shaft/main deck, shaft/floor, keel), all at the same (r, z) positions. The skin needs none: its seam ribs and the duct walls glue together along their whole length.
   - The +22.5° seam has Ø3 × 3.6 mm pegs; the −22.5° seam has Ø3.3 × 4.2 mm holes.
   - Both have 0.4 mm chamfers, giving 0.15 mm clearance per side.
@@ -53,7 +53,9 @@ Checked:
   - The ovals' tops are small round arches. The two lower rows of slots, and the row of rounded rectangles above the main deck, bridge about 17–25 mm.
 - **Supports:** use supports **on build plate only**, and paint them inside the duct arch lying on the bed. Nothing else needs support.
 - **Brim:** add a 3 mm brim.
-- **Weight:** 38.2 cm³, about 47 g of PLA per slice and 380 g for the ship. The solid, airtight keel and floor are about 17 cm³ of that.
+- **Weight:** 38.1 cm³, about 47 g of PLA per slice and 380 g for the ship.
+  - The airtight air path is most of it: duct walls about 10 cm³, keel skin 8, floor 6 and shaft 5.5, all at the 0.86 mm minimum.
+  - The decks are about 1–1.4 cm³ each.
 
 ## Files
 - `airship pie slice 926.FCStd`: FreeCAD document. It contains the part as the base feature of a PartDesign Body, plus a parameter spreadsheet.

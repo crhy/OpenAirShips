@@ -85,7 +85,7 @@ DUCT_Z_IN = -96.0          # skin height at the duct mouth (on the keel)
 # ring rib, so the stem and servo holes' collars are part of that rib.
 STEM_HOLE = 16.4           # stem is 16 mm
 BOSS_LEN = 6.0             # bearing boss behind the stem hole
-BOSS_R = 11.0
+BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
 SERVO_T = 36.0             # servo spline: this far (tangentially) from the seam
 SERVO_HOLE = 8.0
 
