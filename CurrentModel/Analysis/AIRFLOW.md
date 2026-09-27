@@ -152,7 +152,8 @@ The plenum only has to carry 62 L/s from the impeller rim (r = 44 mm) out to the
 | 58 | 21 |
 
 - **Impeller height:** the recommended impeller is about 15 mm tall at the rim, so the chamber needs about that height over the impeller (r ≤ 44 mm). The current floor at z = −70 above a keel at about −101 gives 31 mm there. That's enough, so **the floor can't come down much over the impeller**.
-- **Shrouded fan (rev E):** the housing is the fan's shroud. The shaft narrows smoothly (cosine contraction, 30 mm long) from Ø95 to the Ø62 impeller eye, then turns over the blade tips. The blade tops follow that curve with 1.5 mm clearance.
+- **Shrouded fan:** the housing is the fan's shroud. The intake shaft is the impeller eye's diameter (Ø66) all the way up. Its wall turns over the blade tips with 1.5 mm clearance and runs out as the housing ceiling. (Up to v0 the shaft was Ø95 and narrowed at the bottom; it only had to be that wide for the impeller to drop in from the top, and the impeller now comes in through the keel hatch.)
+  - The narrower intake speeds the air up from about 9 to about 18 m/s. With the bellmouth that costs about 20 Pa, around 1% of the fan pressure, and it gives the gas cells about 0.6 L more room.
   - In the open design there was a 3.4 mm annulus between the impeller tip and the shaft wall, right at the housing's highest-pressure point, so housing air leaked straight back up the shaft. The shroud closes it, and air can only leave through the ducts.
   - fan efficiency 0.35: 3.55 N ≈ 361 gf
   - fan efficiency 0.42: 4.00 N ≈ 408 gf

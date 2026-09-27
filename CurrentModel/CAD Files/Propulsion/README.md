@@ -1,22 +1,37 @@
-# Propulsion: shrouded fan, thrust ducts and air-multiplier thrusters (926 bench model v0)
+# Propulsion: shrouded fan, thrust ducts and air-multiplier thrusters (926 v0.1)
 
-![ship with thrusters](ship_with_thrusters.png)
+![8 thrusters](../../Renders/v0.1-8T-ship.png)
+![4 thrusters](../../Renders/v0.1-4T-ship.png)
 ![shrouded fan unit](fan_unit.png)
 ![impeller](impeller.png)
 ![fan hatch](fan_hatch.png)
 ![thruster](thruster.png)
 
+## Versions
+The same parametric source (`propulsion.py`) builds the parts for every hull version. Set the version with `OAS_VARIANT=8T|4T` and `OAS_SCALE=1|1.9`, as for the slices.
+
+| Version | Folder | Thrusters | Duct / stem | Ring | Gears | Expected thrust |
+|---|---|---|---|---|---|---|
+| 8 thrusters, bench | `.` (this folder) | 8 | Ø24 / Ø25-22 | 64 mm OD, 1.6 mm slot | 36T m1 | ≈ 408 gf |
+| 4 thrusters, bench | `4T/` | 4 | Ø34 / Ø34-31 | 72 mm OD, 2.0 mm slot | 44T m1 | ≈ 422 gf |
+| 8 thrusters, Kobra Max | `x1.9/` | 8 | as 8T | as 8T | as 8T | ≈ 401 gf |
+| 4 thrusters, Kobra Max | `4T/x1.9/` | 4 | as 4T | as 4T | as 4T | ≈ 418 gf |
+
+- **4 thrusters:** each duct carries twice the flow, so the ducts, stems and rings are sized up to keep the air speeds down (see [AIRFLOW-4T.md](../../Analysis/AIRFLOW-4T.md)). Otherwise the parts and the assembly are the same as for 8 thrusters, with half as many.
+- **Kobra Max size:** the fan, thrusters and servos keep their size. Only the hull grows, so the servo mount and fan hatch follow the flatter hull curve, and the ducts get longer.
+- **Assembly:** a 4-thruster hull alternates left and right slices. Each left/right pair closes one duct, and its right slice carries the servo hole.
+
 ## How the air moves
 1. The impeller pulls air in over the bellmouth at the top of the hull and **down the smooth central shaft**. Nothing sits in the shaft: the motor stands on the fan hatch in the keel, under the impeller.
-2. At the bottom, the shaft narrows smoothly to the impeller eye (Ø66). From there the hull's own housing wall curves over the blade tips with 1.5 mm clearance, so the **housing acts as the fan's shroud**. The impeller throws the air outward into the housing, and it can't leak back up the shaft.
+2. The shaft is the impeller eye's diameter (Ø66) all the way down. At the bottom the hull's own housing wall curves over the blade tips with 1.5 mm clearance, so the **housing acts as the fan's shroud**. The impeller throws the air outward into the housing, and it can't leak back up the shaft.
 3. The housing feeds the **8 thrust ducts**, which run *inside* the skin to the equator. The hull's outside stays smooth.
-4. At each seam a rotating **stem** passes through a round hole in the skin. Its flange sits behind a bearing sleeve inside the duct, and it carries a printed **air-multiplier ring** with a Coanda lip and a 1.6 mm slot.
-5. An MG90S servo **inside the hull** turns the stem through a 1:1 pair of 36-tooth gears just outside the skin, giving ±90° of travel. The thrusters sit exactly on the equator. Their swivel axis is radial, so each jet can point anywhere between up/down and sideways along the hull. Together the 8 thrusters give lift, yaw, surge and sway.
+4. At each thruster seam a rotating **stem** passes through a round hole in the skin. Its flange sits behind a bearing sleeve inside the duct, and it carries a printed **air-multiplier ring** with a Coanda lip and a 1.6 mm slot (2.0 mm on 4 thrusters).
+5. An MG90S servo **inside the hull** turns the stem through a 1:1 pair of 36-tooth gears just outside the skin, giving ±90° of travel. The thrusters sit exactly on the equator. Their swivel axis is radial, so each jet can point anywhere between up/down and sideways along the hull. Together the thrusters give lift, yaw, surge and sway.
 
-Expected thrust: **about 4.0 N (≈ 410 gf)** at 15,650 rpm, 62 L/s. The range is 306–564 gf depending on the fan efficiency and air-multiplier gain measured on the bench; see [../../Analysis/AIRFLOW.md](../../Analysis/AIRFLOW.md).
+Expected thrust (8 thrusters): **about 4.0 N (≈ 410 gf)** at 15,650 rpm, 62 L/s. The range is 306–564 gf depending on the fan efficiency and air-multiplier gain measured on the bench; see [../../Analysis/AIRFLOW.md](../../Analysis/AIRFLOW.md).
 
 ## Parts
-Print from `print/*.stl`. Each file is already posed for printing: 0.2 mm layers, 0.4 mm nozzle, MK3S+.
+Print from the version's `print/*.stl`. Each file is already posed for printing: 0.2 mm layers, 0.4 mm nozzle. The table gives the 8-thruster bench sizes; 4-thruster rings are 19.8 cm³, stems 4.9, gears 2.4 and 4.8, and the fan hatch 11.3.
 
 | Part | Qty | cm³ each | Print notes |
 |---|---|---|---|
@@ -28,10 +43,10 @@ Print from `print/*.stl`. Each file is already posed for printing: 0.2 mm layers
 | `servo_gear` | 8 | 3.8 | Hub down. Its hub reaches through the Ø8 skin hole onto the servo spline. Glue it and fix it with the servo's horn screw from outside. |
 | `thruster_ring` | 8 | 14.1 | Exit down, axis vertical; no supports. Every surface faces up or overhangs 45° or less. Check the 1.6 mm slot is clear; a 1.5 mm shim works. |
 
-- **Total printed propulsion:** about 233 cm³ of PLA (≈ 290 g), plus the PETG impeller (≈ 8 g).
+- **Total printed propulsion:** about 233 cm³ (≈ 290 g of PLA) for 8 thrusters, or 154 cm³ (≈ 190 g) for 4, plus the PETG impeller (≈ 8 g). Lightweight PLA for the rings and servo mounts saves about a third of theirs; see [FLOAT.md](../../Analysis/FLOAT.md).
 - **Motor:** 2207 1750 KV on 4S (≈ 32 g, ≈ 25 A at full throttle). It must spin **counter-clockwise seen from above**; swap any two motor wires if it doesn't.
 - **Parametric source:** `propulsion.py`. All dimensions are at the top.
-- **Fit checks:** `check_fit.py` runs 35 checks against the assembled hull, and they all pass. They cover:
+- **Fit checks:** `check_fit.py` runs 35 checks against the assembled hull, and they all pass for all four versions. They cover:
   - the impeller under the shroud (≥ 1.2 mm clearance) and its path up through the hatch opening
   - the hatch at its insert angle, at 5–15 mm below seated, and locked
   - the motor and prop nut, the stems, the servos and their mounts, the gears
