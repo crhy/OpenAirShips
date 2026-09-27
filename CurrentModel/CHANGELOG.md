@@ -61,5 +61,5 @@ The first complete, printable version of the 926 tethered bench demo. It include
 - The fan efficiency, air-multiplier gain and swivel leakage are estimates. Measure them on the bench and rerun `Analysis/airflow.py`.
 
 ### Earlier revisions
-- **Rev A–D slices** are kept in `Print Files/` for comparison.
+- **Rev A–D slices** and the older 125/1224 models are archived in [`OldFiles/`](../OldFiles) at the repository root.
 - **RevB and revC have a duct leak.** Don't print them.

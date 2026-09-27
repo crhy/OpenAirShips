@@ -34,5 +34,13 @@ The first buildable OpenAirShip is a 415 mm, 3D-printable, tethered bench model.
 <img src="CurrentModel/CAD%20Files/Propulsion/thruster.png" width="32%" alt="air-multiplier thruster">
 </p>
 
-## Archive
-Download the PDFs of the 2024 website here: https://github.com/crhy/OpenAirShips/tree/main/WebSnap2024
+## Repository layout
+| Folder | What's in it |
+|---|---|
+| [`CurrentModel/`](CurrentModel) | **The current buildable model (926 v0):** CAD, print files, propulsion, electronics, firmware, analysis and [changelog](CurrentModel/CHANGELOG.md) |
+| [`web/`](web) | Source for [OpenAirShips.com](http://OpenAirShips.com) (static site on Cloudflare) |
+| [`docs/`](docs) | Project notes: website deployment and content audit, the Unreal diagnostic report |
+| [`WhitePaper/`](WhitePaper) | Whitepaper and builder guide |
+| [`Art/`](Art), [`vidz/`](vidz) | Logos, concept art and concept videos |
+| [`WebSnap2024/`](WebSnap2024) | PDFs of the 2024 website |
+| [`OldFiles/`](OldFiles) | Earlier models and print files, kept for history |

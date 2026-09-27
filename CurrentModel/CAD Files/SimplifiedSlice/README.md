@@ -1,7 +1,7 @@
 # Airship pie slice 926, rev E (bench model v0): lattice everywhere except the air path
 
 One 45° slice of the hull. Eight identical copies plug together into the full ship.
-It keeps the outline of `../airship pie slice 125.FCStd` (the 207.765 × 104 mm ellipse), rebuilt as clean parametric geometry and cut down for the bench demo.
+It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at the repository root) (the 207.765 × 104 mm ellipse), rebuilt as clean parametric geometry and cut down for the bench demo.
 See [../../DESIGN-CONSTRAINTS.md](../../DESIGN-CONSTRAINTS.md) for the fixed rules.
 
 ![section through a seam](section.png)
@@ -54,7 +54,7 @@ See [../../DESIGN-CONSTRAINTS.md](../../DESIGN-CONSTRAINTS.md) for the fixed rul
 - **File:** `Print Files/PieSlice926clauderevE.stl`. It is already laid flat on the −22.5° (hole) seam.
   - Footprint: about 207 × 201 mm.
   - Height: 146 mm.
-  - Revs A–D are kept for comparison. RevB and revC have a duct leak, so don't print them.
+  - Revs A–D are archived in `OldFiles/PrintFiles` at the repository root. RevB and revC have a duct leak, so don't print them.
 - **Walls:** 0.20 mm QUALITY profile with 2 perimeters. Don't let "detect thin walls" change them.
 - **Overhangs:**
   - The skin never overhangs more than 45°.
