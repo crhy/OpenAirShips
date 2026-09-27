@@ -36,7 +36,8 @@ RHO_H2 = 0.0838
 CD, CV = 0.85, 0.95               # slot discharge / velocity coefficients
 PHI_AUG = 1.3                     # thrust augmentation (1.1 .. 1.6)
 PSI_S = 0.30                      # fan static pressure coefficient (0.25 .. 0.40)
-ETA_FAN = 0.35                    # fan static efficiency, open printed impeller (0.3 .. 0.5)
+ETA_FAN = 0.42                    # fan static efficiency: printed impeller in the rev E shrouded housing
+                                  # (0.35 .. 0.5; the open v0 impeller was ~0.35)
 ETA_MOTOR = 0.75
 K = dict(duct_entry=0.5, duct_bends=0.3, dead_end_turn=1.2,
          stem_entry=0.5, stem_dump=1.0)
@@ -164,7 +165,7 @@ def report():
     w(f"- **Ducts:** 8 × Ø{DUCT_D*1000:.0f} mm, {DUCT_L*1000:.0f} mm long, with the mouth at r = {DUCT_MOUTH_R*1000:.0f} mm on the keel.")
     w(f"- **Stem bore:** Ø{prop.STEM_ID:.0f} mm.")
     w(f"- **Air-multiplier slot:** at a radius of {SLOT_R*1000:.0f} mm, {prop.SLOT} mm wide in rev E.")
-    w(f"- **Impeller:** Ø{D2*1000:.0f} mm, eye (blade inlet) radius {prop.IMP_R1:.0f} mm, blade height {prop.IMP_B1:.0f}→{prop.IMP_B2:.0f} mm.")
+    w(f"- **Impeller:** Ø{D2*1000:.0f} mm, eye (blade inlet) radius {prop.IMP_R1:.0f} mm, blade height {prop.blade_top(prop.IMP_R1) - prop.IMP_PLATE_TOP:.0f}→{prop.IMP_B2:.0f} mm, running {prop.hull.SHROUD_GAP} mm under the housing's stationary shroud.")
     w(f"- **Coefficients (the main uncertainties):**")
     w(f"  - slot C_d = {CD}, C_v = {CV}")
     w(f"  - thrust augmentation φ = {PHI_AUG} (published Coanda ejectors: 1.1–1.6)")
@@ -263,9 +264,9 @@ def report():
     w(f"| Plenum pressure | — | {r['dp']:.0f} Pa |")
     w(f"| Jet speed | — | {r['v_j']:.0f} m/s |")
     w(f"| **Total thrust** | — | **{r['thrust']:.2f} N ≈ {r['thrust']/9.81e-3:.0f} gf** ({r['thrust']/9.81e-3/N_THR:.0f} gf per thruster) |")
-    lo = solve_motor(m, slot / 1000, stem / 1000, phi=1.1, eta_fan=0.30)["thrust"]
-    hi = solve_motor(m, slot / 1000, stem / 1000, phi=1.6, eta_fan=0.45)["thrust"]
-    w(f"\n**Uncertainty:** with φ between 1.1 and 1.6 and fan efficiency between 0.30 and 0.45, the thrust range is **{lo/9.81e-3:.0f}–{hi/9.81e-3:.0f} gf**. Measure φ and the fan curve on the bench, then rerun.\n")
+    lo = solve_motor(m, slot / 1000, stem / 1000, phi=1.1, eta_fan=0.35)["thrust"]
+    hi = solve_motor(m, slot / 1000, stem / 1000, phi=1.6, eta_fan=0.50)["thrust"]
+    w(f"\n**Uncertainty:** with φ between 1.1 and 1.6 and fan efficiency between 0.35 and 0.50, the thrust range is **{lo/9.81e-3:.0f}–{hi/9.81e-3:.0f} gf**. Measure φ and the fan curve on the bench, then rerun.\n")
 
     # ---- plenum -------------------------------------------------------------
     w("## 5. Plenum (fan chamber) sizing\n")
@@ -277,9 +278,15 @@ def report():
         w(f"| {rr:.0f} | {q / (2 * math.pi * rr / 1000 * C_PLENUM_MAX) * 1000:.0f} |")
     w("")
     w(f"- **Impeller height:** the recommended impeller is about {math.ceil(f['b2']*1000)+2:.0f} mm tall at the rim, so the chamber needs about that height over the impeller (r ≤ {prop.IMP_R2:.0f} mm). The current floor at z = −70 above a keel at about −101 gives 31 mm there. That's enough, so **the floor can't come down much over the impeller**.")
+    w("- **Shrouded fan (rev E):** the housing is the fan's shroud. The shaft narrows smoothly (cosine contraction, 30 mm long) from Ø95 to the Ø62 impeller eye, then turns over the blade tips. The blade tops follow that curve with 1.5 mm clearance.")
+    w("  - In the open design there was a 3.4 mm annulus between the impeller tip and the shaft wall, right at the housing's highest-pressure point, so housing air leaked straight back up the shaft. The shroud closes it, and air can only leave through the ducts.")
+    for e in (0.35, ETA_FAN, 0.50):
+        t_ = solve_motor(m, slot / 1000, stem / 1000, eta_fan=e)["thrust"]
+        w(f"  - fan efficiency {e:.2f}: {t_:.2f} N ≈ {t_/9.81e-3:.0f} gf")
+    w(f"  - This analysis uses η = {ETA_FAN} for the shrouded housing (0.35 was the open impeller's estimate). Measure it on the bench.")
     w(f"- **As built (rev E):** the ceiling is flat out to r = {hull.PLENUM_FLAT_R:.0f} mm, then slopes down to the keel at r = {hull.PLENUM_KEEL_R:.0f} mm. The duct mouths sit at r ≈ {DUCT_MOUTH_R*1000:.0f} mm, just outside the impeller tip.")
-    w("  - The keel is solid only under this housing. Outside it the skin is the oval/diamond lattice; the ducts carry the air from there, and their own walls keep it airtight.")
-    w("  - The intake mouth at the top is a rounded bellmouth (the skin rolls into the shaft over a 12 mm radius), which keeps the entry loss small. The shaft has no ledge or spider in it: the motor stands on a pedestal on the keel.\n")
+    w("  - The keel is solid only round this housing, and a removable bayonet hatch closes the middle and carries the motor. Outside it the skin is the oval/diamond lattice; the ducts carry the air from there, and their own walls keep it airtight.")
+    w("  - The intake mouth at the top is a rounded bellmouth (the skin rolls into the shaft over a 12 mm radius), which keeps the entry loss small. The shaft has no ledge or spider in it: the motor stands on the fan hatch.\n")
 
     w("## 6. What to measure on the bench\n")
     w("1. **Fan curve:** plenum pressure (MPXV7002DP) and motor power (INA226) against throttle, with the thrusters blanked off and then open.")

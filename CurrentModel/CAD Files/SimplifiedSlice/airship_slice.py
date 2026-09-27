@@ -35,7 +35,7 @@ N = 8                      # slices in the ring
 HALF = 180.0 / N           # half-angle of one slice, degrees
 
 SHAFT_R = 47.375           # central shaft wall, inner radius
-FLOOR_Z = -70.0            # floor, underside
+FLOOR_Z = -71.3            # fan-housing ceiling (the shroud over the blade tips), underside
 DECK2_Z = -55.3125         # 125's lower deck height: now just a skin ring rib (no decks on the bench model)
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
@@ -57,11 +57,24 @@ ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None 
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
 UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 
-# Motor pedestal socket: a low ring on the keel at the axis. The printed
-# pedestal (../Propulsion) is glued into it and the motor stands on that, so
-# nothing sits in the intake shaft: its bore is smooth from top to bottom.
-SOCKET_R = 20.5            # socket ring, inner radius (pedestal is 40.6 mm)
-SOCKET_H = 3.0
+# Fan housing = stationary shroud. The shaft narrows smoothly to the impeller
+# eye, turns over the blade tips (SHROUD_GAP clearance) and runs out flat as
+# the housing ceiling. With no gap left between the impeller tip and the shaft
+# wall, housing air can't leak back up the shaft: the fan works as a shrouded
+# fan. Nothing but this smooth nozzle is inside the shaft.
+EYE_R = 33.0               # impeller eye (blade inlet) radius, from Analysis/AIRFLOW.md
+SHROUD_RC = 8.0            # turn from axial to radial over the blades
+NOZZLE_L = 30.0            # length of the contraction from the shaft to the eye
+SHROUD_GAP = 1.5           # blade tip clearance under the shroud
+# The keel under the fan is a removable hatch (../Propulsion: fan_hatch) that
+# carries the motor and impeller. It locks with a bayonet: each slice has a lug
+# at the bottom of a ring wall round the opening, and a stop post.
+HATCH_R = 47.0             # opening in the keel (the 88 mm impeller passes through)
+HATCH_WALL_TOP = -93.0     # ring wall round the opening
+LUG_R = 44.6               # lug inner radius (0.6 mm past the impeller tip)
+LUG_Z = (-99.0, -97.0)
+LUG_HALF = 6.0             # lug: +-6 deg about the slice centre
+POST = (-6.0, -3.0)        # stop post over the lug: the hatch locks turning clockwise (from above)
 
 PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
@@ -351,9 +364,9 @@ def joints():
     ribs = skin_ribs()
     return [(r_shaft, intake()[2] - 4.0),           # shaft top, under the bellmouth
             skin_point(ribs[-3], edge),             # upper skin, on a ring rib
-            (r_shaft, -37.0),                       # shaft, mid-height
-            (r_shaft, -66.5),                       # shaft / floor
-            skin_point(-math.acos(r_shaft / A), edge)]  # keel, near the axis
+            (r_shaft, nozzle_top() + 4.0),          # shaft, above the contraction
+            (55.0, FLOOR_Z + T + BOSS_D / 2 - 0.5),  # on the housing ceiling
+            skin_point(-math.acos(53.0 / A), edge)]  # keel, outside the hatch ring
 
 
 # ---- body ------------------------------------------------------------------
@@ -370,30 +383,64 @@ def frame():
     q = roll(ri).startPoint()
     p_in = math.atan2(q.z / (B - T), q.x / (A - T))  # the inner skin, where it meets the inner roll
     wall = wedge_edges(arc(A, B, -math.pi / 2, p_top), roll(INTAKE_R),
-                       (SHAFT_R, FLOOR_Z), (SHAFT_R + T, FLOOR_Z),
+                       (SHAFT_R, nozzle_top() - 1), (SHAFT_R + T, nozzle_top() - 1),
                        cq.Edge(roll(ri).wrapped.Reversed()),
                        arc(A - T, B - T, p_in, -math.pi / 2))
-    zs = -(B - T) * math.sqrt(1 - ((SOCKET_R + T) / (A - T)) ** 2)   # keel inside, at the socket
-    socket = wedge([(SOCKET_R, zs - 1), (SOCKET_R + T, zs - 1),
-                    (SOCKET_R + T, zs + SOCKET_H), (SOCKET_R, zs + SOCKET_H)]).intersect(
-        wedge_edges(arc(A - T / 2, B - T / 2, -math.pi / 2, math.pi / 2)))
-    body = wall.fuse(socket, plenum_ceiling())
+    body = wall.fuse(plenum_ceiling(), hatch_ring())
     return body.clean()
 
 
-def plenum_ceiling():
-    """The fan chamber's ceiling: flat at FLOOR_Z out to PLENUM_FLAT_R, then
-    sloping down to meet the keel at PLENUM_KEEL_R."""
+def nozzle_top():
+    return FLOOR_Z + SHROUD_RC + NOZZLE_L
+
+
+def shroud_curve(n=24):
+    """Air-side surface of the housing, (r, z) from the shaft wall down the
+    contraction, round the shroud turn and out along the ceiling to the keel."""
+    z_eye = FLOOR_Z + SHROUD_RC
+    pts = [(SHAFT_R, nozzle_top() + 1.0)]
+    for i in range(n + 1):                          # cosine contraction: tangent at both ends
+        t = i / n
+        pts.append((EYE_R + (SHAFT_R - EYE_R) * (1 + math.cos(math.pi * t)) / 2,
+                    nozzle_top() - NOZZLE_L * t))
+    for i in range(1, n + 1):                       # turn from axial to radial
+        ph = math.pi / 2 * i / n
+        pts.append((EYE_R + SHROUD_RC - SHROUD_RC * math.cos(ph), z_eye - SHROUD_RC * math.sin(ph)))
+    pts.append((PLENUM_FLAT_R, FLOOR_Z))
     zk = -(B - T) * math.sqrt(1 - (PLENUM_KEEL_R / (A - T)) ** 2)
     d = (PLENUM_KEEL_R - PLENUM_FLAT_R, zk - FLOOR_Z)
     L = math.hypot(*d)
-    d = (d[0] / L, d[1] / L)
-    nrm = (-d[1], d[0])                               # upper side of the slope
-    ext = (PLENUM_KEEL_R + d[0] * 1.5, zk + d[1] * 1.5)   # into the skin
-    kink = PLENUM_FLAT_R + T * math.tan(math.atan2(-d[1], d[0]) / 2)
-    pts = [(SHAFT_R, FLOOR_Z), (PLENUM_FLAT_R, FLOOR_Z), ext,
-           (ext[0] + nrm[0] * T, ext[1] + nrm[1] * T), (kink, FLOOR_Z + T), (SHAFT_R, FLOOR_Z + T)]
-    return wedge(pts).intersect(wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)))
+    pts.append((PLENUM_KEEL_R + d[0] / L * 1.5, zk + d[1] / L * 1.5))   # into the skin
+    return pts
+
+
+def plenum_ceiling():
+    """The housing wall: the shroud curve, T thick on its dry side."""
+    pts = shroud_curve()
+    off = []
+    for i, (r, z) in enumerate(pts):
+        a_, b_ = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        dr, dz = b_[0] - a_[0], b_[1] - a_[1]
+        L = math.hypot(dr, dz)
+        off.append((r - dz / L * T, z + dr / L * T))   # dry side: left of the flow direction
+    return wedge(pts + off[::-1]).intersect(wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)))
+
+
+def hatch_ring():
+    """Ring wall round the hatch opening, with this slice's bayonet lug and stop post."""
+    ring = wedge([(HATCH_R, -B - 1), (HATCH_R + T, -B - 1),
+                  (HATCH_R + T, HATCH_WALL_TOP), (HATCH_R, HATCH_WALL_TOP)])
+    lug = wedge([(LUG_R, LUG_Z[0]), (HATCH_R + 0.5, LUG_Z[0]),
+                 (HATCH_R + 0.5, LUG_Z[1]), (LUG_R, LUG_Z[1])], half=LUG_HALF)
+    post = wedge([(LUG_R, LUG_Z[1] - 0.5), (HATCH_R + 0.5, LUG_Z[1] - 0.5),
+                  (HATCH_R + 0.5, HATCH_WALL_TOP), (LUG_R, HATCH_WALL_TOP)],
+                 half=(POST[1] - POST[0]) / 2).rotate((0, 0, 0), (0, 0, 1), (POST[0] + POST[1]) / 2)
+    return ring.fuse(lug, post).intersect(wedge_edges(arc(A - T / 2, B - T / 2, -math.pi / 2, math.pi / 2)))
+
+
+def hatch_hole():
+    """The keel skin inside the ring wall (below the lugs)."""
+    return cq.Solid.makeCylinder(HATCH_R, LUG_Z[0] - 0.4 + B + 1, cq.Vector(0, 0, -B - 1))
 
 
 def roofed(cell, origin, normal):
@@ -584,7 +631,8 @@ def build():
     body = body.cut(at_seams(stem_hole))
     body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo
     body = body.cut(cq.Compound.makeCompound(holes))
-    body = body.fuse(cq.Compound.makeCompound(pegs)).clean()
+    body = body.fuse(cq.Compound.makeCompound(pegs))
+    body = body.cut(hatch_hole()).clean()
     return body
 
 

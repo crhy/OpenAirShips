@@ -15,16 +15,22 @@ def clash(a, b_, name, tol=0.05):
     print(f"{name:40} {'OK' if v < tol else 'CLASH %.2f mm3' % v}")
     return v
 
-imp, ped = p.impeller(), p.motor_pedestal()
-clash(imp, ship, "impeller vs hull")
-clash(ped, ship, "pedestal vs hull (in its keel socket)")
+imp, hatch, hatch_in = p.impeller(), p.fan_hatch(), p.fan_hatch(locked=False)
+clash(imp, ship, "impeller vs hull (under the shroud)")
+clash(hatch, ship, "hatch locked vs hull")
+clash(hatch_in, ship, "hatch at insert angle vs hull")
 clash(motor, ship, "motor vs hull")
+clash(motor, hatch, "motor vs hatch")
 clash(imp, motor, "impeller vs motor")
-clash(imp, ped, "impeller vs pedestal")
+clash(imp, hatch, "impeller vs hatch")
 clash(nut, ship, "prop nut vs hull")
-shaft_bore = cq.Solid.makeCylinder(hull.SHAFT_R - 0.01, 200, cq.Vector(0, 0, hull.FLOOR_Z))
-print("parts in the intake shaft above the floor: %.2f mm3 (must be 0)"
-      % imp.fuse(motor, ped).intersect(shaft_bore).Volume())
+top_, base_ = p.impeller_z()
+path = cq.Solid.makeCylinder(p.IMP_R2 + 0.05, base_ + hull.B + 10, cq.Vector(0, 0, -hull.B - 10))
+clash(path, ship, "impeller path up through the hatch opening")
+for dz in (5, 10, 15):
+    clash(hatch_in.translate((0, 0, -dz)), ship, f"hatch {dz} mm below seated, insert angle")
+gap = imp.intersect(ship.translate((0, 0, -(hull.SHROUD_GAP - 0.3)))).Volume()
+print(f"{'shroud gap >= %.1f mm' % (hull.SHROUD_GAP - 0.3):40} {'OK' if gap < 0.05 else 'TOO TIGHT %.2f mm3' % gap}")
 top, base = p.impeller_z()
 print("impeller top z %.1f (shaft mouth %.1f), bottom z %.1f, keel inside at axis %.1f"
       % (top, hull.FLOOR_Z, base, -(hull.B - hull.T)))

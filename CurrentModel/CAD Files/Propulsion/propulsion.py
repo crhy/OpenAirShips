@@ -12,12 +12,12 @@ the plane made of "up" and the tangential direction.
 
 Parts (all in mm; each is exported already posed for printing):
   impeller        open, backward-curved, 88 mm; a cup over the motor bell clamps on its shaft
-  motor_pedestal  glued into the keel socket at the axis; the 2207 stands on it, bell up
+  fan_hatch       removable keel hatch (bayonet); the 2207 stands on it, bell up
   servo_mount     glued inside the skin; holds the MG90S, spline out
   stem            rotating swivel tube; its flange sits behind the duct's bearing boss
   stem_gear       36T m1, D-bore, glued on the stem
   servo_gear      36T m1, hub through the skin onto the MG90S spline
-  thruster_ring   air multiplier: Coanda lip, 1.2 mm slot, 64 mm OD
+  thruster_ring   air multiplier: Coanda lip, 1.6 mm slot, 64 mm OD
 
 Run: python3 propulsion.py      -> <part>.step (model coordinates) + print/<part>.step
      freecadcmd make_fcstd.py     -> propulsion 926.FCStd + print/<part>.stl
@@ -39,20 +39,28 @@ MOTOR_L = 20.0             # mount face to bell top
 MOUNT_SQUARE = 16.0        # M3 holes on a 16 x 16 mm square (the usual 2207 pattern)
 HUB_BORE = 5.2             # M5 motor shaft
 
-# ---- motor pedestal: nothing in the intake shaft; the motor stands on the keel
+# ---- fan hatch: the keel under the fan, removable; the motor stands on it
 # The impeller's cup sits on the bell top and is clamped by the prop nut, so
-# the bell top sets the impeller height. Blade tops end 0.8 mm under the floor.
+# the bell top sets the impeller height: the blade tips run SHROUD_GAP under
+# the housing's shroud.
 CUP_TOP_T = 2.0            # cup top disc (clamped between bell and nut)
 CUP_R = 15.5               # cup wall inner radius (bell is 14)
-BELL_TOP = hull.FLOOR_Z - 0.8 - 5.8 - CUP_TOP_T   # the nut sits inside the blade hub zone
+IMP_B2 = 12.5                  # blade height at the tip (from the airflow analysis); the
+                               # inlet edge is taller, following the housing's shroud
+IMP_PLATE_TOP = hull.FLOOR_Z - hull.SHROUD_GAP - IMP_B2
+BELL_TOP = IMP_PLATE_TOP + 5.2   # the nut sits in the eye, under the contraction
 PED_TOP = BELL_TOP - MOTOR_L
-PED_R = hull.SOCKET_R - 0.2
+PED_R = 20.0               # motor pedestal drum on the hatch
 PED_PLATE = 2.0
+HATCH_CLR = 0.2            # hatch dish to keel opening, per side
+FLANGE_Z = (hull.LUG_Z[1] + 0.2, hull.LUG_Z[1] + 1.7)   # bayonet tabs ride on the lugs
+TAB_HALF = 14.0            # 8 tabs, 28 deg wide, centred on the seams when inserted
+LOCK_TURN = 11.5           # degrees clockwise (from above) from insert to locked
+WIRE_HOLE = (25.0, 3.0)    # phase-wire hole through the dish: radius, hole radius
 
 # ---- impeller ---------------------------------------------------------------
-IMP_R1, IMP_R2 = 31.0, 44.0    # eye (blade inlet) / tip radius (OD 88 drops through the 94.75 shaft)
+IMP_R1, IMP_R2 = 33.0, 44.0    # eye (blade inlet) / tip radius (OD 88 passes the Ø94 keel hatch opening)
 IMP_BLADES = 7
-IMP_B1, IMP_B2 = 13.0, 11.0    # blade height at inlet / tip (from the airflow analysis)
 IMP_PLATE = 0.8                # backplate: 4 layers; the blades stiffen it
 IMP_T = 0.86                   # blade thickness (2 lines)
 IMP_BETA = 40.0                # backward sweep of the blade, degrees
@@ -84,7 +92,7 @@ RT, RO = 20.0, 32.0        # throat radius at the slot, outer radius
 HD = 32.0                  # diffuser height (exit at a = 0, slot near the top); tall enough for the Ø22 feed
 TAPER = 15.0               # diffuser half-angle
 RC = 3.0                   # Coanda lip radius
-SLOT = 1.2                 # from the airflow analysis
+SLOT = 1.6                 # from the airflow analysis (shrouded fan)
 RING_W = 0.86              # 2 perimeters
 STEM_IN = RO + 12.0        # stem socket length from the ring axis
 
@@ -142,29 +150,59 @@ def hull_envelope(margin=0.0):
 
 
 # ---- impeller and motor pedestal (hull coordinates, axis = Z) ---------------
-def motor_pedestal():
-    """A low drum glued into the keel socket. Its bottom follows the keel; the
-    motor bolts to its top plate from below (4 x M3, before gluing)."""
-    inside = hull_envelope(-hull.T - 0.1)
-    drum = cq.Solid.makeCylinder(PED_R, PED_TOP + hull.B + 1, cq.Vector(0, 0, -hull.B - 1))
-    body = drum.intersect(inside)
-    body = body.cut(cq.Solid.makeCylinder(PED_R - hull.T, PED_TOP - PED_PLATE + hull.B + 1,
+def fan_hatch(locked=True):
+    """The keel under the fan: a dish flush with the hull, a spigot wall and 8
+    bayonet tabs, and the motor pedestal. Insert it with the tabs on the seams,
+    push up, and turn it LOCK_TURN clockwise (from above) onto the lugs until
+    the tabs hit the stop posts. The motor's reaction torque (the impeller
+    turns counter-clockwise) holds it against the posts; the housing pressure
+    holds the tabs down on the lugs. Tape the outside seam for the air seal."""
+    r_d = hull.HATCH_R - HATCH_CLR
+    shell = hull_envelope(0).cut(hull_envelope(-hull.T))
+    dish = shell.intersect(cq.Solid.makeCylinder(r_d, 20, cq.Vector(0, 0, -hull.B - 5)))
+    inside = hull_envelope(-hull.T / 2)
+    spigot = cq.Solid.makeCylinder(hull.LUG_R - 0.2, FLANGE_Z[1] + hull.B + 1,
+                                   cq.Vector(0, 0, -hull.B - 1)).cut(
+        cq.Solid.makeCylinder(hull.LUG_R - 0.2 - hull.T, 30, cq.Vector(0, 0, -hull.B - 1))).intersect(inside)
+    ring = cq.Solid.makeCylinder(hull.HATCH_R - 0.4, FLANGE_Z[1] - FLANGE_Z[0],
+                                 cq.Vector(0, 0, FLANGE_Z[0])).cut(
+        cq.Solid.makeCylinder(hull.LUG_R - 0.4, 10, cq.Vector(0, 0, FLANGE_Z[0] - 5)))
+    tabs = None
+    for k in range(8):
+        sector = hull.wedge([(0, FLANGE_Z[0] - 1), (60, FLANGE_Z[0] - 1), (60, FLANGE_Z[1] + 1),
+                             (0, FLANGE_Z[1] + 1)], half=TAB_HALF).rotate(
+            (0, 0, 0), (0, 0, 1), hull.HALF + 45 * k)
+        t_ = ring.intersect(sector)
+        tabs = t_ if tabs is None else tabs.fuse(t_)
+    drum = cq.Solid.makeCylinder(PED_R, PED_TOP + hull.B + 1, cq.Vector(0, 0, -hull.B - 1)).intersect(inside)
+    drum = drum.cut(cq.Solid.makeCylinder(PED_R - hull.T, PED_TOP - PED_PLATE + hull.B + 1,
                                           cq.Vector(0, 0, -hull.B - 1)))
-    body = body.cut(cq.Solid.makeCylinder(4.5, 10, cq.Vector(0, 0, PED_TOP - 5)))  # circlip
+    body = dish.fuse(spigot, tabs, drum)
+    body = body.cut(cq.Solid.makeCylinder(4.5, 10, cq.Vector(0, 0, PED_TOP - 5)))   # circlip
     for k in range(4):
         a = math.radians(45 + 90 * k)
         c = MOUNT_SQUARE / math.sqrt(2)
         body = body.cut(cq.Solid.makeCylinder(1.7, 10, cq.Vector(c * math.cos(a), c * math.sin(a),
                                                                  PED_TOP - 5)))
-    # wire exit: a notch in the drum wall, down to the keel (then one sealed hole in the keel)
-    body = body.cut(cq.Solid.makeBox(8, 10, 6, cq.Vector(PED_R - 4, -5, -hull.B - 1)))
-    return body.clean()
+    body = body.cut(cq.Solid.makeCylinder(WIRE_HOLE[1], 20, cq.Vector(WIRE_HOLE[0], 0, -hull.B - 5)))
+    body = body.clean()
+    return body.rotate((0, 0, 0), (0, 0, 1), -LOCK_TURN) if locked else body
 
 
 def impeller_z():
     """Top of the blades, and the backplate underside, in hull z."""
-    top = hull.FLOOR_Z - 0.8
-    return top, top - IMP_B1 - IMP_PLATE
+    base = IMP_PLATE_TOP - IMP_PLATE
+    return blade_top(IMP_R1), base
+
+
+def blade_top(r):
+    """Blade top edge: the housing's shroud curve, SHROUD_GAP below it (normal to it)."""
+    zc = hull.FLOOR_Z + hull.SHROUD_RC                 # centre of the shroud turn
+    rc = hull.EYE_R + hull.SHROUD_RC
+    if r >= rc:
+        return hull.FLOOR_Z - hull.SHROUD_GAP
+    R = hull.SHROUD_RC + hull.SHROUD_GAP
+    return zc - math.sqrt(max(R * R - (rc - r) ** 2, 0.0))
 
 
 def impeller():
@@ -197,6 +235,12 @@ def impeller():
     cup = cq.Solid.makeCylinder(CUP_R + IMP_T, BELL_TOP + CUP_TOP_T - base, cq.Vector(0, 0, base)).cut(
         cq.Solid.makeCylinder(CUP_R, BELL_TOP - base, cq.Vector(0, 0, base)))
     body = plate.fuse(cup)
+    # the blade tops follow the housing's shroud, SHROUD_GAP below it
+    prof = [(IMP_R1 - 3 + (IMP_R2 + 8 - IMP_R1) * i / 40, 0) for i in range(41)]
+    prof = [(r, blade_top(r)) for r, _ in prof]
+    cutter = cq.Workplane("XZ").polyline(
+        prof + [(prof[-1][0], top + 20), (prof[0][0], top + 20)]).close() \
+        .revolve(360, (0, 0, 0), (0, 1, 0)).val()
     # blade: circular arc from r1 to r2, swept back by IMP_BETA
     for k in range(IMP_BLADES):
         a0 = 2 * math.pi * k / IMP_BLADES
@@ -208,12 +252,7 @@ def impeller():
                 da = sgn * IMP_T / 2 / r
                 side.append((r * math.cos(a + da), r * math.sin(a + da)))
         blade = (cq.Workplane("XY").workplane(offset=base + IMP_PLATE)
-                   .polyline(side).close().extrude(IMP_B1).val())
-        # slope the top edge from IMP_B1 at the eye to IMP_B2 at the tip
-        cutter = cq.Workplane("XZ").polyline(
-            [(IMP_R1 - 5, top), (IMP_R2 + 5, top - (IMP_B1 - IMP_B2) * 1.2),
-             (IMP_R2 + 5, top + 20), (IMP_R1 - 5, top + 20)]).close() \
-            .revolve(360, (0, 0, 0), (0, 1, 0)).val()
+                   .polyline(side).close().extrude(top - base + 5).val())
         body = body.fuse(blade.cut(cutter))
     body = body.cut(cq.Solid.makeCylinder(HUB_BORE / 2, 30, cq.Vector(0, 0, base - 5)))
     return body.clean()
@@ -365,7 +404,7 @@ def axis_x_up(shape):
 if __name__ == "__main__":
     parts = {
         "impeller": (impeller(), flat),
-        "motor_pedestal": (motor_pedestal(), lambda s: flat(s.rotate((0, 0, 0), (1, 0, 0), 180))),
+        "fan_hatch": (fan_hatch(locked=False), flat),
         "servo_mount": (servo_mount(), axis_x_up),
         "stem": (stem(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
         "stem_gear": (stem_gear(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),

@@ -24,9 +24,10 @@ flowchart LR
 - **Separate supplies:** the servos run from the UBEC. The ESP32 and the PCA9685 logic run from the ESC's BEC, so servo stalls can't brown out the ESP32.
 - **Thruster numbering:** thruster *i* is on seam *i*, at azimuth 22.5° + 45° × *i*, counter-clockwise from +X seen from above. It plugs into PCA9685 channel *i*.
 - **Wire routing:**
-  - **Motor wires:** nothing may cross the intake shaft. The three phase wires leave through the notch in the motor pedestal and one Ø6 mm hole drilled in the keel under it. Seal that hole around the wires with epoxy so the fan housing stays airtight.
+  - **Motor wires:** nothing may cross the intake shaft. The three phase wires leave through the Ø6 hole in the fan hatch. Seal the hole around the wires (hot glue or silicone, so the hatch can still come off).
+  - **Motor direction:** the impeller must turn **counter-clockwise seen from above**. The bayonet hatch also relies on that direction to stay locked. If it runs the wrong way, swap any two motor wires.
   - **Servo leads:** the servos sit inside the hull, between the skin and the shaft. That space isn't part of the air path, so run the leads along the ribs and out through a lower lattice window to the electronics on the bench.
-  - **Electronics:** for the tethered bench demo the ESP32, PCA9685 and UBEC ride on the bench, not in the ship; there are no decks in the bench model. The ESC sits on the test stand just under the keel, next to the motor-wire hole, so the phase wires stay short.
+  - **Electronics:** for the tethered bench demo the ESP32, PCA9685 and UBEC ride on the bench, not in the ship; there are no decks in the bench model. The ESC sits on the test stand just under the keel, next to the hatch, so the phase wires stay short.
   - **Battery leads:** keep the battery within about 30 cm of the ESC. For a longer tether, solder a 470 µF / 35 V low-ESR capacitor across the ESC's power input.
 
 ## Power budget

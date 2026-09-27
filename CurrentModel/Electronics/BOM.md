@@ -28,10 +28,10 @@ The links are **Amazon search links**, not specific listings. Listings and price
 
 | # | Part | Qty | Must match | ~USD | Link |
 |---|---|---|---|---|---|
-| 12 | M3 socket-head screw assortment | 1 | Motor to pedestal: 4 × M3 × 6 (check your motor's thread depth) | 10–14 | [search](https://www.amazon.com/s?k=M3+socket+head+screw+assortment) |
-| 13 | PLA filament, 1.75 mm, 1 kg | 1 | Hull ≈ 325 g (8 × ≈ 40 g), propulsion except the impeller ≈ 250 g | 18–22 | [search](https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg) |
+| 12 | M3 socket-head screw assortment | 1 | Motor to the fan hatch: 4 × M3 × 6 (check your motor's thread depth) | 10–14 | [search](https://www.amazon.com/s?k=M3+socket+head+screw+assortment) |
+| 13 | PLA filament, 1.75 mm, 1 kg | 1 | Hull ≈ 320 g (8 × ≈ 40 g), propulsion except the impeller ≈ 290 g | 18–22 | [search](https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg) |
 | 13a | PETG filament, 1.75 mm (the impeller: its tip runs at 72 m/s, and PLA creeps when warm) | 1 small spool | ≈ 8 g per impeller; print 2 | 18–22 | [search](https://www.amazon.com/s?k=PETG+filament+1.75mm) |
-| 14 | 5-minute epoxy (airtight seams: shaft, floor, keel, ducts; servo mounts) | 1 | | 7–10 | [search](https://www.amazon.com/s?k=5+minute+epoxy) |
+| 14 | 5-minute epoxy (airtight seams: shaft, housing, keel, ducts; servo mounts) | 1 | | 7–10 | [search](https://www.amazon.com/s?k=5+minute+epoxy) |
 | 15 | CA glue, thin + gel | 1 | | 7–10 | [search](https://www.amazon.com/s?k=CA+glue+thin+gel) |
 | 16 | PTFE thread-seal tape (swivel bearing wrap) | 1 | | 3–5 | [search](https://www.amazon.com/s?k=PTFE+tape) |
 
