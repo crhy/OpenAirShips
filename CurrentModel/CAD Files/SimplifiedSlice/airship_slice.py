@@ -1,4 +1,4 @@
-"""Airship pie slice (1 of 8): a clean, lightweight rebuild.
+"""Airship pie slice (1 of 8), rev C: the 125 design, rebuilt cleanly.
 
 The hull is an ellipse A x B revolved about Z and cut into 8 identical
 45-degree slices. Each slice carries pegs on its +22.5 deg seam and matching
@@ -11,14 +11,15 @@ shaft, floor and keel are therefore solid, airtight walls.
 The thrust ducts run inside the skin, so the hull's outside is a smooth
 ellipsoid. Its only openings are the round stem and servo holes at each
 outlet, plus the lightening windows. Everything is built from the parameters
-below: skin, central shaft, floor, main deck and top trough, each a single
-thin wall. The outer skin, main deck and top trough are lightened by
-round-cornered, pointed-top windows.
+below, laid out like 125: the skin, the central shaft with its rolled top
+rim, the floor, the lower and main decks, and the top trough. Each is a
+single thin wall. The skin, the two decks and the trough shelf carry 125's
+lattice of round-cornered windows, with a sparser lattice up top.
 
 Run: pip install cadquery && python3 airship_slice.py
      -> "airship pie slice 926.step"
      then: freecadcmd make_fcstd.py
-     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926.stl laid
+     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926clauderevC.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
 """
 import math
@@ -36,15 +37,24 @@ HALF = 180.0 / N           # half-angle of one slice, degrees
 SHAFT_R = 47.375           # central shaft wall, inner radius
 FLOOR_Z = -70.0            # floor, underside
 DECK_Z = -40.625           # main deck, underside
+DECK2_Z = -55.3125         # lower deck, underside (as in 125)
 SHELF_Z = 82.375           # top trough floor, underside
 LIP_R = 94.56              # top trough outer lip, inner radius
 LIP_TOP = 91.67
+RIM_R = 50.18              # top rim: inner wall of the trough, rolled over to the shaft
 SKIN_TOP = 92.37           # skin ends where it meets the lip
 
 RIB = 4.0                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
-ROW_PITCH = 34.0           # target spacing of the skin's ring ribs
-ROOF_ANGLE = 55.0          # window roof pitch, in the wall plane
+# Skin lattice, laid out like 125: two full-width slots between the floor and
+# the main deck, then two columns of windows (split by a centre rib) in
+# MID_ROWS rows up to Z_UPPER, and UPPER_ROWS larger rows up to the trough.
+Z_UPPER = 38.0
+MID_ROWS = 3
+UPPER_ROWS = 2             # 125 had 4 smaller rows here: bigger, sparser windows up top
+DECK_RINGS = {DECK_Z: [72.0, 96.0, 120.0, 144.0, 168.0],   # every 24 mm, as in 125
+              DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: [72.0]}  # None = shelf
+ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None = plain
 
 # Printing (Prusa MK3S+, 0.4 nozzle, 0.2 layers, 0.45 lines): the slice lies
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
@@ -156,9 +166,12 @@ def rounded(cutter):
     """Fillet the window corners: the short straight edges through the wall."""
     edges = [e for e in cutter.Edges() if e.geomType() == "LINE" and e.Length() < 12.5]
     try:
-        return cutter.fillet(WIN_R, edges)
+        r = cutter.fillet(WIN_R, edges)
+        if r.isValid() and abs(r.Volume() - cutter.Volume()) < 0.2 * cutter.Volume():
+            return r
     except Exception:
-        return cutter
+        pass
+    return cutter
 
 
 def seam_axis(r, z, phi):
@@ -169,15 +182,12 @@ def seam_axis(r, z, phi):
 
 
 def skin_ribs():
-    """Ellipse angles of the ring ribs: floor, main deck, top trough, and
-    evenly spaced rings between them about ROW_PITCH apart along the skin."""
+    """Ellipse angles of the skin's ring ribs, bottom to top."""
     psi = lambda z: math.asin(z / B)
-    fixed = [psi(FLOOR_Z + T / 2), psi(DECK_Z + T / 2), psi(SHELF_Z + T / 2)]
-    out = [fixed[0]]
-    for p0, p1 in zip(fixed, fixed[1:]):
-        k = max(1, round(ellipse_arc(p0, p1) / ROW_PITCH))
-        out += [p0 + (p1 - p0) * i / k for i in range(1, k + 1)]
-    return out
+    lo, mid, top = psi(DECK_Z + T / 2), psi(Z_UPPER), psi(SHELF_Z + T / 2)
+    return ([psi(FLOOR_Z + T / 2), psi(DECK2_Z + T / 2)]
+            + [lo + (mid - lo) * i / MID_ROWS for i in range(MID_ROWS)]
+            + [mid + (top - mid) * i / UPPER_ROWS for i in range(UPPER_ROWS + 1)])
 
 
 def joints():
@@ -205,9 +215,11 @@ def frame():
                        arc(A - T, B - T, math.asin(SKIN_TOP / (B - T)), -math.pi / 2))
     lip = wedge([(LIP_R, SHELF_Z), (LIP_R + T, SHELF_Z),
                  (LIP_R + T, SKIN_TOP), (LIP_R, LIP_TOP)])
-    shaft_top = B * math.sqrt(1 - ((SHAFT_R + T) / A) ** 2)  # rim stays inside the hull
+    rim_top = B * math.sqrt(1 - ((RIM_R + T) / A) ** 2)   # stays inside the hull
     shaft = wedge([(SHAFT_R, FLOOR_Z), (SHAFT_R + T, FLOOR_Z),
-                   (SHAFT_R + T, shaft_top), (SHAFT_R, shaft_top)])
+                   (SHAFT_R + T, rim_top), (SHAFT_R, rim_top)])
+    rim = wedge([(RIM_R, SHELF_Z), (RIM_R + T, SHELF_Z), (RIM_R + T, rim_top),
+                 (SHAFT_R, rim_top), (SHAFT_R, rim_top - T), (RIM_R, rim_top - T)])
 
     def deck(z, r1):
         return wedge([(SHAFT_R, z), (r1, z), (r1, z + T), (SHAFT_R, z + T)])
@@ -215,8 +227,9 @@ def frame():
     inner = lambda z: hull_r(z, A - T / 2, B - T / 2)
     ledge = wedge([(SHAFT_R - LEDGE_W, LEDGE_Z - 2), (SHAFT_R + T / 2, LEDGE_Z - 2),
                    (SHAFT_R + T / 2, LEDGE_Z), (SHAFT_R - LEDGE_W, LEDGE_Z)])
-    body = skin.fuse(lip, shaft, ledge, deck(SHELF_Z, LIP_R + T),
-                     deck(FLOOR_Z, inner(FLOOR_Z)), deck(DECK_Z, inner(DECK_Z)))
+    body = skin.fuse(lip, shaft, rim, ledge, deck(SHELF_Z, LIP_R + T),
+                     deck(FLOOR_Z, inner(FLOOR_Z)), deck(DECK2_Z, inner(DECK2_Z)),
+                     deck(DECK_Z, inner(DECK_Z)))
     return body.clean()
 
 
@@ -235,6 +248,8 @@ def roofed(cell, origin, normal):
     upper boundary. That keeps every downward-facing edge of the window at
     least ~40 deg above horizontal.
     """
+    if ROOF_ANGLE is None:
+        return cell
     n = normal.normalized()
     v = (UP - n * UP.dot(n)).normalized()           # steepest up, in the wall
     h = n.cross(v)
@@ -252,22 +267,21 @@ def roofed(cell, origin, normal):
 
 
 def windows():
-    """Round-cornered windows with pointed tops, one column per slice.
+    """The 125 lattice, regularised: round-cornered windows, pointed on top.
 
-    Only the outer skin above the floor, the main deck and the top trough are
-    lightened. The central shaft, the floor and the keel below it stay solid:
-    together they are the fan duct and plenum, where the impeller pulls air
-    down the shaft and pushes it out through the thrust pipes.
+    The two rows between the floor and the main deck are full-width slots;
+    above them each row has two windows either side of a centre rib, as in
+    125. The decks and the trough shelf get the same treatment. The shaft,
+    floor and keel stay solid: they are the fan duct and plenum.
     """
-    whole = column(0)
+    halves, whole = [column(-1), column(+1)], column(0)
     cut = []
-    th_top = math.radians(HALF) * 0.8                # roof frame near the top seam
 
     def radial(th):
         return cq.Vector(math.cos(th), math.sin(th), 0)
 
-    # skin: bands whose edges are normal to the skin, RIB/2 in from each rib
     def band(p0, p1):
+        """Skin band whose edges are normal to the skin, RIB/2 in from each rib."""
         (a0, a1), (b0, b1) = [
             (skin_point(p, 6), skin_point(p, -4)) for p in
             (p0 + (RIB / 2) / math.hypot(A * math.sin(p0), B * math.cos(p0)),
@@ -275,30 +289,47 @@ def windows():
         return wedge([a0, a1, b1, b0])
 
     rows = skin_ribs()
-    for p0, p1 in zip(rows, rows[1:]):
+    for k, (p0, p1) in enumerate(zip(rows, rows[1:])):
+        cols = [(whole, 0.4)] if k < 2 else [(halves[0], -0.5), (halves[1], 0.5)]
         pm = (p0 + p1) / 2
         x, z = skin_point(pm, T / 2)
-        o = radial(th_top) * x + cq.Vector(0, 0, z)
-        nrm = radial(th_top) * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))
-        cut.append(roofed(band(p0, p1).intersect(whole), o, nrm))
+        for col, frac in cols:
+            th = math.radians(HALF) * (frac + 0.3)       # roof frame in the upper part
+            o = radial(th) * x + cq.Vector(0, 0, z)
+            nrm = radial(th) * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))
+            cut.append(roofed(band(p0, p1).intersect(col), o, nrm))
 
-    # decks: ring bands; their top edge is the +seam at 45 deg, no roof needed
-    for z, radii in ((DECK_Z, [SHAFT_R + T, 96.0, 144.0, hull_r(DECK_Z) - 1.5]),
-                     (SHELF_Z, [SHAFT_R + T, LIP_R])):
+    # decks and the trough shelf: ring bands, two columns
+    for z, rings in DECK_RINGS.items():
+        z = SHELF_Z if z is None else z
+        r_out = LIP_R if z == SHELF_Z else hull_r(z) - 1.5
+        radii = [SHAFT_R + T if z != SHELF_Z else RIM_R + T] + rings + [r_out]
         for r0, r1 in zip(radii, radii[1:]):
-            r = wedge([(r0 + RIB / 2, z - 1), (r1 - RIB / 2, z - 1),
-                       (r1 - RIB / 2, z + T + 1), (r0 + RIB / 2, z + T + 1)])
-            cut.append(r.intersect(whole))
+            ring = wedge([(r0 + RIB / 2, z - 1), (r1 - RIB / 2, z - 1),
+                          (r1 - RIB / 2, z + T + 1), (r0 + RIB / 2, z + T + 1)])
+            for col, frac in ((halves[0], -0.5), (halves[1], 0.5)):
+                th = math.radians(HALF) * (frac + 0.3)
+                o = radial(th) * ((r0 + r1) / 2) + cq.Vector(0, 0, z)
+                cut.append(roofed(ring.intersect(col), o, cq.Vector(0, 0, 1)))
     keep = outlet_keepout()
-    return [rounded(c).cut(keep) for c in cut]
+    out = []
+    for c in cut:
+        try:
+            clipped = c.cut(keep)
+            if clipped.Volume() > 0.35 * c.Volume():   # drop slivers; round what stays
+                out.append(rounded(clipped) if clipped.Volume() < c.Volume() - 1 else rounded(c))
+        except ValueError:                  # empty: fully inside the keep-out
+            pass
+    return out
 
 
 def outlet_keepout():
     """Skin kept solid over the ducts (both seams) and around the servo."""
     boxes = []
     for phi, side in ((-HALF, 1), (HALF, -1)):
-        duct = cq.Solid.makeBox(140, 50, 90, cq.Vector(90, -25, -80))
-        servo = cq.Solid.makeBox(140, 30, 50, cq.Vector(90, side * SERVO_T - 15, OUT_Z - 25))
+        w = DUCT_BORE / 2 + DUCT_W + 3.0             # duct + 3 mm glue margin
+        duct = cq.Solid.makeBox(140, 2 * w, 82, cq.Vector(90, -w, -80))
+        servo = cq.Solid.makeBox(140, 28, 45, cq.Vector(90, side * SERVO_T - 14, OUT_Z - 17))
         region = duct.fuse(servo) if side > 0 else duct
         boxes.append(region.rotate((0, 0, 0), (0, 0, 1), phi))
     return boxes[0].fuse(boxes[1])
