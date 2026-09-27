@@ -14,8 +14,8 @@ outlet, plus the lightening windows. Everything is built from the parameters
 below, laid out like 125: the skin, the central shaft with its rolled top
 rim, the floor, the lower and main decks, and the top trough. Each is a
 single thin wall. For minimum weight, the skin above the main deck is two
-columns of full ovals with 2.5 mm ribs and hollow diamond junctions
-(including half-diamonds on the seams), with 125's slots below it. The
+columns of ovals with 2.0 mm ribs and large hollow diamond junctions
+(half-diamonds on the seams stop short of a continuous edge strip), with 125's slots below it. The
 decks, the trough shelf and its rim wall carry window grids too.
 
 Run: pip install cadquery && python3 airship_slice.py
@@ -46,7 +46,7 @@ LIP_TOP = 91.67
 RIM_R = 50.18              # top rim: inner wall of the trough, rolled over to the shaft
 SKIN_TOP = 92.37           # skin ends where it meets the lip
 
-RIB = 2.5                  # frame rib width (a seam rib is RIB/2 on each slice)
+RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
 # Skin lattice: two full-width slots between the floor and the main deck, as
 # in 125. Above the main deck, UPPER_ROWS rows of two side columns (split by a
@@ -56,7 +56,7 @@ WIN_R = 2.5                # window corner radius
 # arch (radius ~9 mm), which prints without supports.
 UPPER_ROWS = 6
 WIDE_FROM_Z = 1e9          # rows above this would be one wide oval per slice (off: two columns all the way up)
-OVAL_N = 2.6               # superellipse exponent: 2 = ellipse, higher = fuller corners
+OVAL_N = 1.8               # superellipse exponent: 2 = ellipse; lower = bigger junction diamonds
 WIDE_OVAL_N = 4.0
 DECK_RINGS = {DECK_Z: [72.0, 96.0, 120.0, 144.0, 168.0],   # every 24 mm, as in 125
               DECK2_Z: [72.0, 96.0, 120.0, 144.0], None: []}  # None = shelf
@@ -408,7 +408,8 @@ def windows():
             for th, around in spots:
                 d = node(rows[k + 1], math.radians(th), around)
                 if d is not None:
-                    cut.append(d)
+                    # seam diamonds stop RIB/2 short of the seam: the side edge stays continuous
+                    cut.append(d if th == 0.0 else d.intersect(whole))
     for k, (p0, p1) in enumerate(zip(rows, rows[1:])):
         if k >= 3:
             continue
