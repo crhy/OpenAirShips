@@ -15,15 +15,16 @@ With 4 thrusters instead of 8, each duct, stem and ring carries twice the flow. 
 | 24 mm | 22 mm | 22 mm | 2.4 mm | **284 gf** | 24.8 m/s | power |
 | 30 mm | 28 mm | 26 mm | 2.0 mm | **386 gf** | 18.3 m/s | power |
 | 34 mm | 31 mm | 22 mm | 2.4 mm | **422 gf** | 15.0 m/s | power |
-| 34 mm | 31 mm | 27 mm | 1.6 mm | **420 gf** | 13.6 m/s | power |
-| 34 mm | 31 mm | 27 mm | 2.0 mm | **422 gf** ← built | 15.2 m/s | power |
-| 34 mm | 31 mm | 27 mm | 2.4 mm | **415 gf** | 16.5 m/s | power |
+| 34 mm | 31 mm | 25 mm | 1.6 mm | **417 gf** | 13.0 m/s | power |
+| 34 mm | 31 mm | 25 mm | 2.0 mm | **422 gf** ← built | 14.6 m/s | power |
+| 34 mm | 31 mm | 25 mm | 2.4 mm | **419 gf** | 16.0 m/s | power |
 | 34 mm | 31 mm | 31 mm | 1.6 mm | **422 gf** | 14.6 m/s | power |
 
 - **Keeping the 8-thruster ducts (Ø24) with only 4 thrusters loses about a fifth of the thrust.** Each duct would carry twice the flow at twice the speed, so its losses would be four times higher.
 - **With the ducts and stems scaled up, 4 thrusters make slightly more thrust than 8** (about +3%). There are fewer, larger passages with less wall friction.
 - **Built:**
   - duct Ø34, stem Ø34/31
-  - ring with a 24 mm throat, 27 mm slot lip radius, 4 mm Coanda lip and a 2.0 mm slot
+  - ring with the 8-thruster ring's profile (32 mm tall, 12 mm between throat and outer wall), on a 22.5 mm throat with a 3.5 mm Coanda lip and a 2.0 mm slot (25 mm slot radius)
+  - the Ø31 stem bore reshapes into an oval port of the same area where it enters the ring, so the ring can stay 32 mm tall
   - 44-tooth gears to clear the wider stem
   - a housing ceiling 10 mm higher, so the Ø34 duct mouths fit under it

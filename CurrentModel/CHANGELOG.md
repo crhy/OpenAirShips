@@ -1,5 +1,15 @@
 # Changelog: 926 buildable bench model
 
+## v0.1.2: even lattice and thruster-ring fixes (September 2026)
+
+- **Even lattice top and bottom.**
+  - Below the equator the skin's ring ribs used to be spaced by angle, so near the equator the rows came out squat: at Kobra Max size, 37–47 mm tall by about 150 mm wide. Their flat ovals left wide, nearly solid bands.
+  - Every row is now the same length along the skin, above and below the equator: about 33 mm at bench size and 73 mm at Kobra Max size. All the cells have the same proportions.
+  - The equator rib, which carries the thrusters, is unchanged.
+- **Thruster-ring feed fix (all versions).** The stem's feed hole was cut too deep, through the ring's inner diffuser cone, so some air could skip the Coanda slot and dump straight into the ring's centre. The feed now opens only through the ring's outer wall into its plenum, and a check confirms the cone is intact.
+- **4-thruster rings** now have the same slim profile as the 8-thruster ones: 32 mm diffuser, about 39 mm tall instead of 48, 69 mm OD. The throat is 22.5 mm, the Coanda lip 3.5 mm and the slot 2.0 mm, still about 422 gf. The Ø31 stem bore turns into an oval port of the same area where it meets the ring.
+- **Checks:** all six slices pass the solid, airtightness and overlap checks, and left/right mate with 0 overlap. All 35 fit checks pass for all four propulsion versions, and every STL is watertight. Weights and lift are updated in `Analysis/FLOAT.md`.
+
 ## v0.1.1: Kobra Max size, lightweight PLA and the float budget (September 2026)
 
 **Kobra Max versions (x1.9, 790 mm across)** of both the 8- and 4-thruster designs.

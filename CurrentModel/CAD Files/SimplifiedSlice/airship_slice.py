@@ -53,18 +53,17 @@ HALF = 180.0 / N           # half-angle of one slice, degrees
 
 FLOOR_Z = -B + (43.0 if FOUR else 32.7)   # fan-housing ceiling (the shroud over the blade tips), underside;
                                      # 4T: higher, so the Ø34 duct mouths fit under it
-DECK2_Z = -55.3125 * SCALE  # 125's lower deck height: now just a skin ring rib (no decks on the bench model)
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
 RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
 WIN_R = 2.5                # window corner radius
-# Skin lattice: from the fan housing to the intake bellmouth, KEEL_ROWS +
-# ROWS_BELOW_EQ + ROWS_ABOVE_EQ rows of two side columns of ovals (split by a
-# centre rib). Where four ovals meet, the junction is a hollow diamond window.
-# Printed lying on the seam, each oval's top is a small round arch, which
-# prints without supports.
-ROWS_BELOW_EQ = 3          # skin rows between the DECK2_Z rib and the equator
-ROWS_ABOVE_EQ = 6          # ... and between the equator and the intake bellmouth (equal arc lengths)
+# Skin lattice: from the fan housing to the intake bellmouth, rows of two side
+# columns of ovals (split by a centre rib). Every row is the same length along
+# the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
+# as many of that height as fit. Where four ovals meet, the junction is a
+# hollow diamond window. Printed lying on the seam, each oval's top is a
+# small round arch, which prints without supports.
+ROWS_ABOVE_EQ = 6          # skin rows between the equator and the intake bellmouth
 WIDE_FROM_Z = 1e9          # rows above this would be one wide oval per slice (off: two columns all the way up)
 OVAL_N = 1.8               # superellipse exponent: 2 = ellipse; lower = bigger junction diamonds
 WIDE_OVAL_N = 4.0
@@ -118,7 +117,6 @@ DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the m
 # carry the air from here and their own walls keep it airtight.
 PLENUM_FLAT_R = 66.0
 PLENUM_KEEL_R = 80.0
-KEEL_ROWS = 3              # skin rows between the fan housing and the DECK2_Z rib
 # OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
 # ring rib, so the stem and servo holes' collars are part of that rib.
 STEM_HOLE = 34.4 if FOUR else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (see Analysis/AIRFLOW*.md)
@@ -240,22 +238,27 @@ def ellipse_arc(p0, p1, n=200):
                for i in range(n)) * h
 
 
+def equal_arcs(p0, p1, n):
+    """n + 1 ellipse angles from p0 to p1, equally spaced along the skin."""
+    L, out, acc, h = ellipse_arc(p0, p1), [p0], 0.0, (p1 - p0) / 4000
+    for i in range(4000):
+        p = p0 + (i + .5) * h
+        acc += math.hypot(A * math.sin(p), B * math.cos(p)) * abs(h)
+        if len(out) < n and acc >= L * len(out) / n:
+            out.append(p0 + (i + 1) * h)
+    return out + [p1]
+
+
 def skin_ribs():
     """Ellipse angles of the skin's ring ribs, bottom to top. One sits exactly
-    on the equator (z = 0), where the thrusters are."""
-    psi = lambda z: math.asin(z / B)
-    ke, lo = psi(keel_edge_z()), psi(DECK2_Z + T / 2)
+    on the equator (z = 0), where the thrusters are. Every row is the same
+    height along the skin, above and below the equator, so all the cells
+    have the same proportions."""
+    ke = math.asin(keel_edge_z() / B)
     top = intake()[1] - (RIB / 2) / math.hypot(A * math.sin(intake()[1]), B * math.cos(intake()[1]))
-    L = ellipse_arc(0.0, top)
-    up, acc, h = [0.0], 0.0, top / 2000
-    for i in range(2000):                            # equal arc lengths above the equator
-        p = (i + .5) * h
-        acc += math.hypot(A * math.sin(p), B * math.cos(p)) * h
-        if acc >= L * len(up) / ROWS_ABOVE_EQ and len(up) < ROWS_ABOVE_EQ:
-            up.append((i + 1) * h)
-    return ([ke + (lo - ke) * i / KEEL_ROWS for i in range(KEEL_ROWS)]
-            + [lo - lo * i / ROWS_BELOW_EQ for i in range(ROWS_BELOW_EQ)]
-            + up + [top])
+    row = ellipse_arc(0.0, top) / ROWS_ABOVE_EQ
+    below = max(3, round(ellipse_arc(ke, 0.0) / row))
+    return equal_arcs(ke, 0.0, below)[:-1] + equal_arcs(0.0, top, ROWS_ABOVE_EQ)
 
 
 def intake():

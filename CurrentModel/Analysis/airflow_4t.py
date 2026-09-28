@@ -35,10 +35,10 @@ def main():
     w("| Duct Ø | Stem bore Ø | Slot lip radius | Slot | Thrust | Duct speed | Limited by |")
     w("|---|---|---|---|---|---|---|")
     for duct, stem, sr, slot in ((24, 22, 22.0, 1.6), (24, 22, 22.0, 2.4), (30, 28, 26.0, 2.0),
-                                 (34, 31, 22.0, 2.4), (34, 31, 27.0, 1.6), (34, 31, 27.0, 2.0),
-                                 (34, 31, 27.0, 2.4), (34, 31, 31.0, 1.6)):
+                                 (34, 31, 22.0, 2.4), (34, 31, 25.0, 1.6), (34, 31, 25.0, 2.0),
+                                 (34, 31, 25.0, 2.4), (34, 31, 31.0, 1.6)):
         r = run(4, duct, stem, slot, sr)
-        mark = " ← built" if (duct, stem, sr, slot) == (34, 31, 27.0, 2.0) else ""
+        mark = " ← built" if (duct, stem, sr, slot) == (34, 31, 25.0, 2.0) else ""
         w(f"| {duct} mm | {stem} mm | {sr:.0f} mm | {slot} mm | **{r['thrust'] / 9.81e-3:.0f} gf**{mark} | "
           f"{r['v_d']:.1f} m/s | {r['limit']} |")
     w("")
@@ -46,7 +46,8 @@ def main():
     w("- **With the ducts and stems scaled up, 4 thrusters make slightly more thrust than 8** (about +3%). There are fewer, larger passages with less wall friction.")
     w("- **Built:**")
     w("  - duct Ø34, stem Ø34/31")
-    w("  - ring with a 24 mm throat, 27 mm slot lip radius, 4 mm Coanda lip and a 2.0 mm slot")
+    w("  - ring with the 8-thruster ring's profile (32 mm tall, 12 mm between throat and outer wall), on a 22.5 mm throat with a 3.5 mm Coanda lip and a 2.0 mm slot (25 mm slot radius)")
+    w("  - the Ø31 stem bore reshapes into an oval port of the same area where it enters the ring, so the ring can stay 32 mm tall")
     w("  - 44-tooth gears to clear the wider stem")
     w("  - a housing ceiling 10 mm higher, so the Ø34 duct mouths fit under it")
     open(os.path.join(HERE, "AIRFLOW-4T.md"), "w").write("\n".join(out) + "\n")

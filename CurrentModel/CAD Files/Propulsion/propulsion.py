@@ -89,13 +89,14 @@ TAB_X = X_SKIN - 15.265    # servo tab plane: the body top clears the curved ski
 MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
-RT, RO = (24.0, 36.0) if FOUR else (20.0, 32.0)   # throat radius at the slot, outer radius
-HD = 42.0 if FOUR else 32.0   # diffuser height (exit at a = 0, slot near the top); tall enough for the stem feed
+RT, RO = (22.5, 34.5) if FOUR else (20.0, 32.0)   # throat radius at the slot, outer radius
+HD = 32.0                  # diffuser height (exit at a = 0, slot near the top)
 TAPER = 15.0               # diffuser half-angle
-RC = 4.0 if FOUR else 3.0  # Coanda lip radius
+RC = 3.5 if FOUR else 3.0  # Coanda lip radius
 SLOT = 2.0 if FOUR else 1.6   # from the airflow analysis (shrouded fan)
 RING_W = 0.86              # 2 perimeters
-STEM_IN = RO + 12.0        # stem socket length from the ring axis
+STEM_IN = RO + (16.0 if FOUR else 12.0)   # stem socket end, from the ring axis (4T: room to
+                                          # reshape the round stem bore into the oval port)
 
 
 # ---- helpers ----------------------------------------------------------------
@@ -369,14 +370,31 @@ def thruster_ring():
     ring = revolve(inner).fuse(revolve(housing))
     # stem socket on the outer wall, axis along -X (towards the hull)
     sa = RING_W + STEM_OD / 2 + 0.4
-    ax = cq.Vector(-1, 0, 0)
-    boss = cq.Solid.makeCylinder(STEM_OD / 2 + 2.4, STEM_IN - RO + 1, cq.Vector(-RO + 1, 0, sa), ax)
+    x_ax = cq.Vector(1, 0, 0)
+    boss = cq.Solid.makeCylinder(STEM_OD / 2 + 2.4, STEM_IN - RO + 1, cq.Vector(-RO + 1, 0, sa),
+                                 cq.Vector(-1, 0, 0))
     boss = boss.intersect(cq.Solid.makeBox(200, 200, 100, cq.Vector(-100, -100, 0)))
     ring = ring.fuse(boss)
-    ring = ring.cut(cq.Solid.makeCylinder(STEM_OD / 2 + 0.1, 9, cq.Vector(-STEM_IN - 0.01, 0, sa),
-                                          cq.Vector(1, 0, 0)))
-    ring = ring.cut(cq.Solid.makeCylinder(STEM_ID / 2 - 0.5, STEM_IN - RO + 4,
-                                          cq.Vector(-STEM_IN + 8, 0, sa), cq.Vector(1, 0, 0)))
+    ring = ring.cut(cq.Solid.makeCylinder(STEM_OD / 2 + 0.1, 9, cq.Vector(-STEM_IN - 0.01, 0, sa), x_ax))
+    # The feed opens only through the outer wall into the plenum: it must not
+    # reach the diffuser cone, or the air would skip the slot.
+    wall = cq.Solid.makeCylinder(RO + 30, 100, cq.Vector(0, 0, -1)).cut(
+        cq.Solid.makeCylinder(RO - RING_W - 0.3, 102, cq.Vector(0, 0, -2)))
+    x_end = -STEM_IN + 9                            # bottom of the socket
+    roof = tip_a - (RO - RING_W - tip_r)            # plenum roof at the outer wall
+    z0, z1 = RING_W + 0.7, roof - 0.8               # port inside the plenum's height
+    if 2 * (STEM_ID / 2 - 0.5) <= z1 - z0:
+        port = cq.Solid.makeCylinder(STEM_ID / 2 - 0.5, STEM_IN, cq.Vector(x_end, 0, sa), x_ax)
+    else:                                           # too tall: an oval of the same area
+        h_, zc = z1 - z0, (z0 + z1) / 2
+        w_ = (STEM_ID - 1) ** 2 / h_
+        ell = lambda x: cq.Wire.makeEllipse(w_ / 2, h_ / 2, cq.Vector(x, 0, zc), x_ax, cq.Vector(0, 1, 0))
+        x_oval = -RO - 1.0
+        port = cq.Solid.makeLoft([cq.Wire.makeCircle(STEM_ID / 2 - 0.5, cq.Vector(x_end, 0, sa), x_ax),
+                                  ell(x_oval)])
+        port = port.fuse(cq.Solid.extrudeLinear(cq.Face.makeFromWires(ell(x_oval)), cq.Vector(RO, 0, 0)))
+    ring = ring.cut(port.intersect(wall.fuse(cq.Solid.makeBox(STEM_IN - RO + 2, 200, 100,
+                                                              cq.Vector(-STEM_IN - 1, -100, -1)))))
     return ring.clean(), sa
 
 

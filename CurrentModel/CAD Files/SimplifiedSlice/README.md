@@ -32,7 +32,7 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
   - **4 thrusters:** Ø34 ducts on every other seam (twice the flow each), a Ø44 bulb and a Ø34.4 stem hole. A **left** slice carries its half-duct on its +22.5° seam; a **right** slice carries it on its −22.5° seam, plus the servo hole. Assemble them alternating, left, right, left, right, so each pair closes one duct.
 - **Lattice:** everything else is structure only.
   - Two columns of large oval cells, with 2.0 mm ribs.
-  - Three rows over the keel outside the fan housing, three up to the equator and six above it.
+  - **Every row is the same length along the skin:** five rows from the fan housing up to the equator, six above it (about 33 mm at bench size and 73 mm at Kobra Max size). All the cells therefore have the same proportions, top and bottom.
   - A **ring rib on the equator (z = 0)** carries the thruster stem and servo holes. Thrusters stay exactly on the equator, for navigation.
   - **Every junction is a hollow diamond.** On the seams each slice has a hollow half-diamond that stops at a continuous 1 mm edge strip.
 - **Joints:** 5 bosses along each seam, all at the same (r, z) positions. The +22.5° seam has Ø3 × 3.6 mm pegs and the −22.5° seam has Ø3.3 × 4.2 mm holes, both with 0.4 mm chamfers.
