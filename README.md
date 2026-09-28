@@ -5,7 +5,7 @@ All relevant information is on http://OpenAirShips.com. Pop in and join the conv
 
 ![OpenAirShipsLogo](https://github.com/user-attachments/assets/ed0b83d8-38ed-4dbf-87db-a51a390f2581)
 
-## Build it: the 926 model, v0.1.1
+## Build it: the 926 model, v0.1.2
 
 ![OpenAirShips 926 v0.1, 4 thrusters, Kobra Max size](CurrentModel/Renders/v0.1-4T-KobraMax-ship.png)
 
@@ -24,9 +24,9 @@ The first buildable OpenAirShip is a 3D-printable, tethered model. It's made of 
 | **Bill of materials** | [Electronics/BOM.md](CurrentModel/Electronics/BOM.md): about $230–320 for the core parts, with Amazon links, and a lightweight-PLA option |
 | **Build notes** | [Hull slice](CurrentModel/CAD%20Files/SimplifiedSlice/README.md) · [Propulsion](CurrentModel/CAD%20Files/Propulsion/README.md) · [Electronics and firmware](CurrentModel/Electronics/README.md) |
 | **Engineering** | [Will it float?](CurrentModel/Analysis/FLOAT.md) · [Airflow](CurrentModel/Analysis/AIRFLOW.md) · [Airflow, 4 thrusters](CurrentModel/Analysis/AIRFLOW-4T.md) · [Design constraints](CurrentModel/DESIGN-CONSTRAINTS.md) · [Open questions](CurrentModel/OPEN-QUESTIONS.md) |
-| **Changelog** | [v0 → v0.1 → v0.1.1](CurrentModel/CHANGELOG.md) |
+| **Changelog** | [v0 → v0.1 → v0.1.1 → v0.1.2](CurrentModel/CHANGELOG.md) |
 
-**Will it float?** Not yet on hydrogen alone. The 4-thruster Kobra Max model in lightweight PLA weighs about 624–742 g and holds 124 L of hydrogen, which lifts 139 g (19–22% of its weight). With the fan running, it's 67–185 g short of hovering. The bench-size 4-thruster model in fully foamed lightweight PLA *can* hover on its fan. Floating on hydrogen alone needs a hull about 1.7–1.9 m across. The full budget is in [FLOAT.md](CurrentModel/Analysis/FLOAT.md).
+**Will it float?** Not yet on hydrogen alone. The 4-thruster Kobra Max model in lightweight PLA weighs about 624–743 g and holds 124 L of hydrogen, which lifts 139 g (19–22% of its weight). With the fan running, it's 67–185 g short of hovering. The bench-size 4-thruster model in fully foamed lightweight PLA *can* hover on its fan. Floating on hydrogen alone needs a hull about 1.7–1.9 m across. The full budget is in [FLOAT.md](CurrentModel/Analysis/FLOAT.md).
 
 <p>
 <img src="CurrentModel/Renders/v0.1-8T-section.png" width="49%" alt="8 thrusters, section through a seam">

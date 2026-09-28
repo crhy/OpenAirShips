@@ -13,7 +13,7 @@ The same parametric source (`propulsion.py`) builds the parts for every hull ver
 | Version | Folder | Thrusters | Duct / stem | Ring | Gears | Expected thrust |
 |---|---|---|---|---|---|---|
 | 8 thrusters, bench | `.` (this folder) | 8 | Ø24 / Ø25-22 | 64 mm OD, 1.6 mm slot | 36T m1 | ≈ 408 gf |
-| 4 thrusters, bench | `4T/` | 4 | Ø34 / Ø34-31 | 72 mm OD, 2.0 mm slot | 44T m1 | ≈ 422 gf |
+| 4 thrusters, bench | `4T/` | 4 | Ø34 / Ø34-31 | 69 mm OD, 2.0 mm slot (same profile as 8T) | 44T m1 | ≈ 422 gf |
 | 8 thrusters, Kobra Max | `x1.9/` | 8 | as 8T | as 8T | as 8T | ≈ 401 gf |
 | 4 thrusters, Kobra Max | `4T/x1.9/` | 4 | as 4T | as 4T | as 4T | ≈ 418 gf |
 
