@@ -12,8 +12,9 @@ duct walls are solid, airtight walls; the shaft bore has nothing in it.
 The ducts run inside the skin, so the hull's outside is a smooth ellipsoid
 that rolls over a bellmouth into the shaft at the top. Its only openings are
 the round stem and servo holes at each outlet, plus the lattice. Everything
-else is lattice: two columns of ovals with 2.0 mm ribs and hollow diamond
-junctions (half-diamonds on the seams stop short of a continuous edge strip).
+else is lattice: two columns of ovals laid out on the curved skin, with a
+hollow window at every junction, so every web left is 2.0 mm wide (junction
+windows on the seams stop short of a continuous edge strip).
 There are no decks. See ../../DESIGN-CONSTRAINTS.md.
 
 Run: pip install cadquery && python3 airship_slice.py
@@ -56,18 +57,14 @@ FLOOR_Z = -B + (43.0 if FOUR else 32.7)   # fan-housing ceiling (the shroud over
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
 RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
-WIN_R = 2.5                # window corner radius
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
 # as many of that height as fit. Where four ovals meet, the junction is a
-# hollow diamond window. Printed lying on the seam, each oval's top is a
+# hollow window that takes all the skin more than RIB from the ovals. Printed lying on the seam, each oval's top is a
 # small round arch, which prints without supports.
 ROWS_ABOVE_EQ = 6          # skin rows between the equator and the intake bellmouth
-WIDE_FROM_Z = 1e9          # rows above this would be one wide oval per slice (off: two columns all the way up)
-OVAL_N = 1.8               # superellipse exponent: 2 = ellipse; lower = bigger junction diamonds
-WIDE_OVAL_N = 4.0
-ROOF_ANGLE = None          # pointed window tops (e.g. 55) if bridges sag; None = plain
+OVAL_N = 1.8               # oval shape: superellipse exponent (2 = ellipse)
 
 # Printing (Prusa MK3S+, 0.4 nozzle, 0.2 layers, 0.45 lines): the slice lies
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
@@ -113,7 +110,7 @@ DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the m
 
 # Plenum (fan housing): only as big as the fan and the duct mouths. Flat under
 # the floor out past the mouths, then a sloped ceiling down to the keel.
-# Everything outside it, keel included, is oval/diamond lattice: the ducts
+# Everything outside it, keel included, is oval lattice with hollow junctions: the ducts
 # carry the air from here and their own walls keep it airtight.
 PLENUM_FLAT_R = 66.0
 PLENUM_KEEL_R = 80.0
@@ -207,18 +204,6 @@ def column(side):
               .extrude(2 * B + 40).translate((0, 0, -B - 20)).val())
 
 
-def rounded(cutter):
-    """Fillet the window corners: the short straight edges through the wall."""
-    edges = [e for e in cutter.Edges() if e.geomType() == "LINE" and e.Length() < 12.5]
-    try:
-        r = cutter.fillet(WIN_R, edges)
-        if r.isValid() and abs(r.Volume() - cutter.Volume()) < 0.2 * cutter.Volume():
-            return r
-    except Exception:
-        pass
-    return cutter
-
-
 def seam_axis(r, z, phi):
     """Point on the seam plane at angle phi and the unit tangent +theta."""
     p = cq.Vector(r * math.cos(phi), r * math.sin(phi), z)
@@ -278,105 +263,6 @@ def intake():
 # The thrusters must sit exactly on the equator (z = 0), for navigation.
 OUT_Z = 0.0
 OUT_THRUST_RIB = skin_ribs().index(0.0)
-
-
-def node(p1, theta, ovals):
-    """Diamond window in a junction of skin ovals, on ring rib p1 at azimuth theta."""
-    x, z = skin_point(p1, T / 2)
-    radial = cq.Vector(math.cos(theta), math.sin(theta), 0)
-    origin = radial * x + cq.Vector(0, 0, z)
-    n = (radial * (B * math.cos(p1)) + cq.Vector(0, 0, A * math.sin(p1))).normalized()
-    u = cq.Vector(-math.sin(theta), math.cos(theta), 0)
-    return diamond(origin, n, u, ovals, depth=4)
-
-
-def diamond(origin, n, u, ovals, depth):
-    """Diamond window at a junction of ovals (skin or deck).
-
-    Its corners point along the two ribs. It is sized so that a full RIB
-    width stays between it and every oval around it (`ovals`: the outlines
-    nearby, including the neighbouring slice's across a seam).
-    """
-    v = n.cross(u)
-    pts = []
-    for ring in ovals:                                   # oval outlines (3D points on the skin)
-        for i, p in enumerate(ring):
-            p2 = ring[(i + 1) % len(ring)]
-            for t in (0.0, 0.25, 0.5, 0.75):
-                q = p + (p2 - p) * t - origin
-                if q.Length < 80:
-                    pts.append((q.dot(u), q.dot(v)))
-
-    def clear(py, pz):
-        return all(math.hypot(py - a_, pz - b_) >= RIB for a_, b_ in pts)
-
-    def reach(dy, dz):
-        s_ = 0.0
-        while clear(dy * (s_ + 0.25), dz * (s_ + 0.25)) and s_ < 60:
-            s_ += 0.25
-        return s_
-
-    ry, rz = min(reach(1, 0), reach(-1, 0)), min(reach(0, 1), reach(0, -1))
-    if min(ry, rz) < 1.0:                                # every junction big enough is hollow
-        return None
-    k = 1.0
-    while k > 0.2:                                       # shrink until every edge clears
-        corners = [(ry * k, 0), (0, rz * k), (-ry * k, 0), (0, -rz * k)]
-        edge = [(c0[0] + (c1[0] - c0[0]) * t / 20, c0[1] + (c1[1] - c0[1]) * t / 20)
-                for c0, c1 in zip(corners, corners[1:] + corners[:1]) for t in range(21)]
-        if all(clear(py, pz) for py, pz in edge):
-            break
-        k -= 0.05
-    sk = cq.Sketch().polygon(corners + corners[:1]).vertices().fillet(min(1.5, min(ry, rz) * k / 3))
-    return (cq.Workplane(cq.Plane(origin=origin, xDir=u, normal=n))
-              .placeSketch(sk).extrude(depth, both=True).val())
-
-
-def lens(p0, p1, side, grow=0.0):
-    """The window solid for oval_outline()."""
-    ring, n = oval_outline(p0, p1, side, grow)
-    depth = 10 if grow else 4
-    edge = cq.Edge.makeSpline([p - n * depth for p in ring], periodic=True)
-    face = cq.Face.makeFromWires(cq.Wire.assembleEdges([edge]))
-    return cq.Solid.extrudeLinear(face, n * (2 * depth))
-
-
-def oval_outline(p0, p1, side, grow=0.0):
-    """Oval (elliptical) window between ribs p0 and p1: side -1/+1 is one side
-    column, side 0 one wide oval spanning the slice seam to seam.
-
-    It is drawn in the skin's tangent plane at the cell centre and cut
-    through the wall along the normal. Its width spans the column (RIB/2 in
-    from the centre rib and the seam rib) and its height spans the row (RIB/2
-    in from each ring rib).
-    """
-    pm = (p0 + p1) / 2
-    d0 = (RIB / 2) / math.hypot(A * math.sin(p0), B * math.cos(p0))
-    d1 = (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1))
-    x, z = skin_point(pm, T / 2)
-    # column bounds at this radius: centre rib edge and seam rib edge
-    th_out = math.radians(HALF) - math.asin((RIB / 2) / x)
-    th_in = -th_out if side == 0 else math.asin((RIB / 2) / x)
-    thc = side * (th_in + th_out) / 2
-    width = x * (th_out - th_in)
-    radial = cq.Vector(math.cos(thc), math.sin(thc), 0)
-    origin = radial * x + cq.Vector(0, 0, z)
-    n = (radial * (B * math.cos(pm)) + cq.Vector(0, 0, A * math.sin(pm))).normalized()
-    u = cq.Vector(-math.sin(thc), math.cos(thc), 0)           # along the ring
-    pts = [skin_point(p, T / 2) for p in (p0 + d0, p1 - d1)]
-    v = n.cross(u)
-    vs = [((radial * px + cq.Vector(0, 0, pz)) - origin).dot(v) for px, pz in pts]
-    height, vc = abs(vs[1] - vs[0]), (vs[0] + vs[1]) / 2
-    ex = WIDE_OVAL_N if side == 0 else OVAL_N
-    a_, b_ = width / 2 + grow, height / 2 + grow
-    ring = []
-    for i in range(72):
-        t = 2 * math.pi * i / 72
-        c_, s_ = math.cos(t), math.sin(t)
-        pu = a_ * math.copysign(abs(c_) ** (2 / ex), c_)
-        pv = vc + b_ * math.copysign(abs(s_) ** (2 / ex), s_)
-        ring.append(origin + u * pu + v * pv)
-    return ring, n
 
 
 def joints():
@@ -469,84 +355,162 @@ def hatch_hole():
     return cq.Solid.makeCylinder(HATCH_R, LUG_Z[0] - 0.4 + B + 1, cq.Vector(0, 0, -B - 1))
 
 
-def roofed(cell, origin, normal):
-    """Cut a pointed roof into a window so that no edge is a flat ceiling.
+def surface(psi, theta, depth=T / 2):
+    """Point `depth` under the outer skin at (psi, theta), and the outward normal."""
+    r, z = skin_point(psi, depth)
+    n = cq.Vector(B * math.cos(psi) * math.cos(theta), B * math.cos(psi) * math.sin(theta),
+                  A * math.sin(psi)).normalized()
+    return cq.Vector(r * math.cos(theta), r * math.sin(theta), z), n
 
-    Print "up" is UP. In the wall's tangent plane at `origin` the roof edges
-    rise at ROOF_ANGLE, and the roof sits under every point of the cell's
-    upper boundary. That keeps every downward-facing edge of the window at
-    least ~40 deg above horizontal.
-    """
-    if ROOF_ANGLE is None:
-        return cell
-    n = normal.normalized()
-    v = (UP - n * UP.dot(n)).normalized()           # steepest up, in the wall
-    h = n.cross(v)
-    pts = [e.positionAt(t) for e in cell.Edges() for t in (0, .25, .5, .75, 1)]
-    q = [((p - origin).dot(h), (p - origin).dot(v)) for p in pts]
-    h0 = (min(a for a, _ in q) + max(a for a, _ in q)) / 2
-    vmid = (min(b for _, b in q) + max(b for _, b in q)) / 2
-    k = math.tan(math.radians(ROOF_ANGLE))
-    top = min(b + k * abs(a - h0) for a, b in q if b > vmid)
-    big = 400.0
-    roof = [(h0, top), (h0 + big, top - k * big), (h0 - big, top - k * big)]
-    w = [origin + h * a + v * b - n * 20 for a, b in roof]
-    face = cq.Face.makeFromWires(cq.Wire.makePolygon(w, close=True))
-    return cell.intersect(cq.Solid.extrudeLinear(face, n * 40))
+
+def ds_dpsi(psi):
+    return math.hypot(A * math.sin(psi), B * math.cos(psi))
+
+
+def column_bounds(psi, side):
+    """Azimuths of one column's edges at ellipse angle psi: RIB/2 in from the
+    centre plane and from the seam plane (measured straight, like column())."""
+    x = skin_point(psi, T / 2)[0]
+    th_in, th_out = math.asin((RIB / 2) / x), math.radians(HALF) - math.asin((RIB / 2) / x)
+    return (th_in, th_out) if side > 0 else (-th_out, -th_in)
+
+
+def oval_on_skin(p0, p1, side, n=96):
+    """Oval window of the cell between ribs p0 and p1, in column `side`, as
+    points on the skin's mid-surface with their normals. It is laid out on the
+    real curved skin: at every height it spans the column between its edges,
+    and from bottom to top it spans the row, so it touches each of the four
+    rib lines (RIB/2 in) at one point and fills the cell."""
+    q0 = p0 + (RIB / 2) / ds_dpsi(p0)
+    q1 = p1 - (RIB / 2) / ds_dpsi(p1)
+    out = []
+    for i in range(n):
+        t = 2 * math.pi * i / n
+        c_, s_ = math.cos(t), math.sin(t)
+        a_ = math.copysign(abs(c_) ** (2 / OVAL_N), c_)
+        b_ = math.copysign(abs(s_) ** (2 / OVAL_N), s_)
+        psi = (q0 + q1) / 2 + b_ * (q1 - q0) / 2
+        lo, hi = column_bounds(psi, side)
+        out.append(surface(psi, (lo + hi) / 2 + a_ * (hi - lo) / 2))
+    return out
+
+
+_SHELL = None
+
+
+def skin_shell():
+    """A thin shell round the skin (0.5 mm beyond both faces): window cutters
+    are trimmed to it, so they cut the skin and nothing inside it."""
+    global _SHELL
+    if _SHELL is None:
+        top = math.pi / 2 - 0.02
+        _SHELL = wedge_edges(arc(A + 0.5, B + 0.5, -math.pi / 2, top),
+                             arc(A - T - 0.5, B - T - 0.5, top, -math.pi / 2), half=HALF + 3)
+    return _SHELL
+
+
+def skin_cutter(pts):
+    """Window cutter from an outline on the skin (points and normals): the
+    outline projected onto the plane at its centre, pushed straight through
+    the skin along that plane's normal, and trimmed to the skin shell."""
+    c = sum((p for p, _ in pts), cq.Vector()) * (1 / len(pts))
+    nrm = sum((nv for _, nv in pts), cq.Vector()).normalized()
+    xd = (pts[0][0] - c)
+    xd = (xd - nrm * xd.dot(nrm)).normalized()
+    yd = nrm.cross(xd)
+    uv = [((p - c).dot(xd), (p - c).dot(yd)) for p, _ in pts]
+    # reach: the outline's own spread plus the skin's bulge between its edges
+    # (up to about span^2 / 8R), so the middle of a big window is cut too
+    span = max((p - q).Length for p, _ in pts[::4] for q, _ in pts[::4])
+    dev = max(abs((p - c).dot(nrm)) for p, _ in pts) + 0.25 * span + T + 3.0
+    prism = (cq.Workplane(cq.Plane(origin=c, xDir=xd, normal=nrm)).polyline(uv).close()
+             .extrude(dev, both=True).val())
+    return prism.intersect(skin_shell())
+
+
+def junction(psi, theta, ovals, keep_side=0):
+    """Hollow junction where ovals meet on the rib at psi, azimuth theta: all
+    the skin that is more than RIB from every oval around it (`ovals`: skin
+    points, including the neighbouring slice's across a seam). keep_side
+    +1/-1 keeps only the side of the rib above/below, RIB/2 off it (for the
+    first and last ribs). Returns skin points of its outline, or None."""
+    from shapely.geometry import Point, Polygon, box
+    from shapely.ops import unary_union
+    origin, nrm = surface(psi, theta)
+    u = cq.Vector(-math.sin(theta), math.cos(theta), 0)
+    v = nrm.cross(u)
+    tang = cq.Vector(-A * math.sin(psi) * math.cos(theta), -A * math.sin(psi) * math.sin(theta),
+                     B * math.cos(psi)).normalized()                 # up the skin
+    sgn = 1.0 if v.dot(tang) > 0 else -1.0
+    reach = 60.0 * SCALE
+    polys = []
+    for ring in ovals:
+        uv = [((p - origin).dot(u), (p - origin).dot(v)) for p, _ in ring]
+        if min(math.hypot(a_, b_) for a_, b_ in uv) < reach:
+            polys.append(Polygon(uv).buffer(RIB))
+    region = box(-reach, -reach, reach, reach).difference(unary_union(polys))
+    if keep_side:
+        cut_line = box(-reach, -reach, reach, reach).intersection(
+            box(-reach, RIB / 2, reach, reach) if keep_side * sgn > 0 else box(-reach, -reach, reach, -RIB / 2))
+        region = region.intersection(cut_line)
+    parts = getattr(region, "geoms", [region])
+    probe = Point(0, keep_side * sgn * (RIB / 2 + 0.5))
+    near = [g for g in parts if g.area > 0 and g.distance(probe) < 3.0]
+    if not near:
+        return None
+    g = min(near, key=lambda g_: g_.distance(probe)).buffer(-0.6).buffer(0.6)   # round the tips
+    if g.is_empty or g.area < 6.0:
+        return None
+    if g.geom_type != "Polygon":
+        g = max(g.geoms, key=lambda g_: g_.area)
+    ring = list(g.exterior.coords)[:-1]
+    per = g.exterior.length
+    pts = [g.exterior.interpolate(per * i / 80) for i in range(80)]    # even spacing
+    x0 = skin_point(psi, T / 2)[0]
+    out = []
+    for p in pts:
+        out.append(surface(psi + sgn * p.y / ds_dpsi(psi), theta + p.x / x0))
+    return out
 
 
 def windows():
-    """The lattice: two columns of ovals with hollow diamond junctions.
+    """The lattice: two columns of ovals with hollow junction windows.
 
     It covers the whole skin from just outside the fan housing up to the
-    intake bellmouth. The shaft, the housing ceiling and the keel under it
-    stay solid: they are the intake and the plenum.
+    intake bellmouth. Everything is laid out on the curved skin, and every web
+    left between windows is RIB wide: nothing heavier than needed. The shaft,
+    the housing ceiling and the keel under it stay solid: they are the intake
+    and the plenum.
     """
-    halves, whole = [column(-1), column(+1)], column(0)
-    cut = []
-
-    def radial(th):
-        return cq.Vector(math.cos(th), math.sin(th), 0)
-
-    def band(p0, p1):
-        """Skin band whose edges are normal to the skin, RIB/2 in from each rib."""
-        (a0, a1), (b0, b1) = [
-            (skin_point(p, 6), skin_point(p, -4)) for p in
-            (p0 + (RIB / 2) / math.hypot(A * math.sin(p0), B * math.cos(p0)),
-             p1 - (RIB / 2) / math.hypot(A * math.sin(p1), B * math.cos(p1)))]
-        return wedge([a0, a1, b1, b0])
-
+    whole = column(0)
     rows = skin_ribs()
-    wide = lambda p0, p1: B * math.sin((p0 + p1) / 2) > WIDE_FROM_Z
-    sides = {k: ([0] if wide(p0, p1) else [-1, 1])
-             for k, (p0, p1) in enumerate(zip(rows, rows[1:]))}
-    ovals = {k: [oval_outline(rows[k], rows[k + 1], sd)[0] for sd in sides[k]] for k in sides}
+    nrows = len(rows) - 1
+    ovals = {k: [oval_on_skin(rows[k], rows[k + 1], sd) for sd in (-1, 1)] for k in range(nrows)}
 
     def turn(rings, deg):
         c, s_ = math.cos(math.radians(deg)), math.sin(math.radians(deg))
-        return [[cq.Vector(p.x * c - p.y * s_, p.x * s_ + p.y * c, p.z) for p in r] for r in rings]
+        rot = lambda p: cq.Vector(p.x * c - p.y * s_, p.x * s_ + p.y * c, p.z)
+        return [[(rot(p), rot(nv)) for p, nv in r] for r in rings]
 
-    for k in sides:
-        cut += [lens(rows[k], rows[k + 1], sd) for sd in sides[k]]
-        if k + 1 in sides:                           # hollow junctions on the rib above row k
-            near = ovals[k] + ovals[k + 1]
-            spots = [(-HALF, near + turn(near, -2 * HALF)), (HALF, near + turn(near, 2 * HALF))]
-            if len(sides[k]) == 2:                   # the centre rib ends at this rib
-                spots.append((0.0, near))
-            for th, around in spots:
-                d = node(rows[k + 1], math.radians(th), around)
-                if d is not None:
-                    # seam diamonds stop RIB/2 short of the seam: the side edge stays continuous
-                    cut.append(d if th == 0.0 else d.intersect(whole))
+    cut = [skin_cutter(o) for k in ovals for o in ovals[k]]
+    for j, psi in enumerate(rows):                  # junctions on every rib
+        near = ovals.get(j - 1, []) + ovals.get(j, [])
+        keep = 0 if 0 < j < nrows else (1 if j == 0 else -1)
+        spots = [(0.0, near), (-HALF, near + turn(near, -2 * HALF)), (HALF, near + turn(near, 2 * HALF))]
+        for th, around in spots:
+            pts = junction(psi, math.radians(th), around, keep)
+            if pts is None:
+                continue
+            c_ = skin_cutter(pts)
+            # seam junctions stop RIB/2 short of the seam: the side edge stays continuous
+            cut.append(c_ if th == 0.0 else c_.intersect(whole))
     keep = outlet_keepout()
     out = []
     for c in cut:
         try:
             clipped = c.cut(keep)
-            if clipped.Volume() > 0.35 * c.Volume():   # drop slivers; round what stays
-                out.append(rounded(clipped) if clipped.Volume() < c.Volume() - 1 else
-                           (c if c.Faces()[0].geomType() != "PLANE" or len(c.Faces()) < 7
-                            else rounded(c)))
+            if clipped.Volume() > 0.35 * c.Volume():   # drop slivers next to the collars
+                out.append(clipped)
         except ValueError:                  # empty: fully inside the keep-out
             pass
     return out
