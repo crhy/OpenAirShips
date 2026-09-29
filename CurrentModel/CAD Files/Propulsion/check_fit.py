@@ -17,7 +17,24 @@ else:
 motor = cq.Solid.makeCylinder(p.MOTOR_D / 2, p.MOTOR_L, cq.Vector(0, 0, p.PED_TOP))
 nut = cq.Solid.makeCylinder(4.5, 5.8, cq.Vector(0, 0, p.BELL_TOP + p.CUP_TOP_T))   # M5 nylock
 def clash(a, b_, name, tol=0.05):
-    v = a.intersect(b_).Volume()
+    try:
+        v = a.intersect(b_).Volume()
+    except ValueError:
+        # The kernel can fail where a part only touches the hull (a glued
+        # mount on the skin). Check slice by slice; where that fails too,
+        # take the smallest overlap over 0.01 mm nudges (touching, not a clash).
+        v = 0.0
+        for s_ in (b_.Solids() if hasattr(b_, "Solids") else [b_]):
+            try:
+                v += a.intersect(s_).Volume()
+            except ValueError:
+                vals = []
+                for d in ((-0.01, 0, 0), (0.01, 0, 0), (0, -0.01, 0), (0, 0.01, 0), (0, 0, -0.01), (0, 0, 0.01)):
+                    try:
+                        vals.append(a.translate(d).intersect(s_).Volume())
+                    except ValueError:
+                        pass
+                v += min(vals) if vals else float("inf")
     print(f"{name:40} {'OK' if v < tol else 'CLASH %.2f mm3' % v}")
     return v
 

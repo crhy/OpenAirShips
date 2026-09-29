@@ -34,7 +34,8 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
   - Two columns of large oval cells, with 2.0 mm ribs.
   - **Every row is the same length along the skin:** five rows from the fan housing up to the equator, six above it (about 33 mm at bench size and 73 mm at Kobra Max size). All the cells therefore have the same proportions, top and bottom.
   - A **ring rib on the equator (z = 0)** carries the thruster stem and servo holes. Thrusters stay exactly on the equator, for navigation.
-  - **Every junction is a hollow diamond.** On the seams each slice has a hollow half-diamond that stops at a continuous 1 mm edge strip.
+  - **Minimum material:** the ovals are laid out on the real curved skin, so each fills its cell, touching all four rib lines. Every junction where ovals meet is a hollow window that takes *all* the skin more than 2 mm from the ovals, including along the first and last rows. What's left is a web of 2.0 mm ribs everywhere, and nothing thicker.
+  - **Seams:** on the seams each slice's junction windows stop at a continuous 1 mm edge strip, so the two slices' strips glue into one full rib.
 - **Joints:** 5 bosses along each seam, all at the same (r, z) positions. The +22.5° seam has Ø3 × 3.6 mm pegs and the −22.5° seam has Ø3.3 × 4.2 mm holes, both with 0.4 mm chamfers.
 
 ## Kobra Max size (x1.9)
@@ -56,14 +57,14 @@ Weights and lift for every version and material are in [Analysis/FLOAT.md](../..
 
 | Version | Printed hull (8 slices) | PLA | Moderate-foam lightweight PLA | Hydrogen volume |
 |---|---|---|---|---|
-| 8 thrusters, bench | 243 cm³ | 302 g | 195 g | 16.4 L |
-| 4 thrusters, bench | 214 cm³ | 265 g | 171 g | 16.3 L |
-| 8 thrusters, Kobra Max | 561 cm³ | 695 g | 449 g | 124 L |
-| 4 thrusters, Kobra Max | 495 cm³ | 613 g | 396 g | 124 L |
+| 8 thrusters, bench | 229 cm³ | 284 g | 183 g | 16.4 L |
+| 4 thrusters, bench | 199 cm³ | 246 g | 159 g | 16.3 L |
+| 8 thrusters, Kobra Max | 434 cm³ | 538 g | 347 g | 124 L |
+| 4 thrusters, Kobra Max | 368 cm³ | 457 g | 295 g | 124 L |
 
 ## Printing
 - **Walls:** 0.20 mm layers, 0.4 mm nozzle, 2 perimeters, with no infill needed (the walls are 2 lines thick). Don't let "detect thin walls" change them.
-- **Orientation:** every STL is already laid flat on its −22.5° seam. The skin never overhangs more than 45°. Oval tips and diamond corners point up, so the ribs are carried by sloping edges rather than bridges.
+- **Orientation:** every STL is already laid flat on its −22.5° seam. The skin never overhangs more than 45°. Oval tips and junction points point up, so the ribs are carried by sloping edges rather than bridges.
 - **Supports:** on build plate only. Paint them inside the duct arch lying on the bed; nothing else needs support.
 - **Airtight seams:** when assembling, epoxy the seams of the shaft, the housing wall, the keel round the hatch ring, and the ducts. Tape the hatch's outside seam.
 - **Earlier versions:** v0 (Ø95 shaft) and revs A–D are archived in `OldFiles/PrintFiles`. RevB and revC have a duct leak, so don't print them.

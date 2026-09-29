@@ -56,7 +56,10 @@ print("valid", body.Shape.isValid(), "volume", round(body.Shape.Volume))
 pose = shape.copy()
 pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
-mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=0.02,
-                              AngularDeflection=0.1, Relative=False)
+for lin in (0.02, 0.015, 0.03, 0.01, 0.05):    # retry until the mesh is watertight
+    mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=lin,
+                                  AngularDeflection=0.1, Relative=False)
+    if mesh.isSolid():
+        break
 mesh.write(os.path.join(HERE, "..", "..", "Print Files", STL))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)

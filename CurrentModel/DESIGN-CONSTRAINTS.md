@@ -18,7 +18,7 @@ These rules come from the design owner. Don't trade any of them away for weight 
 
 ## Weight and printing (Prusa MK3S+, 0.4 mm nozzle)
 - **Walls are 0.86 mm** (2 perimeters of 0.45 mm at 0.2 mm layers). That's the minimum that prints airtight, and nothing structural is thinner. Ribs are 2.0 mm wide.
-- **Anything that isn't structurally essential is hollow.** The skin is two columns of large oval cells, and every junction is a hollow diamond. The seam junctions are hollow half-diamonds, which stop short of a continuous 1 mm edge strip so the seams stay contiguous.
+- **Anything that isn't structurally essential is hollow.** The skin is two columns of large oval cells, laid out on the curved skin. Every junction is a hollow window, so every web between windows is 2.0 mm wide and nothing is thicker. The seam junctions stop short of a continuous 1 mm edge strip, so the seams stay contiguous.
 - **No decks in the bench model.** The only floor is the fan-housing ceiling.
 - **8 slices plug together**, with pegs on the +22.5° seam and holes on the −22.5° seam. The 8-thruster hull uses 8 identical slices. The 4-thruster hull alternates 4 left and 4 right slices, each pair closing one duct.
 - **Scaling up keeps the walls thin.** A bigger hull grows its outline and lattice cells, but not its wall and rib thickness, so hydrogen volume (size³) outgrows printed mass (about size^1.3). Never scale the STL uniformly.

@@ -1,5 +1,28 @@
 # Changelog: 926 buildable bench model
 
+## v0.1.3: minimum-material lattice (September 2026)
+
+- **Lattice cut on the real skin.**
+  - The ovals were drawn flat at each cell's centre and cut only 4 mm deep. Where the hull curves (worst near the equator, and at Kobra Max size) the cut didn't reach the skin at the oval's ends, so the holes came out smaller than drawn and left thick material round the ovals and diamonds.
+  - Each oval is now laid out on the curved skin, filling its cell and touching all four rib lines.
+  - Every cut goes exactly through the skin, and is trimmed to it, so nothing inside is touched.
+- **Junctions take all the spare skin.** The fixed diamond shapes are replaced by windows that take every bit of skin more than 2 mm from the ovals, including along the first and last rows.
+  - What's left is a web of 2.0 mm ribs everywhere and nothing thicker.
+  - The seam edge strips stay continuous.
+- **Weight:** the hull loses 7% at bench size (8 thrusters: 243 → 229 cm³) and about 20–25% at Kobra Max size (4 thrusters: 495 → 368 cm³), where the old cuts fell shortest.
+- **Closer to flight:**
+  - The 4-thruster Kobra Max build in fully foamed lightweight PLA now weighs 539 g. With its 124 L of hydrogen (139 g, 26%) plus the fan's 419 gf, it **can hover, with 19 g to spare**. In moderate foam it's 630 g, 71 g short.
+  - The bench 4-thruster build now hovers on its fan even in moderate foam.
+  - The full table is in `Analysis/FLOAT.md`.
+- **Fixes along the way:**
+  - The cut reach grows with the window size, so the middle of big windows is cut too; at Kobra Max size, four skin patches had been left loose.
+  - The STL export retries its mesh resolution until the mesh is watertight.
+  - `check_fit.py` no longer crashes where a glued part only touches the hull.
+- **Checks:**
+  - All six slices are single valid solids that pass the airtightness and overlap checks.
+  - Left and right slices mate with 0 overlap.
+  - All 35 fit checks pass for all four propulsion versions, and every STL is watertight.
+
 ## v0.1.2: even lattice and thruster-ring fixes (September 2026)
 
 - **Even lattice top and bottom.**
