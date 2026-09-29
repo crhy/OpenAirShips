@@ -44,6 +44,47 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
 - **Why not just scale the STL:** printed mass grows about as size^1.3 while the hydrogen volume grows as size³ (124 L instead of 16 L). Scaling the STL uniformly would thicken every wall too, and the ratio would never improve.
 - **Print volume:** each slice lies on its seam, 372 × 393 × 279 mm. That fits the Kobra Max's 400 × 400 × 450 mm with about 3 mm to spare each side, so **use a skirt, not a brim**, or rotate the part a few degrees on the bed.
 
+## v0.2 double-Kobra build (x3.8, 1.58 m, 12 slices in pieces)
+The self-contained build that floats on hydrogen alone. See [FLOAT.md](../../Analysis/FLOAT.md) for its weight, lift and flight time.
+
+![double-Kobra build](../../Renders/v0.2-double-Kobra-ship.png)
+
+- **12 slices of 30°, 4 thrusters.**
+  - **Left** and **right** slices each carry half a thrust duct; **plain** slices have none.
+  - Go round the ship **left, right, plain**, four times.
+  - Print 4 of each type.
+- **Pieces:** each slice is cut into 5 pieces that fit a Kobra Max (400 × 400 × 450 mm):
+
+  | Piece | Where | Print size (mm) |
+  |---|---|---|
+  | `middle` | the band z = ±150 mm round the equator, with the thruster stem hole | 187 × 307 × 395 (left), 158 × 307 × 395 |
+  | `top-outer`, `bottom-outer` | the top/bottom band outside r = 415 mm | 371 × 186 × 365 |
+  | `top-inner` | the top band inside r = 415, up to the bellmouth | 386 × 65 × 208 |
+  | `bottom-inner` | the bottom band inside r = 415: fan housing, keel and hatch ring | 386 × 86 × 208 |
+
+- **Joints:**
+  - Every cut has a rib on it, so each piece ends in a full edge strip.
+  - One Ø3 peg crosses each cut. Each seam has joints mid-way up each piece, plus the housing and keel ones.
+  - Glue with CA on the lattice. Use epoxy on the housing, the keel round the hatch, the ducts and the tube sockets, which must be airtight.
+- **Intake tubes:** the shaft is two printed tubes (Ø66 bore, 0.86 mm wall, 358 and 343 mm tall) instead of a wall on each slice.
+  - Tube 1 sits in the socket on top of the fan housing; tube 2 goes on top of it and into the socket under the bellmouth.
+  - Epoxy the sockets, since the tube is part of the air path.
+- **Lattice:** 1.2 mm webs (`OAS_RIB=1.2`). The equator rib is two-sided, carrying the servo collars.
+- **Thrusters:** the 8-thruster size (Ø24 ducts, Ø32 bulbs, 64 mm rings) on the 4 left/right seams.
+- **Print files:** `Print Files/v0.2 double Kobra/`, 15 pieces (5 each for left, right and plain) plus 2 tubes, all watertight.
+  - Each slice piece lies on its seam, and the tubes stand upright.
+  - Print them in full-foam lightweight PLA, with the settings below.
+- **CAD:**
+  - `pieces/airship pie slice 926 v0.2 {left,right,plain} (pieces).FCStd`, plus STEP files per piece in `pieces/<slice>/`.
+  - The whole slices are in `airship pie slice 926 4T {left,right,plain} 12s small x3.8.step`.
+
+To regenerate:
+```
+export OAS_VARIANT=4T OAS_SLICES=12 OAS_THRUSTER=S OAS_PIECES=1 OAS_SCALE=3.8 OAS_RIB=1.2
+for s in L R P; do OAS_SIDE=$s python3 airship_slice.py; done
+freecadcmd make_pieces.py
+```
+
 ## Checked (every version)
 - Each part is a single valid solid, and only the 5 pegs stick out of the hull.
 - Neighbouring slices overlap by 0 mm³ (for 4 thrusters: left against right, on both seams).
@@ -88,7 +129,9 @@ It saves about a third of the hull's weight; see the table above.
 - **`airship_slice.py`:** the parametric source (CadQuery). Everything is set at the top of the file. The version is chosen with environment variables:
   - `OAS_VARIANT=8T|4T`
   - `OAS_SIDE=L|R` (4 thrusters only)
-  - `OAS_SCALE=1|1.9`
+  - `OAS_SCALE=1|1.9` (3.8 for v0.2)
+  - v0.2 only: `OAS_SLICES=12`, `OAS_SIDE=P` (plain slice), `OAS_THRUSTER=S` (8-thruster-size ducts on 4 thrusters), `OAS_PIECES=1` (cut into pieces, with intake tubes), `OAS_RIB=1.2` (web width)
+- **`make_pieces.py`:** builds the v0.2 piece STLs and FCStd documents.
 - **`make_fcstd.py`:** builds the FCStd and the print STL for the same settings.
 
 To regenerate, for example the right-hand 4-thruster Kobra Max slice:

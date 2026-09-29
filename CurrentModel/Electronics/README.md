@@ -42,6 +42,41 @@ flowchart LR
 - **Mains alternative:** a 15 V 350 W supply (≈23 A). Keep the firmware's `THROTTLE_LIMIT` at 0.9 or below with it.
 - **Don't use 12 V:** the fan needs about 15,700 rpm, and a 1750 KV motor only reaches that on 4S (see [../Analysis/AIRFLOW.md](../Analysis/AIRFLOW.md)).
 
+## v0.2 self-contained build (no tether)
+The double-Kobra build carries everything on the avionics tray, above the fan housing and outside the gas cells. The parts are in [BOM.md](BOM.md) (items S1–S9).
+
+```mermaid
+flowchart LR
+  BAT["2 x 2S 18650 packs in series (4S, 2.8 Ah), or a 4S LiPo 1500"] --> SW["power switch / XT30 loop key"]
+  SW --> ESC["30 A ESC"]
+  SW --> BEC["3 A BEC, 5 V"]
+  SW -->|"100k / 22k divider"| ADC["ESP32 GPIO 34"]
+  ESC --> MOTOR["2207 motor + impeller"]
+  BEC --> ESP["ESP32 5V pin"]
+  BEC --> SERVOS["4 x SG90 (5 V)"]
+  ESP -->|"GPIO 25, 26, 27, 14"| SERVOS
+  ESP -->|"GPIO 13, signal + GND"| ESC
+  ESP -->|"I2C 21 / 22"| IMU["GY-91 IMU + baro"]
+```
+
+- **Firmware:** before building `airship_bench.ino`, add these three lines at its top:
+  ```
+  #define OAS_DIRECT_PWM
+  #define OAS_THRUSTERS 4
+  #define OAS_FIRST_AZ_DEG 15.0f
+  ```
+  - The ESP32 then drives the servos (GPIO 25, 26, 27, 14 for thrusters 0–3) and the ESC (GPIO 13) itself at 50 Hz, with no PCA9685.
+  - The thrusters are on the left/right seams at 15°, 105°, 195° and 285°.
+- **Battery monitor:** a 100 kΩ / 22 kΩ divider from the battery + to GPIO 34 (and GND).
+  - Below 3.4 V per cell the firmware stops the fan and centres the servos, and it stays stopped until reset.
+  - The control page shows the pack voltage.
+- **ESC red wire:** as on the bench, pull it from the ESC's signal plug. The BEC powers the ESP32 and servos.
+- **Wiring:** run the leads along the ribs outside the gas cells. Nothing crosses the intake tubes.
+- **Hydrogen indoors:**
+  - Keep every connector and switch outside the gas cells, and fill and vent the cells outdoors or with good ventilation.
+  - **Helium works too:** it lifts about 7% less, 1061 g instead of 1145 g. The full-foam build with the LiPo still floats on it, with about 160 g to spare.
+- **Flight time:** 44 min on the 1500 mAh LiPo, 83 min on the 18650 pack, at 24 W average. See [FLOAT.md](../Analysis/FLOAT.md).
+
 ## Bench bring-up
 1. **Flash the firmware.**
    - Install the ESP32 board package and the "Adafruit PWM Servo Driver Library".
@@ -61,6 +96,6 @@ flowchart LR
    - With the optional sensors (BOM items 17–18), log plenum pressure and power against throttle.
 
 ## Firmware
-- **`mixer.h`:** turns lift, surge, sway and yaw commands into 8 swivel angles. Every thruster pushes with about the same force because they share one fan, so the mixer steers direction only; the throttle sets magnitude.
+- **`mixer.h`:** turns lift, surge, sway and yaw commands into swivel angles, for 8 thrusters or (with `OAS_THRUSTERS 4`) 4. All thrusters share one scale, so a yaw command gives no surge or sway. Every thruster pushes with about the same force because they share one fan, so the mixer steers direction only; the throttle sets magnitude.
 - **Host test:** `g++ -std=c++17 -Iairship_bench test/test_mixer.cpp && ./a.out`, run from `firmware/`. It checks pure lift, yaw, surge, sway, the ±90° limits and the servo pulses. All of these pass.
 - **`airship_bench.ino`:** the Wi-Fi access point, the control page, ESC arming and the link-loss failsafe. It has been compiled on a PC against stand-ins for the Arduino APIs, **but not yet built or run on a real ESP32**.

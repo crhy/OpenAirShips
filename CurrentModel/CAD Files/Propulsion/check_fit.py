@@ -7,13 +7,11 @@ import propulsion as p
 from propulsion import hull
 
 SL = os.path.join(HERE, "..", "SimplifiedSlice")
-if p.FOUR:                                   # left and right slices alternate
-    hands = [cq.importers.importStep(os.path.join(SL, f"airship pie slice 926 4T {h}" + ("" if hull.SCALE == 1 else f" x{hull.SCALE:g}") + ".step")).val()
-             for h in ("left", "right")]
-    ship = cq.Compound.makeCompound([hands[k % 2].rotate((0, 0, 0), (0, 0, 1), 45 * k) for k in range(8)])
-else:
-    sl = cq.importers.importStep(os.path.join(SL, "airship pie slice 926" + ("" if hull.SCALE == 1 else f" x{hull.SCALE:g}") + ".step")).val()
-    ship = cq.Compound.makeCompound([sl.rotate((0, 0, 0), (0, 0, 1), 45 * k) for k in range(8)])
+types = {sd: cq.importers.importStep(os.path.join(SL, hull.slice_name(sd) + ".step")).val()
+         for sd in set(hull.slice_sides())}
+ship = cq.Compound.makeCompound([types[sd].rotate((0, 0, 0), (0, 0, 1), 360.0 / hull.N * k)
+                                 for k, sd in enumerate(hull.slice_sides())]
+                                + (hull.tube_segments() if hull.PIECES else []))
 motor = cq.Solid.makeCylinder(p.MOTOR_D / 2, p.MOTOR_L, cq.Vector(0, 0, p.PED_TOP))
 nut = cq.Solid.makeCylinder(4.5, 5.8, cq.Vector(0, 0, p.BELL_TOP + p.CUP_TOP_T))   # M5 nylock
 def clash(a, b_, name, tol=0.05):
@@ -64,6 +62,10 @@ for name, part in outside:
     clash(p.at_seam(part), ship, f"{name} vs hull")
 clash(servo, mount, "servo vs its mount")
 clash(p.servo_gear(), servo, "servo gear vs servo body")
+if hull.PIECES:
+    tray = p.avionics_tray()
+    clash(tray, ship, "avionics tray vs hull and tube")
+    clash(tray, imp.fuse(motor), "avionics tray vs fan")
 for ang in (-90, -45, 0, 45, 90):
     ring = p.thruster_ring_placed(ang)
     clash(p.at_seam(ring), ship, f"ring at {ang:+} deg vs hull")

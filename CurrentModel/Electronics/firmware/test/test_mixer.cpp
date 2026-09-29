@@ -1,4 +1,5 @@
 // Host test for mixer.h:  g++ -std=c++17 -I../airship_bench test_mixer.cpp && ./a.out
+// 4-thruster build:        add -DOAS_THRUSTERS=4 -DOAS_FIRST_AZ_DEG=15.0f
 #include <cstdio>
 #include <cmath>
 #include "mixer.h"
@@ -18,7 +19,7 @@ int main() {
   bool all0 = true;
   for (int i = 0; i < kThrusters; ++i) all0 &= near(angleDeg(c, i), 0);
   Wrench w = net(c);
-  check(all0 && near(w.fz, 8) && near(w.fx, 0) && near(w.fy, 0) && near(w.mz, 0),
+  check(all0 && near(w.fz, kThrusters) && near(w.fx, 0) && near(w.fy, 0) && near(w.mz, 0),
         "lift only: all angles 0, net force straight up");
 
   // Yaw: every thruster tilts the same way, no net sideways force.
@@ -26,17 +27,17 @@ int main() {
   bool same = true;
   for (int i = 0; i < kThrusters; ++i) same &= near(angleDeg(c, i), 45.0f);
   w = net(c);
-  check(same && w.mz > 5 && near(w.fx, 0) && near(w.fy, 0), "yaw: all +45 deg, pure torque");
+  check(same && w.mz > kThrusters / 2.0f && near(w.fx, 0) && near(w.fy, 0), "yaw: all +45 deg, pure torque");
 
   // Surge +X: net force along +X, none along Y, no torque.
   c = Command{}; c.surge = 0.5f;
   w = net(c);
-  check(w.fx > 1 && near(w.fy, 0) && near(w.mz, 0, 1e-2f), "surge +X: force along +X only");
+  check(w.fx > 0.2f * kThrusters && near(w.fy, 0) && near(w.mz, 0, 1e-2f), "surge +X: force along +X only");
 
   // Sway +Y: net force along +Y, none along X.
   c = Command{}; c.sway = 0.5f;
   w = net(c);
-  check(w.fy > 1 && near(w.fx, 0) && near(w.mz, 0, 1e-2f), "sway +Y: force along +Y only");
+  check(w.fy > 0.2f * kThrusters && near(w.fx, 0) && near(w.mz, 0, 1e-2f), "sway +Y: force along +Y only");
 
   // Limits and servo pulses.
   c = Command{}; c.lift = 0; c.yaw = 1;

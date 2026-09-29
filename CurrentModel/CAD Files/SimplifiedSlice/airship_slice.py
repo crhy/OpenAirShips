@@ -35,10 +35,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 #   sized for twice the flow each (see Analysis/AIRFLOW-4T.md). The slices come
 #   in two hands that alternate round the ring: OAS_SIDE=L carries its duct on
 #   its +22.5 deg seam, OAS_SIDE=R on its -22.5 deg seam (and the servo).
+# OAS_SLICES: slices in the ring (8, or 12 for the double-Kobra build, whose
+#   30-degree slices stay under 450 mm tall when printed on the seam). With 4
+#   thrusters on 12 slices every third slice is plain: OAS_SIDE=P.
+# OAS_THRUSTER=L|S: large (Ø34 duct, Ø34/31 stem) or small (Ø24, Ø25/22)
+#   thruster hardware; default large for 4T, small for 8T.
+# OAS_PIECES=1: printable pieces for a hull too big for one print (see
+#   pieces()): the intake shaft becomes separate tubes, and each slice is cut
+#   along ring ribs into 5 pieces with peg joints.
 VARIANT = os.environ.get("OAS_VARIANT", "8T").upper()
 SIDE = os.environ.get("OAS_SIDE", "L").upper()
 FOUR = VARIANT == "4T"
-assert VARIANT in ("8T", "4T") and SIDE in ("L", "R")
+N = int(os.environ.get("OAS_SLICES", "8"))  # slices in the ring
+LARGE = os.environ.get("OAS_THRUSTER", "L" if FOUR else "S").upper() == "L"
+PIECES = os.environ.get("OAS_PIECES", "0") == "1"
+assert VARIANT in ("8T", "4T") and SIDE in ("L", "R", "P")
+assert N % (4 if FOUR else 8) == 0 and (FOUR or N == 8)
 # OAS_SCALE: hull size factor (1 = the 415 mm bench model; 1.9 = the largest
 # that prints on an Anycubic Kobra Max, 400 x 400 x 450 mm). Only the hull
 # outline and its lattice grow; walls, ribs, joints, the fan, ducts,
@@ -49,14 +61,14 @@ SCALE = float(os.environ.get("OAS_SCALE", "1"))
 # ---- parameters (mm) -------------------------------------------------------
 A, B = 207.765 * SCALE, 104.0 * SCALE   # hull outer semi-axes (radius, half-height)
 T = 0.86                   # wall: exactly 2 perimeters of 0.45 mm at 0.2 mm layers
-N = 8                      # slices in the ring
 HALF = 180.0 / N           # half-angle of one slice, degrees
 
-FLOOR_Z = -B + (43.0 if FOUR else 32.7)   # fan-housing ceiling (the shroud over the blade tips), underside;
+FLOOR_Z = -B + (43.0 if LARGE else 32.7)   # fan-housing ceiling (the shroud over the blade tips), underside;
                                      # 4T: higher, so the Ø34 duct mouths fit under it
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
-RIB = 2.0                  # frame rib width (a seam rib is RIB/2 on each slice)
+RIB = float(os.environ.get("OAS_RIB", "2.0"))   # lattice web width (a seam rib is RIB/2 on each slice);
+                                                # 1.2 = lightest printable (3 lines), for builds where stiffness doesn't matter
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
@@ -91,8 +103,8 @@ HATCH_R = 47.0             # opening in the keel (the 88 mm impeller passes thro
 HATCH_WALL_TOP = -B + 11.0   # ring wall round the opening
 LUG_R = 44.6               # lug inner radius (0.6 mm past the impeller tip)
 LUG_Z = (-B + 5.0, -B + 7.0)
-LUG_HALF = 6.0             # lug: +-6 deg about the slice centre
-POST = (-6.0, -3.0)        # stop post over the lug: the hatch locks turning clockwise (from above)
+LUG_HALF = 6.0 * 8 / N     # lug: +-6 deg about the slice centre (8 slices; scaled with the pitch)
+POST = (-6.0 * 8 / N, -3.0 * 8 / N)   # stop post over the lug: the hatch locks turning clockwise (from above)
 
 PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
@@ -103,7 +115,7 @@ BOSS_D, BOSS_L = 7.0, 5.0
 # inside the skin. Each runs from a mouth on the keel (in the plenum) up the
 # side to a closed end at the equator, where the thruster's stem enters
 # through a round hole with a bearing boss behind it.
-DUCT_BORE = 34.0 if FOUR else 24.0   # bore diameter; 4T: twice the area for twice the flow
+DUCT_BORE = 34.0 if LARGE else 24.0   # bore diameter; 4T: twice the area for twice the flow
 DUCT_W = T                 # duct wall
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
@@ -116,11 +128,11 @@ PLENUM_FLAT_R = 66.0
 PLENUM_KEEL_R = 80.0
 # OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
 # ring rib, so the stem and servo holes' collars are part of that rib.
-STEM_HOLE = 34.4 if FOUR else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (see Analysis/AIRFLOW*.md)
+STEM_HOLE = 34.4 if LARGE else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (see Analysis/AIRFLOW*.md)
 BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
-DUCT_BULB = 44.0 if FOUR else 32.0   # the duct's end swells to this bore so the stem's flange fits
+DUCT_BULB = 44.0 if LARGE else 32.0   # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
-SERVO_T = 44.0 if FOUR else 36.0     # servo spline: this far (tangentially) from the seam
+SERVO_T = 44.0 if LARGE else 36.0     # servo spline: this far (tangentially) from the seam
                                      # (= the 1:1 gear pitch diameter: 44T or 36T, module 1)
 SERVO_HOLE = 8.0
 
@@ -190,7 +202,7 @@ def skin_point(psi, depth):
 
 def column(side):
     """Prism between the centre rib and the seam rib; side +1/-1, 0 = both."""
-    h, big, th = RIB / 2, 500.0, math.radians(HALF)
+    h, big, th = RIB / 2, 2.5 * A, math.radians(HALF)   # reaches past the rim at any scale
     s = h * (1 + math.cos(th)) / math.sin(th)       # offset seam meets y = h
     ix, iy = s * math.cos(th) + h * math.sin(th), h
     far = (ix + big * math.cos(th), iy + big * math.sin(th))
@@ -242,8 +254,31 @@ def skin_ribs():
     ke = math.asin(keel_edge_z() / B)
     top = intake()[1] - (RIB / 2) / math.hypot(A * math.sin(intake()[1]), B * math.cos(intake()[1]))
     row = ellipse_arc(0.0, top) / ROWS_ABOVE_EQ
+    if PIECES:                                      # ribs on every cut line, rows between them
+        fixed = [ke] + sorted(cut_ribs().values()) + [0.0]
+        fixed = sorted(set(fixed + [top]))
+        out = []
+        for p0, p1 in zip(fixed, fixed[1:]):
+            out += equal_arcs(p0, p1, max(1, round(ellipse_arc(p0, p1) / row)))[:-1]
+        return out + [top]
     below = max(3, round(ellipse_arc(ke, 0.0) / row))
     return equal_arcs(ke, 0.0, below)[:-1] + equal_arcs(0.0, top, ROWS_ABOVE_EQ)
+
+
+# ---- printable pieces (OAS_PIECES=1) -----------------------------------------
+PRINT_BED = (390.0, 390.0, 440.0)   # Kobra Max 400 x 400 x 450, less a margin
+BAND_Z = 150.0 / 3.8        # the middle (thruster) band spans +-BAND_Z*SCALE round the equator
+CUT_R = 415.0 / 3.8         # top and bottom bands are cut at this radius (x SCALE)
+STUB_L = 20.0               # bellmouth stub above the intake tube
+SOCK = 15.0                 # socket depth round each tube end
+
+
+def cut_ribs():
+    """Ellipse angles of the ribs the pieces are cut along: z = -+BAND_Z*SCALE
+    (horizontal planes) and r = CUT_R*SCALE (cylinders) in the bottom and top."""
+    zc = BAND_Z * SCALE
+    pr = math.acos(min(1.0, CUT_R * SCALE / A))
+    return {"z_lo": math.asin(-zc / B), "z_hi": math.asin(zc / B), "r_lo": -pr, "r_hi": pr}
 
 
 def intake():
@@ -274,6 +309,16 @@ def joints():
     edge = T + HOLE_D / 2 + 1.0                     # hole centre depth under skin
     r_shaft = SHAFT_R + T + HOLE_D / 2 + 0.6        # boss on the outside of the shaft
     ribs = skin_ribs()
+    if PIECES:                                      # one per piece, mid-way up each band
+        edge = BOSS_D / 2 + 0.5                     # boss clear of the skin, not tangent to it
+        c = cut_ribs()
+        mids = [(c["z_hi"] + c["r_hi"]) / 2,          # top outer piece
+                (c["r_hi"] + ribs[-1]) / 2,           # top inner piece
+                (c["z_lo"] + c["r_lo"]) / 2,          # bottom outer piece
+                c["z_hi"] * 0.6]                      # middle band, clear of the stem hole
+        return ([skin_point(p, edge) for p in mids]
+                + [(55.0, FLOOR_Z + T + BOSS_D / 2 - 0.5),        # on the housing ceiling
+                   skin_point(-math.acos(53.0 / A), edge)])       # keel, outside the hatch ring
     return [(r_shaft, intake()[2] - 4.0),           # shaft top, under the bellmouth
             skin_point(ribs[-3], edge),             # upper skin, on a ring rib
             (r_shaft, nozzle_top() + 4.0),          # shaft, above the contraction
@@ -294,12 +339,47 @@ def frame():
     ri = INTAKE_R - T
     q = roll(ri).startPoint()
     p_in = math.atan2(q.z / (B - T), q.x / (A - T))  # the inner skin, where it meets the inner roll
+    z_low = tube_top() if PIECES else nozzle_top() - 1   # pieces: a stub over the intake tube
     wall = wedge_edges(arc(A, B, -math.pi / 2, p_top), roll(INTAKE_R),
-                       (SHAFT_R, nozzle_top() - 1), (SHAFT_R + T, nozzle_top() - 1),
+                       (SHAFT_R, z_low), (SHAFT_R + T, z_low),
                        cq.Edge(roll(ri).wrapped.Reversed()),
                        arc(A - T, B - T, p_in, -math.pi / 2))
     body = wall.fuse(plenum_ceiling(), hatch_ring())
+    if PIECES:                                      # sockets that the tube ends slide into
+        body = body.fuse(socket(tube_top(), -1), socket(nozzle_top() + 1.0, +1))
     return body.clean()
+
+
+def tube_top():
+    return intake()[2] - STUB_L
+
+
+def socket(z_face, direction):
+    """Collar round a tube end: the tube butts on the wall's end face at
+    z_face and the collar reaches SOCK past it (direction -1 down, +1 up)."""
+    ri, ro = SHAFT_R + T + 0.15, SHAFT_R + 2 * T + 0.15
+    z1 = z_face + direction * SOCK
+    z0 = z_face - direction * 2.0                   # 2 mm onto the wall it grows from
+    pts = [(ri, z_face), (ri, z1), (ro, z1), (ro, z0), (SHAFT_R + T / 2, z0), (SHAFT_R + T / 2, z_face)]
+    return wedge(pts)
+
+
+def tube_segments(max_len=400.0):
+    """The intake tube (OAS_PIECES): full-round Ø66 tubes printed upright,
+    from the fan housing up into the bellmouth stub. Where two meet, the
+    lower one carries a socket for the upper one."""
+    z0, z1 = nozzle_top() + 1.0, tube_top()
+    n = max(1, math.ceil((z1 - z0) / max_len))
+    edges = [z0 + (z1 - z0) * i / n for i in range(n + 1)]
+    ri, ro = SHAFT_R + T + 0.15, SHAFT_R + 2 * T + 0.15
+    out = []
+    for i, (a_, b_) in enumerate(zip(edges, edges[1:])):
+        pts = [(SHAFT_R, a_), (SHAFT_R + T, a_), (SHAFT_R + T, b_), (SHAFT_R, b_)]
+        if i < n - 1:                               # socket round the next tube's foot
+            pts = [(SHAFT_R, a_), (SHAFT_R + T, a_), (SHAFT_R + T, b_ - 2.0), (ro, b_ - 2.0),
+                   (ro, b_ + SOCK), (ri, b_ + SOCK), (ri, b_), (SHAFT_R, b_)]
+        out.append(wedge(pts, half=180.0).clean())
+    return out
 
 
 def nozzle_top():
@@ -403,9 +483,14 @@ def skin_shell():
     are trimmed to it, so they cut the skin and nothing inside it."""
     global _SHELL
     if _SHELL is None:
-        top = math.pi / 2 - 0.02
-        _SHELL = wedge_edges(arc(A + 0.5, B + 0.5, -math.pi / 2, top),
-                             arc(A - T - 0.5, B - T - 0.5, top, -math.pi / 2), half=HALF + 3)
+        # A fine polygon rather than exact ellipse arcs: the kernel sometimes
+        # returns an empty intersection against the exact-arc shell (seen at
+        # the equator on the 1.58 m hull). 400 facets sag < 0.01 mm here.
+        top, n = math.pi / 2 - 0.02, 400
+        ts = [-math.pi / 2 + (top + math.pi / 2) * i / n for i in range(n + 1)]
+        outer = [((A + 0.5) * math.cos(t), (B + 0.5) * math.sin(t)) for t in ts]
+        inner = [((A - T - 0.5) * math.cos(t), (B - T - 0.5) * math.sin(t)) for t in reversed(ts)]
+        _SHELL = wedge(outer + inner, half=HALF + 3)
     return _SHELL
 
 
@@ -425,7 +510,10 @@ def skin_cutter(pts):
     dev = max(abs((p - c).dot(nrm)) for p, _ in pts) + 0.25 * span + T + 3.0
     prism = (cq.Workplane(cq.Plane(origin=c, xDir=xd, normal=nrm)).polyline(uv).close()
              .extrude(dev, both=True).val())
-    return prism.intersect(skin_shell())
+    out = prism.intersect(skin_shell())
+    if out.Volume() < 1.0:
+        print(f"warning: empty window cutter at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}")
+    return out
 
 
 def junction(psi, theta, ovals, keep_side=0):
@@ -496,17 +584,25 @@ def windows():
     for j, psi in enumerate(rows):                  # junctions on every rib
         near = ovals.get(j - 1, []) + ovals.get(j, [])
         keep = 0 if 0 < j < nrows else (1 if j == 0 else -1)
+        # cut lines, and (in pieces builds, whose big junctions would otherwise cross
+        # it) the equator rib that carries the thruster and servo collars
+        on_cut = PIECES and (any(abs(psi - c_) < 1e-9 for c_ in cut_ribs().values()) or psi == 0.0)
         spots = [(0.0, near), (-HALF, near + turn(near, -2 * HALF)), (HALF, near + turn(near, 2 * HALF))]
         for th, around in spots:
-            pts = junction(psi, math.radians(th), around, keep)
-            if pts is None:
-                continue
-            c_ = skin_cutter(pts)
-            # seam junctions stop RIB/2 short of the seam: the side edge stays continuous
-            cut.append(c_ if th == 0.0 else c_.intersect(whole))
+            # on a cut line a full rib stays whole: the junction splits either side of it
+            for side_ in ((1, -1) if on_cut else (keep,)):
+                pts = junction(psi, math.radians(th), around, side_)
+                if pts is None:
+                    continue
+                c_ = skin_cutter(pts)
+                # seam junctions stop RIB/2 short of the seam: the side edge stays continuous
+                cut.append(c_ if th == 0.0 else c_.intersect(whole))
     keep = outlet_keepout()
     out = []
     for c in cut:
+        if keep is None:
+            out.append(c)
+            continue
         try:
             clipped = c.cut(keep)
             if clipped.Volume() > 0.35 * c.Volume():   # drop slivers next to the collars
@@ -523,23 +619,36 @@ def outlet_keepout():
     ax = cq.Vector(1, 0, 0)
     stem = cq.Solid.makeCylinder(BOSS_R + 1.5, 60, cq.Vector(A - 37.765, 0, OUT_Z), ax)
     servo = cq.Solid.makeCylinder(SERVO_HOLE / 2 + 3.5, 60, cq.Vector(A - 37.765, SERVO_T, OUT_Z), ax)
-    keep = stem.rotate((0, 0, 0), (0, 0, 1), duct_seams()[0])
-    for a_ in duct_seams()[1:]:
-        keep = keep.fuse(stem.rotate((0, 0, 0), (0, 0, 1), a_))
-    return keep.fuse(servo.rotate((0, 0, 0), (0, 0, 1), -HALF)) if has_servo() else keep
+    parts = [stem.rotate((0, 0, 0), (0, 0, 1), a_) for a_ in duct_seams()]
+    if has_servo():
+        parts.append(servo.rotate((0, 0, 0), (0, 0, 1), -HALF))
+    if not parts:
+        return None
+    keep = parts[0]
+    for p_ in parts[1:]:
+        keep = keep.fuse(p_)
+    return keep
 
 
 def joint_parts():
     """Bosses (added), holes (cut) and pegs (added) on both seams."""
     ph, pp = math.radians(-HALF), math.radians(HALF)
     bosses, holes, pegs = [], [], []
+    def in_duct(r, z):
+        """Where a seam carries a duct, a joint inside the duct's run would sit
+        in its bore; the seam is glued along both duct halves there instead."""
+        return PIECES and z < DUCT_BULB / 2 + BOSS_D and r > DUCT_MOUTH_R - 5
+    seams = duct_seams()
     for r, z in joints():
-        p, t = seam_axis(r, z, ph)                  # hole seam, inward = +t
-        bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p, t))
-        hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, p - t * 0.01, t)
-        mouth = cq.Solid.makeCone(HOLE_D / 2 + CHAMFER + 0.01, HOLE_D / 2, CHAMFER + 0.01,
-                                  p - t * 0.01, t)
-        holes.append(hole.fuse(mouth))
+        if not (-HALF in seams and in_duct(r, z)):
+            p, t = seam_axis(r, z, ph)              # hole seam, inward = +t
+            bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p, t))
+            hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, p - t * 0.01, t)
+            mouth = cq.Solid.makeCone(HOLE_D / 2 + CHAMFER + 0.01, HOLE_D / 2, CHAMFER + 0.01,
+                                      p - t * 0.01, t)
+            holes.append(hole.fuse(mouth))
+        if HALF in seams and in_duct(r, z):
+            continue
         p, t = seam_axis(r, z, pp)                  # peg seam, inward = -t
         bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p, -t))
         peg = cq.Solid.makeCylinder(PEG_D / 2, PEG_L + 0.5, p - t * 0.5, t)
@@ -603,25 +712,87 @@ def duct_seams():
     """Angles of the seams that carry a duct and thruster on this slice."""
     if not FOUR:
         return (HALF, -HALF)
-    return (HALF,) if SIDE == "L" else (-HALF,)
+    return {"L": (HALF,), "R": (-HALF,), "P": ()}[SIDE]
+
+
+def slice_sides():
+    """The slice type at each position round the ring, starting from slice 0:
+    a thruster sits on every (N/4)th seam, between an L and an R slice."""
+    if not FOUR:
+        return ["L"] * N
+    per = N // 4
+    return (["L", "R"] + ["P"] * (per - 2)) * 4
 
 
 def has_servo():
     return not FOUR or SIDE == "R"
 
 
+def cut_joints():
+    """(point, axis) of a peg across each cut, on the slice's centre line, in
+    a boss under the skin. Axis points from the peg side to the hole side."""
+    edge = T + HOLE_D / 2 + 1.0
+    out = []
+    for key, psi in cut_ribs().items():
+        r, z = skin_point(psi, edge)
+        if key.startswith("z"):                     # horizontal cut: peg on the middle band
+            out.append((key, cq.Vector(r, 0, z), cq.Vector(0, 0, 1 if key == "z_hi" else -1)))
+        else:                                       # radial cut: peg on the outer piece, pointing in
+            out.append((key, cq.Vector(r, 0, z), cq.Vector(-1, 0, 0)))
+    return out
+
+
+def pieces(body):
+    """Cut a slice into printable pieces along its cut ribs: a middle band
+    round the equator (the thruster), and the top and bottom bands, each cut
+    again at CUT_R into an inner and an outer piece. A peg crosses every cut."""
+    c = cut_ribs()
+    zl, zh = B * math.sin(c["z_lo"]), B * math.sin(c["z_hi"])
+    rc = A * math.cos(c["r_hi"])
+    big = 4 * A
+    above = lambda z: cq.Solid.makeBox(big, big, big, cq.Vector(-big / 2, -big / 2, z))
+    below = lambda z: cq.Solid.makeBox(big, big, big, cq.Vector(-big / 2, -big / 2, z - big))
+    inner = cq.Solid.makeCylinder(rc, 2 * big, cq.Vector(0, 0, -big))
+    top, bot = body.intersect(above(zh)), body.intersect(below(zl))
+    out = {"middle": body.intersect(above(zl)).intersect(below(zh)),
+           "top_outer": top.cut(inner), "top_inner": top.intersect(inner),
+           "bottom_outer": bot.cut(inner), "bottom_inner": bot.intersect(inner)}
+    peg_on = {"z_hi": "middle", "z_lo": "middle", "r_hi": "top_outer", "r_lo": "bottom_outer"}
+    hole_in = {"z_hi": "top_outer", "z_lo": "bottom_outer", "r_hi": "top_inner", "r_lo": "bottom_inner"}
+    for key, p, ax in cut_joints():
+        face = p + ax * 0.0
+        if key.startswith("z"):
+            face = cq.Vector(p.x, p.y, zh if key == "z_hi" else zl)
+        else:
+            face = cq.Vector(rc, p.y, p.z)
+        peg = cq.Solid.makeCylinder(PEG_D / 2, PEG_L + 0.5, face - ax * 0.5, ax)
+        hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, face - ax * 0.01, ax)
+        out[peg_on[key]] = out[peg_on[key]].fuse(peg)
+        out[hole_in[key]] = out[hole_in[key]].cut(hole)
+    return {k: v.clean() for k, v in out.items()}
+
+
+def print_pose(shape):
+    """Lay a slice (or piece) on its -HALF seam, the way it prints."""
+    return shape.rotate((0, 0, 0), (0, 0, 1), HALF).rotate((0, 0, 0), (1, 0, 0), 90)
+
+
 def at_seams(shape):
     """An outlet-frame shape on this slice's duct seams, clipped to the slice."""
     wedge_all = wedge_edges(arc(A + 50, B + 50, -math.pi / 2, math.pi / 2))
     seams = duct_seams()
+    if not seams:
+        return None
     out = shape.rotate((0, 0, 0), (0, 0, 1), seams[0])
     for a_ in seams[1:]:
         out = out.fuse(shape.rotate((0, 0, 0), (0, 0, 1), a_))
     return out.intersect(wedge_all)
 
 
-def slice_name():
-    return ("airship pie slice 926" + ("" if not FOUR else " 4T " + ("left" if SIDE == "L" else "right"))
+def slice_name(side=None):
+    hand = {"L": "left", "R": "right", "P": "plain"}[side or SIDE]
+    return ("airship pie slice 926" + ("" if not FOUR else f" 4T {hand}")
+            + ("" if N == 8 else f" {N}s") + ("" if LARGE == FOUR else (" large" if LARGE else " small"))
             + ("" if SCALE == 1 else f" x{SCALE:g}"))
 
 
@@ -633,11 +804,25 @@ def build():
     bosses, holes, pegs = joint_parts()
 
     body = frame()
+    retry = []
     for w in windows():                     # one at a time: a compound cut
-        body = body.cut(w)                  # silently drops overlapping tools
+        v = body.Volume()                   # silently drops overlapping tools
+        body = body.cut(w)
+        if v - body.Volume() < 0.5:         # the kernel can return a cut unchanged;
+            retry.append(w)                 # once the faces round it are split, it works
+    for w in retry:
+        v = body.Volume()
+        body = body.cut(w)
+        if v - body.Volume() < 0.5:
+            c = w.Center()
+            print(f"warning: window cut had no effect at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}")
+    if PIECES:                                      # bosses for the pegs across the cuts
+        for _, p, ax in cut_joints():
+            bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
     body = body.fuse(cq.Compound.makeCompound(bosses).intersect(envelope))
-    body = body.fuse(at_seams(walls)).cut(at_seams(bore))
-    body = body.cut(at_seams(stem_hole))
+    if duct_seams():
+        body = body.fuse(at_seams(walls)).cut(at_seams(bore))
+        body = body.cut(at_seams(stem_hole))
     if has_servo():
         body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo
     body = body.cut(cq.Compound.makeCompound(holes))
@@ -651,3 +836,15 @@ if __name__ == "__main__":
     print(f"volume {s.Volume() / 1000:.2f} cm3, faces {len(s.Faces())}, "
           f"solids {len(s.Solids())}, valid {s.isValid()}")
     cq.exporters.export(s, os.path.join(HERE, slice_name() + ".step"))
+    if PIECES:                                      # printable pieces, and the intake tubes
+        d = os.path.join(HERE, "pieces", slice_name())
+        os.makedirs(d, exist_ok=True)
+        for k, v in pieces(s).items():
+            bb = print_pose(v).BoundingBox()
+            print(f"  {k:13} {v.Volume() / 1000:6.2f} cm3  solids {len(v.Solids())}  valid {v.isValid()}  "
+                  f"print {bb.xlen:.0f} x {bb.ylen:.0f} x {bb.zlen:.0f} mm")
+            cq.exporters.export(v, os.path.join(d, k + ".step"))
+        for i, t_ in enumerate(tube_segments()):
+            cq.exporters.export(t_, os.path.join(d, f"intake_tube_{i + 1}.step"))
+            bb = t_.BoundingBox()
+            print(f"  intake tube {i + 1}  {t_.Volume() / 1000:6.2f} cm3  {bb.zlen:.0f} mm tall")

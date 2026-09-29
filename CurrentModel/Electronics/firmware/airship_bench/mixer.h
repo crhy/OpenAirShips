@@ -1,6 +1,8 @@
-// Thrust-vector mixer for the 8-thruster airship bench demo.
+// Thrust-vector mixer for the airship's swivelling thrusters.
 //
-// Thruster i sits on seam i, at azimuth psi_i = 22.5 + 45 * i degrees. It
+// OAS_THRUSTERS thrusters (default 8) sit evenly round the equator: thruster
+// i at azimuth psi_i = OAS_FIRST_AZ_DEG + 360 / OAS_THRUSTERS * i degrees
+// (default 22.5 + 45 i; the 12-slice, 4-thruster build uses 15 + 90 i). It
 // swivels about its radial axis. At angle phi = 0 its jet points straight
 // down, so it pushes the ship up. Positive phi tilts the push toward the
 // seam's tangential direction t_i = (-sin psi_i, cos psi_i), which is
@@ -8,18 +10,24 @@
 //
 // All thrusters share one plenum and one fan, so they all push with about
 // the same force T. The fan throttle sets T; the mixer only picks angles:
-//   vertical part   v_i = lift
 //   tangential part h_i = yaw + surge * t_i.x + sway * t_i.y
-//   phi_i           = atan2(h_i, v_i), limited to the swivel's travel
+//   phi_i           = asin(h_i / K), K = sqrt(max|h_j|^2 + lift^2)
 // A thruster can only push along "up" and t_i. Summed over 8 evenly spaced
 // thrusters, the tangential parts still add up to any horizontal force
-// (sum of t_i t_i^T = 4 I), plus a pure yaw torque.
+// (sum of t_i t_i^T = N/2 I for N >= 3 evenly spaced), plus a pure yaw torque.
 #pragma once
 #include <math.h>
 
+#ifndef OAS_THRUSTERS
+#define OAS_THRUSTERS 8
+#endif
+#ifndef OAS_FIRST_AZ_DEG
+#define OAS_FIRST_AZ_DEG 22.5f
+#endif
+
 namespace mixer {
 
-constexpr int kThrusters = 8;
+constexpr int kThrusters = OAS_THRUSTERS;
 constexpr float kPi = 3.14159265358979f;
 constexpr float kMaxAngleDeg = 90.0f;  // 1:1 gears on a 180 deg servo
 
@@ -30,20 +38,32 @@ struct Command {
   float yaw = 0.0f;    // +CCW seen from above
 };
 
-inline float azimuthDeg(int i) { return 22.5f + 45.0f * i; }
+inline float azimuthDeg(int i) { return OAS_FIRST_AZ_DEG + 360.0f / kThrusters * i; }
 
 inline float clampf(float x, float lo, float hi) {
   return x < lo ? lo : (x > hi ? hi : x);
 }
 
-// Swivel angle in degrees for thruster i.
-inline float angleDeg(const Command& c, int i) {
+// Horizontal push wanted from thruster i (unscaled).
+inline float horizontal(const Command& c, int i) {
   const float psi = azimuthDeg(i) * kPi / 180.0f;
-  const float tx = -sinf(psi), ty = cosf(psi);
-  const float h = c.yaw + c.surge * tx + c.sway * ty;
-  const float v = c.lift;
-  if (fabsf(h) < 1e-6f && fabsf(v) < 1e-6f) return 0.0f;
-  return clampf(atan2f(h, v) * 180.0f / kPi, -kMaxAngleDeg, kMaxAngleDeg);
+  return c.yaw + c.surge * -sinf(psi) + c.sway * cosf(psi);
+}
+
+// Swivel angle in degrees for thruster i. All thrusters share one scale K,
+// so sin(phi_i) = h_i / K stays proportional to h_i: the horizontal forces
+// and the yaw torque come out exactly in the ratio asked for, with no
+// cross-coupling, even with only 4 thrusters. K is the largest |h_i| combined
+// with the lift, so the biggest tilt is atan(h_max / lift). The jets can't
+// point up, so a negative lift counts as none.
+inline float angleDeg(const Command& c, int i) {
+  float hmax = 0.0f;
+  for (int j = 0; j < kThrusters; ++j) hmax = fmaxf(hmax, fabsf(horizontal(c, j)));
+  const float up = fmaxf(c.lift, 0.0f);
+  const float k = sqrtf(hmax * hmax + up * up);
+  if (k < 1e-6f) return 0.0f;
+  const float s = clampf(horizontal(c, i) / k, -1.0f, 1.0f);
+  return clampf(asinf(s) * 180.0f / kPi, -kMaxAngleDeg, kMaxAngleDeg);
 }
 
 // Net force/torque direction for checking: sum of unit thrust vectors.

@@ -36,14 +36,16 @@ def rev(pts):
     return h.wedge(pts, half=180.0)
 
 
-sfx = "" if h.SCALE == 1 else f" x{h.SCALE:g}"
-names = ([f"airship pie slice 926 4T left{sfx}", f"airship pie slice 926 4T right{sfx}"]
-         if h.FOUR else [f"airship pie slice 926{sfx}"])
-slices = [mesh_cm3(load(os.path.join(CAD, "SimplifiedSlice", n + ".step"))) for n in names]
-hull_cm3 = sum(slices) * (8 / len(slices))
+sides = h.slice_sides()
+vol = {sd: mesh_cm3(load(os.path.join(CAD, "SimplifiedSlice", h.slice_name(sd) + ".step")))
+       for sd in sorted(set(sides))}
+slices = [vol[sd] for sd in sorted(vol)]
+hull_cm3 = sum(vol[sd] for sd in sides)
+tubes_cm3 = sum(mesh_cm3(t_) for t_ in h.tube_segments()) if h.PIECES else 0.0
 
 parts = {}
-for n in ("impeller", "fan_hatch", "servo_mount", "stem", "stem_gear", "servo_gear", "thruster_ring"):
+for n in ("impeller", "fan_hatch", "servo_mount", "stem", "stem_gear", "servo_gear", "thruster_ring") + (
+        ("avionics_tray",) if h.PIECES else ()):
     parts[n] = mesh_cm3(load(os.path.join(p.OUT_DIR, n + ".step")))
 
 # free interior: inside the skin, minus the shaft core, the fan housing, the
@@ -69,7 +71,14 @@ surf = 2 * math.pi * h.A ** 2 * (1 + (1 - e * e) / e * math.atanh(e)) / 1e6
 
 path = h.duct_path()
 duct_l = sum((b - a).Length for a, b in zip(path, path[1:])) / 1000
+ribs = h.skin_ribs()
+meridian = h.ellipse_arc(-math.pi / 2, ribs[-1]) / 1000        # seam length, keel to intake
+cuts = 0.0
+if h.PIECES:                                                   # piece cut lines, round the ship
+    c = h.cut_ribs()
+    cuts = 2 * math.pi * (2 * h.skin_point(c["z_hi"], 0)[0] + 2 * h.skin_point(c["r_hi"], 0)[0]) / 1000
 print(json.dumps(dict(variant=h.VARIANT, scale=h.SCALE, A=h.A, B=h.B, slices=slices, hull_cm3=hull_cm3,
+                      n_slices=h.N, pieces=h.PIECES, tubes_cm3=tubes_cm3, meridian=meridian, cuts=cuts,
                       parts=parts, v_inner=v_inner, v_core=v_core, v_house=v_house, v_ducts=v_ducts,
                       v_free=v_free, surface_m2=surf, duct_l=duct_l, n_thr=n_thr,
                       duct_d=h.DUCT_BORE, stem_id=p.STEM_ID, slot=p.SLOT, slot_r=p.RT + p.RC - 1.0)))
