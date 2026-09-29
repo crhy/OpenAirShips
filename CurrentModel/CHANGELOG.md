@@ -1,5 +1,35 @@
 # Changelog: 926 buildable bench model
 
+## v0.2: self-contained double-Kobra build (September 2026)
+
+A 1.58 m ship (x3.8) that carries its own battery and controller and **floats on hydrogen alone**, for indoor flights in a garage or warehouse. Everything is designed as light as it can print; stiffness comes second.
+
+- **12 slices, 4 thrusters.** Slices come in three types: left, right (each pair closes one thrust duct) and plain (no duct). Assemble them L, R, P around the ship, four times.
+- **Each slice prints in 5 pieces on a Kobra Max** (400 × 400 × 450 mm), with the largest at 386 × 86 × 208 and 187 × 307 × 395 mm.
+  - The cuts are a middle band (z = ±150 mm) and a split at r = 415 mm in the top and bottom bands.
+  - A peg and hole cross every cut, and the lattice has a rib on every cut line, so each piece ends in a full edge strip to glue.
+- **Intake shaft as two printed tubes** (Ø66 bore, 0.86 mm wall, socket joints). They slide into sockets on the housing and the bellmouth. The bore stays smooth and empty.
+- **Lightest lattice:** 1.2 mm webs instead of 2.0 mm (`OAS_RIB=1.2`), with a two-sided rib on the equator for the servo collars.
+- **Thrusters:** the 8-thruster hardware (Ø24 ducts, 64 mm rings) on 4 ducts, with SG90 servos. The fan is unchanged. Together they give about 306 gf.
+  - Bigger ducts and rings would give more thrust, but each size step adds about 60 g of duct wall. A ship that floats only needs the fan to manoeuvre, and 306 gf pushes it along at about 2.5 m/s.
+- **Avionics tray** (24 cm³) clamped to the intake tube just above the fan housing. It has two cradles for the battery halves, one on each side for balance, and two plates for the ESC, ESP32, BEC and IMU.
+- **Firmware:**
+  - `OAS_DIRECT_PWM` drives the servos and ESC straight from the ESP32 (no PCA9685).
+  - `OAS_THRUSTERS` / `OAS_FIRST_AZ_DEG` set the thruster layout.
+  - A battery monitor on GPIO 34 stops the fan below 3.4 V per cell.
+  - The mixer now uses one shared scale for all thrusters, so commands no longer cross-couple.
+- **Weight:** 903 g all-up in full-foam lightweight PLA with a 1500 mAh LiPo, against 1145 g of hydrogen lift in 1022 L: **242 g to spare**. Every foam and battery option floats, with between 6 and 242 g to spare. Flight time is 44–130 min, depending on the battery. The details are in `Analysis/FLOAT.md`.
+- **Fixes along the way:**
+  - Wide lattice windows are cut from a faceted skin shell. The exact curved shell sometimes returned an empty cut, and the builder now warns if that ever happens. The released v0.1.3 files were checked and are unaffected.
+  - Seam wedges at large sizes are no longer left solid.
+  - A window cut that the CAD kernel silently skips (it happened once per slice, on the equator) is retried and flagged. The released v0.1.3 variants were checked and have none.
+  - Joint bosses sit clear of the skin.
+  - Pieces that mesh with gaps are repaired before export.
+- **Checks:**
+  - Every slice and piece is a single valid solid, and the pieces add up to their slice.
+  - The keel and housing are airtight, neighbouring slices overlap by 0 mm³, every fit check passes, and all 17 print STLs are watertight.
+- **Also changed:** the glue is now counted in the weight budget (epoxy on airtight seams, CA on lattice seams), so the v0.1 numbers moved by a few grams. The 4-thruster Kobra Max build in full foam now hovers with 49 g to spare.
+
 ## v0.1.3: minimum-material lattice (September 2026)
 
 - **Lattice cut on the real skin.**

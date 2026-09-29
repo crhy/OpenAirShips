@@ -54,8 +54,8 @@ PED_R = 20.0               # motor pedestal drum on the hatch
 PED_PLATE = 2.0
 HATCH_CLR = 0.2            # hatch dish to keel opening, per side
 FLANGE_Z = (hull.LUG_Z[1] + 0.2, hull.LUG_Z[1] + 1.7)   # bayonet tabs ride on the lugs
-TAB_HALF = 14.0            # 8 tabs, 28 deg wide, centred on the seams when inserted
-LOCK_TURN = 11.5           # degrees clockwise (from above) from insert to locked
+TAB_HALF = 14.0 * 8 / hull.N    # one tab per slice, centred on the seams when inserted
+LOCK_TURN = 11.5 * 8 / hull.N   # degrees clockwise (from above) from insert to locked
 WIRE_HOLE = (25.0, 3.0)    # phase-wire hole through the dish: radius, hole radius
 
 # ---- impeller ---------------------------------------------------------------
@@ -75,11 +75,12 @@ IMP_SCALLOP_R = 38.0           # scallops start here (the eye and inner passages
 OUT_Z = hull.OUT_Z         # swivel axis height
 X_SKIN = hull.hull_r(OUT_Z)                 # skin at the stem, on the seam
 X_BOSS = X_SKIN - hull.BOSS_LEN             # inner face of the bearing boss
-FOUR = hull.FOUR           # OAS_VARIANT=4T: 4 thrusters sized for twice the flow each
-STEM_OD, STEM_ID = (34.0, 31.0) if FOUR else (25.0, 22.0)   # bore: see Analysis/AIRFLOW*.md
+FOUR = hull.FOUR           # OAS_VARIANT=4T: 4 thrusters
+LARGE = hull.LARGE         # large thruster hardware, sized for twice the flow each
+STEM_OD, STEM_ID = (34.0, 31.0) if LARGE else (25.0, 22.0)   # bore: see Analysis/AIRFLOW*.md
 FLANGE_D, FLANGE_T = STEM_OD + 3.0, 1.8    # sits in the duct's end bulb, behind the bearing sleeve
 D_FLAT = 0.7               # depth of the stem's D-flat that keys the gear
-GEAR_M, GEAR_Z, GEAR_T = 1.0, (44 if FOUR else 36), 4.0   # 4T: 44T to clear the Ø34 stem
+GEAR_M, GEAR_Z, GEAR_T = 1.0, (44 if LARGE else 36), 4.0   # 4T: 44T to clear the Ø34 stem
 GEAR_X = X_SKIN + 1.235    # hull-side face of both gears, just outside the skin
 SERVO_Y = hull.SERVO_T     # 1:1 pair: centre distance = pitch diameter
 assert abs(SERVO_Y - GEAR_M * GEAR_Z) < 1e-6
@@ -89,13 +90,13 @@ TAB_X = X_SKIN - 15.265    # servo tab plane: the body top clears the curved ski
 MOUNT_T = 3.0
 
 # ---- air multiplier ring ----------------------------------------------------
-RT, RO = (22.5, 34.5) if FOUR else (20.0, 32.0)   # throat radius at the slot, outer radius
+RT, RO = (22.5, 34.5) if LARGE else (20.0, 32.0)   # throat radius at the slot, outer radius
 HD = 32.0                  # diffuser height (exit at a = 0, slot near the top)
 TAPER = 15.0               # diffuser half-angle
-RC = 3.5 if FOUR else 3.0  # Coanda lip radius
-SLOT = 2.0 if FOUR else 1.6   # from the airflow analysis (shrouded fan)
+RC = 3.5 if LARGE else 3.0  # Coanda lip radius
+SLOT = 2.0 if LARGE else (1.2 if hull.N != 8 else 1.6)   # from the airflow analysis (shrouded fan)
 RING_W = 0.86              # 2 perimeters
-STEM_IN = RO + (16.0 if FOUR else 12.0)   # stem socket end, from the ring axis (4T: room to
+STEM_IN = RO + (16.0 if LARGE else 12.0)   # stem socket end, from the ring axis (4T: room to
                                           # reshape the round stem bore into the oval port)
 
 
@@ -179,10 +180,10 @@ def fan_hatch(locked=True):
                                  cq.Vector(0, 0, FLANGE_Z[0])).cut(
         cq.Solid.makeCylinder(hull.LUG_R - 0.4, 10, cq.Vector(0, 0, FLANGE_Z[0] - 5)))
     tabs = None
-    for k in range(8):
+    for k in range(hull.N):
         sector = hull.wedge([(0, FLANGE_Z[0] - 1), (60, FLANGE_Z[0] - 1), (60, FLANGE_Z[1] + 1),
                              (0, FLANGE_Z[1] + 1)], half=TAB_HALF).rotate(
-            (0, 0, 0), (0, 0, 1), hull.HALF + 45 * k)
+            (0, 0, 0), (0, 0, 1), hull.HALF + 360.0 / hull.N * k)
         t_ = ring.intersect(sector)
         tabs = t_ if tabs is None else tabs.fuse(t_)
     drum = cq.Solid.makeCylinder(PED_R, PED_TOP + hull.B + 1, cq.Vector(0, 0, -hull.B - 1)).intersect(inside)
@@ -406,6 +407,49 @@ def thruster_ring_placed(angle=0.0):
     return r.rotate((0, 0, OUT_Z), (1, 0, OUT_Z), angle)
 
 
+# ---- avionics tray (self-contained builds) -----------------------------------
+# Clamps round the intake tube just above the fan housing: two cradles for the
+# battery (a 4S 18650 pack split into two 2S halves, one each side, so the ship
+# stays balanced) and two plates for the electronics (ESC one side; ESP32, BEC
+# and IMU the other). Low down, it keeps the centre of gravity well under the
+# centre of buoyancy. Arms point between the ducts.
+TRAY_Z = hull.nozzle_top() + 1.0 + hull.SOCK + 4.0   # above the housing's tube socket
+TRAY_ARM = 58.0            # arm length from the tube wall to the cradle centre
+CELL_BOX = (40.0, 70.0, 20.0)   # 2S 18650 half-pack: 2 cells side by side (+ wrap)
+PLATE = (34.0, 52.0)       # electronics plate (ESC 25 x 40; ESP32 C3 + BEC + IMU stack)
+TRAY_W = 1.2               # tray walls (3 lines at 0.4)
+
+
+def avionics_tray():
+    r_in = hull.SHAFT_R + hull.T + 0.2              # slides onto the tube, glued
+    ring = cq.Solid.makeCylinder(r_in + 1.6, 12, cq.Vector(0, 0, TRAY_Z)).cut(
+        cq.Solid.makeCylinder(r_in, 14, cq.Vector(0, 0, TRAY_Z - 1)))
+    body = ring
+    ducts = [hull.HALF + 90 * k for k in range(4)] if FOUR else [hull.HALF + 45 * k for k in range(8)]
+    base = 45.0 + hull.HALF if FOUR else hull.HALF + 22.5     # between the ducts
+    for k, what in enumerate(("cell", "plate", "cell", "plate")):
+        a = math.radians(base + 90 * k)
+        u = cq.Vector(math.cos(a), math.sin(a), 0)
+        arm = cq.Solid.makeBox(r_in + TRAY_ARM, 8.0, 2.0, cq.Vector(r_in, -4.0, TRAY_Z)).rotate(
+            (0, 0, 0), (0, 0, 1), math.degrees(a))
+        c = u * (r_in + TRAY_ARM)
+        if what == "cell":
+            w, l, h = CELL_BOX
+            box = cq.Solid.makeBox(l, w, h, cq.Vector(-l / 2, -w / 2, TRAY_Z)).cut(
+                cq.Solid.makeBox(l - 2 * TRAY_W, w - 2 * TRAY_W, h, cq.Vector(-l / 2 + TRAY_W, -w / 2 + TRAY_W,
+                                                                             TRAY_Z + TRAY_W)))
+            for sx in (-1, 1):                     # lightening windows in the floor, and strap slots
+                box = box.cut(cq.Solid.makeBox(l / 2 - 6, w - 10, 4, cq.Vector(sx * (l / 4 + 0.5) - (l / 2 - 6) / 2,
+                                                                              -w / 2 + 5, TRAY_Z - 1)))
+        else:
+            w, l = PLATE
+            box = cq.Solid.makeBox(l, w, 1.6, cq.Vector(-l / 2, -w / 2, TRAY_Z)).cut(
+                cq.Solid.makeBox(l - 12, w - 12, 4, cq.Vector(-l / 2 + 6, -w / 2 + 6, TRAY_Z - 1)))
+        box = box.rotate((0, 0, 0), (0, 0, 1), math.degrees(a) + 90).translate(c)
+        body = body.fuse(arm, box)
+    return body.clean()
+
+
 # ---- export -----------------------------------------------------------------
 def at_seam(shape, k=0):
     """Outlet-frame part -> hull coordinates on thruster seam k (8T: every seam,
@@ -415,6 +459,10 @@ def at_seam(shape, k=0):
 
 
 OUT_DIR = os.path.join(HERE, "4T") if FOUR else HERE   # the 4-thruster parts live in 4T/
+if FOUR and not LARGE:
+    OUT_DIR = os.path.join(OUT_DIR, "small")
+if hull.N != 8:
+    OUT_DIR = os.path.join(OUT_DIR, f"{hull.N}s")
 if hull.SCALE != 1:
     OUT_DIR = os.path.join(OUT_DIR, f"x{hull.SCALE:g}")
 
@@ -446,5 +494,7 @@ if __name__ == "__main__":
         "servo_gear": (servo_gear(), lambda s: flat(s.rotate((0, 0, 0), (0, 1, 0), 90))),
         "thruster_ring": (thruster_ring()[0], flat),
     }
+    if hull.PIECES:
+        parts["avionics_tray"] = (avionics_tray(), flat)
     for name, (shape, pose) in parts.items():
         export(name, shape, pose)

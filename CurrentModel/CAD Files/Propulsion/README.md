@@ -16,9 +16,15 @@ The same parametric source (`propulsion.py`) builds the parts for every hull ver
 | 4 thrusters, bench | `4T/` | 4 | Ø34 / Ø34-31 | 69 mm OD, 2.0 mm slot (same profile as 8T) | 44T m1 | ≈ 422 gf |
 | 8 thrusters, Kobra Max | `x1.9/` | 8 | as 8T | as 8T | as 8T | ≈ 401 gf |
 | 4 thrusters, Kobra Max | `4T/x1.9/` | 4 | as 4T | as 4T | as 4T | ≈ 418 gf |
+| **v0.2 double Kobra** (x3.8, 12 slices) | `4T/small/12s/x3.8/` | 4 | as 8T (Ø24 / Ø25-22) | as 8T | as 8T | ≈ 306 gf |
 
 - **4 thrusters:** each duct carries twice the flow, so the ducts, stems and rings are sized up to keep the air speeds down (see [AIRFLOW-4T.md](../../Analysis/AIRFLOW-4T.md)). Otherwise the parts and the assembly are the same as for 8 thrusters, with half as many.
 - **Kobra Max size:** the fan, thrusters and servos keep their size. Only the hull grows, so the servo mount and fan hatch follow the flatter hull curve, and the ducts get longer.
+- **v0.2 double Kobra:** 4 thrusters with the 8-thruster hardware, SG90 servos, a 12-tab fan hatch and the **avionics tray** (`avionics_tray.step`, 24 cm³).
+  - **Tray:** a ring clamps round the lower intake tube just above the fan housing, with 4 arms reaching out between the ducts. Two arms carry battery cradles (40 × 70 × 20 mm, one 2S pack each, opposite each other for balance). The other two carry plates for the ESC, ESP32, BEC and IMU.
+  - **Why the fan and ducts aren't scaled up:** the ship floats on hydrogen, so the fan only manoeuvres it. 306 gf moves the 1.58 m hull at about 2.5 m/s, which is plenty indoors. The 4-thruster Ø34 ducts would add about 60 g of duct wall. A bigger fan would add more again: motor, ESC, battery current and a wider shaft.
+  - **To scale it up later:** set `OAS_THRUSTER=L` for the Ø34 ducts, stems and 69 mm rings. The fan is set by `IMP_R` / `SHAFT_R`.
+  - Build it with the v0.2 settings in the slice README, plus `python3 propulsion.py`.
 - **Assembly:** a 4-thruster hull alternates left and right slices. Each left/right pair closes one duct, and its right slice carries the servo hole.
 
 ## How the air moves

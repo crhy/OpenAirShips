@@ -1,6 +1,8 @@
 """How close is each design to floating? Mass budget against hydrogen lift
 and fan thrust, for the 8- and 4-thruster designs at bench size (x1) and at
-Kobra Max size (x1.9), in standard and lightweight (foaming) PLA.
+Kobra Max size (x1.9), and for the self-contained double-Kobra build (x3.8,
+12 slices printed in pieces, battery and controller on board), in standard
+and lightweight (foaming) PLA.
 Writes FLOAT.md. Geometry comes from hull_volumes.py (run per variant)."""
 import json
 import math
@@ -16,10 +18,18 @@ MATERIALS = {"PLA": 1.24, "LW-PLA, moderate foam": 0.80, "LW-PLA, full foam": 0.
 PLA, PETG = 1.24, 1.27
 FILM_GSM = 11.0                    # 12 um LDPE film, g/m2
 CONFIGS = [("8T", 1.0), ("4T", 1.0), ("8T", 1.9), ("4T", 1.9)]
+BIG = dict(OAS_VARIANT="4T", OAS_SCALE="3.8", OAS_SLICES="12", OAS_THRUSTER="S", OAS_PIECES="1", OAS_RIB="1.2")
+# self-contained: electronics on board (grams) and battery options (grams, Wh)
+ONBOARD = {"ESC 30 A (the fan peaks at ~25 A)": 7.0, "ESP32 board (drives servos and ESC directly)": 8.0, "3 A BEC": 6.0,
+           "IMU + barometer": 4.0, "switch, connectors, wiring": 25.0}
+BATTERIES = [("4S LiPo 1500 mAh", 180.0, 22.2), ("4S 18650 Li-ion 1P (Molicel P28A)", 195.0, 41.4),
+             ("4S 21700 Li-ion 1P (Molicel P45B)", 300.0, 64.8)]
+FAN_W_MAX = 25.0 * 14.8            # electrical power at full fan thrust
+MANOEUVRE_W, AVIONICS_W = 20.0, 4.0
 
 
-def geometry(variant, scale):
-    env = dict(os.environ, OAS_VARIANT=variant, OAS_SCALE=str(scale))
+def geometry(variant, scale, extra=None):
+    env = dict(os.environ, OAS_VARIANT=variant, OAS_SCALE=str(scale), **(extra or {}))
     out = subprocess.run([sys.executable, os.path.join(HERE, "hull_volumes.py")], env=env,
                          capture_output=True, text=True, check=True).stdout
     return json.loads(out.strip().splitlines()[-1])
@@ -43,7 +53,9 @@ def budget(g, rho_lw):
     n, pt = g["n_thr"], g["parts"]
     s = g["scale"]
     printed = {
-        "hull (8 slices)": g["hull_cm3"] * rho_lw,
+        "hull (%d slices)" % g.get("n_slices", 8): g["hull_cm3"] * rho_lw,
+        **({"intake tubes": g["tubes_cm3"] * rho_lw, "avionics tray": pt["avionics_tray"] * rho_lw}
+           if g.get("pieces") else {}),
         "thruster rings": n * pt["thruster_ring"] * rho_lw,
         "servo mounts": n * pt["servo_mount"] * rho_lw,
         "stems and gears (PLA)": n * (pt["stem"] + pt["stem_gear"] + pt["servo_gear"]) * PLA,
@@ -52,10 +64,13 @@ def budget(g, rho_lw):
     }
     hardware = {
         "2207 motor": 32.0,
-        f"{n} x MG90S servos": 13.4 * n,
+        **({f"{n} x SG90 servos (9 g; the rings need little torque)": 9.0 * n} if g.get("pieces")
+           else {f"{n} x MG90S servos": 13.4 * n}),
         "wiring": 5.0 + 2.5 * n * s,
         "screws": 3.0,
-        "epoxy and tape": 15.0 * s ** 2,
+        # epoxy on the airtight seams (duct halves, housing ring), thin CA on the lattice seams
+        "glue": 4.5 * (2 * n * g["duct_l"] + 2 * 2 * math.pi * 0.08)
+                + 0.8 * (g.get("n_slices", 8) * g.get("meridian", 0.45 * s) + g.get("cuts", 0.0)),
         "gas cells (12 um LDPE)": 1.3 * g["surface_m2"] * FILM_GSM,
     }
     return printed, hardware
@@ -63,6 +78,7 @@ def budget(g, rho_lw):
 
 def main():
     geos = [geometry(v, s) for v, s in CONFIGS]
+    big = geometry("4T", 3.8, {k: v for k, v in BIG.items() if k not in ("OAS_VARIANT", "OAS_SCALE")})
     out = []
     w = out.append
     w("# Will it float? Mass, hydrogen lift and fan thrust\n")
@@ -112,7 +128,7 @@ def main():
             def mass(s):
                 g = dict(g1, scale=s, surface_m2=g1["surface_m2"] * s * s)
                 pr, hw = budget(g, rho)
-                return h1 * s ** k + sum(pr.values()) - pr["hull (8 slices)"] + sum(hw.values())
+                return h1 * s ** k + sum(pr.values()) - next(v for k_, v in pr.items() if k_.startswith("hull (")) + sum(hw.values())
             s = 1.0
             while NET_LIFT * (b * s ** 3 - c) < mass(s):
                 s += 0.01
@@ -120,6 +136,48 @@ def main():
             w(f"| {name} | {mat} | x{s:.1f} (hull mass grows as S^{k:.2f}) | {2 * g1['A'] * s / 1000:.1f} m |")
     w("")
     w("These keep today's 0.86 mm walls and 2 mm ribs. A real hull that size would need thicker ribs, or a frame and fabric envelope instead of a printed skin, so treat them as lower bounds.\n")
+
+    # self-contained double-Kobra build
+    t_big = thrust_gf(big)
+    w("## Self-contained: double Kobra size (x3.8, 1.58 m), battery and controller on board\n")
+    w(f"4 thrusters on 12 slices, with the lightest printable lattice (1.2 mm webs). Each slice prints on a Kobra Max in 5 pieces, and the intake is two printed tubes. The thruster hardware is the 8-thruster size (Ø24 ducts), which keeps the duct walls light and still gives {t_big:.0f} gf. The fan is unchanged. The ESC, ESP32, BEC, IMU and battery are on board, on the avionics tray just above the fan housing.\n")
+    w(f"Hydrogen: {big['v_free']:.0f} L, lifting **{big['v_free'] * NET_LIFT:.0f} g**.\n")
+    w("| Hull material | Airframe | + electronics | Battery | Total | H₂ lift − total | Fan needed to hold height | Flight time |")
+    w("|---|---|---|---|---|---|---|---|")
+    onboard = sum(ONBOARD.values())
+    lift = big["v_free"] * NET_LIFT
+    best = None
+    for mat in ("LW-PLA, moderate foam", "LW-PLA, full foam"):
+        pr, hw = budget(big, MATERIALS[mat])
+        frame = sum(pr.values()) + sum(hw.values())
+        for bname, bg, wh in BATTERIES:
+            total = frame + onboard + bg
+            margin = lift - total
+            deficit = max(0.0, -margin)
+            if deficit > t_big:
+                need, time_ = "more than the fan can give", "—"
+            else:
+                p_hold = FAN_W_MAX * (deficit / t_big) ** 1.5
+                watts = p_hold + MANOEUVRE_W + AVIONICS_W
+                need = f"{p_hold:.0f} W" if deficit else "none: floats"
+                time_ = f"{0.8 * wh / watts * 60:.0f} min"
+            w(f"| {mat} | {frame:.0f} g | {onboard:.0f} g | {bname}, {bg:.0f} g | {total:.0f} g | "
+              f"**{margin:+.0f} g** | {need} | {time_} |")
+            if best is None or margin > best[0]:
+                best = (margin, mat, bname, pr, hw, total)
+    w("")
+    w(f"- **Flight time** uses 80% of the battery. It counts {MANOEUVRE_W:.0f} W average for manoeuvring and {AVIONICS_W:.0f} W for the servos and electronics, plus the fan power needed to hold height when the ship is heavier than its lift.")
+    w(f"- **Fan power to hold height:** full thrust ({t_big:.0f} gf) takes about {FAN_W_MAX:.0f} W. Thrust grows as power^(2/3), so holding up a shortfall of W grams takes {FAN_W_MAX:.0f} W × (W / {t_big:.0f})^1.5.")
+    w("- **Too light is fine:** a ship lighter than its lift is trimmed with a few grams of ballast, or by filling the gas cells less.\n")
+    margin, mat, bname, pr, hw, total = best
+    w(f"### Mass breakdown: {mat}, {bname}\n")
+    w("| Item | g |")
+    w("|---|---|")
+    for k_, v in list(pr.items()) + list(hw.items()) + list(ONBOARD.items()):
+        w(f"| {k_} | {v:.0f} |")
+    w(f"| battery ({bname}) | {[b for b in BATTERIES if b[0] == bname][0][1]:.0f} |")
+    w(f"| **Total** | **{total:.0f}** |")
+    w(f"| **Hydrogen lift** | **{lift:.0f}** |\n")
 
     # details for the headline design
     w("## Mass breakdown: 4 thrusters, Kobra Max x1.9, LW-PLA moderate foam\n")
