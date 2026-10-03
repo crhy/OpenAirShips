@@ -1,4 +1,4 @@
-"""Propulsion parts for the 926 pie-slice airship (tethered bench demo), rev E.
+"""Propulsion parts for the 1026 pie-slice airship (tethered bench demo), rev E.
 
 Air path: the impeller at the bottom of the central shaft pulls air down the
 shaft and throws it outward into the plenum between the floor and the keel.
@@ -20,7 +20,7 @@ Parts (all in mm; each is exported already posed for printing):
   thruster_ring   air multiplier: Coanda lip, 1.6 mm slot, 64 mm OD
 
 Run: python3 propulsion.py      -> <part>.step (model coordinates) + print/<part>.step
-     freecadcmd make_fcstd.py     -> propulsion 926.FCStd + print/<part>.stl
+     freecadcmd make_fcstd.py     -> propulsion 1026.FCStd + print/<part>.stl
      python3 check_fit.py         -> clash checks against the hull
 """
 import math

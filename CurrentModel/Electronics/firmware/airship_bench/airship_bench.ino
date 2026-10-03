@@ -1,4 +1,4 @@
-// OpenAirShips 926 firmware: tethered bench demo and self-contained builds.
+// OpenAirShips 1026 firmware: tethered bench demo and self-contained builds.
 //
 // The ESP32 opens a Wi-Fi access point "OpenAirShip" (password below).
 // Browse to http://192.168.4.1 for sliders: fan throttle, lift, surge, sway
@@ -127,7 +127,7 @@ void handleCommand() {
 const char PAGE[] PROGMEM = R"HTML(<!doctype html><meta name=viewport content="width=device-width">
 <title>OpenAirShip bench</title><style>body{font:16px sans-serif;margin:16px}label{display:block;margin:14px 0 4px}
 input{width:100%}button{font-size:18px;padding:10px 20px;margin:8px 8px 0 0}#s{font-family:monospace}</style>
-<h2>OpenAirShip 926 bench</h2>
+<h2>OpenAirShip 1026</h2>
 <button onclick="arm(1)">ARM</button><button onclick="arm(0)" style="background:#e33;color:#fff">STOP</button>
 <label>Fan throttle <span id=tv>0</span></label><input id=t type=range min=0 max=1 step=0.01 value=0>
 <label>Lift</label><input id=l type=range min=-1 max=1 step=0.05 value=1>

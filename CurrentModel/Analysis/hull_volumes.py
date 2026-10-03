@@ -21,10 +21,11 @@ import propulsion as p      # noqa: E402
 
 def mesh_cm3(shape):
     """Volume from a fine tessellation (the kernel's own volume is unreliable
-    on these lattice solids)."""
+    on these lattice solids). A mesh with gaps gives a wrong volume (it put the
+    926 v0.2 hull at 350 cm3 instead of 502), so then the kernel's is used."""
     v, t = shape.tessellate(0.05, 0.1)
     m = trimesh.Trimesh(np.array([q.toTuple() for q in v]), np.array(t))
-    return abs(m.volume) / 1000
+    return abs(m.volume) / 1000 if m.is_watertight else shape.Volume() / 1000
 
 
 def load(path):
@@ -55,9 +56,7 @@ inner = rev([(0, -Bi)] + [(Ai * math.cos(t), Bi * math.sin(t))
                           for t in [-math.pi / 2 + math.pi * i / 200 for i in range(1, 200)]] + [(0, Bi)])
 v_inner = 4 / 3 * math.pi * Ai ** 2 * Bi / 1e6
 core = rev([(0, -h.B - 1), (h.SHAFT_R + h.T, -h.B - 1), (h.SHAFT_R + h.T, h.B + 1), (0, h.B + 1)])
-zk = -(h.B - h.T) * math.sqrt(1 - (h.PLENUM_KEEL_R / (h.A - h.T)) ** 2)
-house = rev([(0, -h.B - 1), (h.PLENUM_KEEL_R + 1, -h.B - 1), (h.PLENUM_KEEL_R + 1, zk)]
-            + [(r, z + h.T) for r, z in reversed(h.shroud_curve()[1:-1])] + [(0, h.nozzle_top())])
+house = rev(h.housing_outline())
 v_core = core.intersect(inner).Volume() / 1e6
 v_house = house.cut(core).intersect(inner).Volume() / 1e6
 walls, bore = h.duct_solids()

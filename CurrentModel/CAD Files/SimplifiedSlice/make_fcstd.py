@@ -13,9 +13,9 @@ FOUR = os.environ.get("OAS_VARIANT", "8T").upper() == "4T"
 SIDE = os.environ.get("OAS_SIDE", "L").upper()
 SCALE = float(os.environ.get("OAS_SCALE", "1"))
 HAND = ("left" if SIDE == "L" else "right")
-NAME = ("airship pie slice 926" + (f" 4T {HAND}" if FOUR else "")
+NAME = ("airship pie slice 1026" + (f" 4T {HAND}" if FOUR else "")
         + ("" if SCALE == 1 else f" x{SCALE:g}"))
-STL = ("PieSlice926-v0.1-" + (f"4T-{HAND}" if FOUR else "8T")
+STL = ("PieSlice1026-v0.2.1-" + (f"4T-{HAND}" if FOUR else "8T")
        + ("" if SCALE == 1 else "-KobraMax") + ".stl")
 
 doc = App.newDocument(NAME.replace(" ", "_").replace(".", "_"))

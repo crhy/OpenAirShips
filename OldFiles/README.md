@@ -9,3 +9,4 @@ Earlier OpenAirShips models, kept for history and reference. They are **not** th
   - `PieSlice1224.stl`
   - the 926 development revisions A–D. **RevB and revC have a duct leak; don't print them.**
 - The top-level files are older pie-slice, component and obelisk experiments, logos and prototype photos.
+- `PrintFiles/926/` and `CAD/926/`: the released 926 model (v0.1.3 bench and Kobra Max slices, v0.2 double-Kobra pieces), replaced in October 2026 by the 1026 model (flush fan housing, lighter keel).
