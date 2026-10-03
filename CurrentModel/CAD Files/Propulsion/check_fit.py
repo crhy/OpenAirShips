@@ -1,4 +1,4 @@
-"""Fit checks for the propulsion parts against the 926 slice (run after propulsion.py)."""
+"""Fit checks for the propulsion parts against the 1026 slice (run after propulsion.py)."""
 import math, os, sys
 import cadquery as cq
 HERE = os.path.dirname(os.path.abspath(__file__))

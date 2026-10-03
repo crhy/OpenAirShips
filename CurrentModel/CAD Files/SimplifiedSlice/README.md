@@ -1,13 +1,13 @@
-# Airship pie slice 926, v0.1: 8- and 4-thruster designs, bench and Kobra Max sizes
+# Airship pie slice 1026 (v0.2.1): 8- and 4-thruster designs, bench, Kobra Max and double-Kobra sizes
 
 One 45° slice of the hull; eight of them plug together into the full ship. The source is one parametric file that builds every version:
 
 | Version | Slices | Print file (in `Print Files/`) | Size | Printer |
 |---|---|---|---|---|
-| **8 thrusters, bench** | 8 identical | `PieSlice926-v0.1-8T.stl` | 415 mm across | Prusa MK3S+ (or any 210 × 210 mm bed) |
-| **4 thrusters, bench** | 4 left + 4 right, alternating | `PieSlice926-v0.1-4T-left.stl`, `…-4T-right.stl` | 415 mm | Prusa MK3S+ |
-| **8 thrusters, Kobra Max** | 8 identical | `PieSlice926-v0.1-8T-KobraMax.stl` | 790 mm | Anycubic Kobra Max (400 × 400 × 450 mm) |
-| **4 thrusters, Kobra Max** | 4 left + 4 right | `PieSlice926-v0.1-4T-left-KobraMax.stl`, `…-right-KobraMax.stl` | 790 mm | Kobra Max |
+| **8 thrusters, bench** | 8 identical | `PieSlice1026-v0.2.1-8T.stl` | 415 mm across | Prusa MK3S+ (or any 210 × 210 mm bed) |
+| **4 thrusters, bench** | 4 left + 4 right, alternating | `PieSlice1026-v0.2.1-4T-left.stl`, `…-4T-right.stl` | 415 mm | Prusa MK3S+ |
+| **8 thrusters, Kobra Max** | 8 identical | `PieSlice1026-v0.2.1-8T-KobraMax.stl` | 790 mm | Anycubic Kobra Max (400 × 400 × 450 mm) |
+| **4 thrusters, Kobra Max** | 4 left + 4 right | `PieSlice1026-v0.2.1-4T-left-KobraMax.stl`, `…-right-KobraMax.stl` | 790 mm | Kobra Max |
 
 It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at the repository root): the 207.765 × 104 mm ellipse, rebuilt as clean parametric geometry. See [../../DESIGN-CONSTRAINTS.md](../../DESIGN-CONSTRAINTS.md) for the fixed rules and [../../Analysis/FLOAT.md](../../Analysis/FLOAT.md) for weights, hydrogen volume and lift.
 
@@ -24,10 +24,11 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
   - The narrower shaft costs about 1% of the fan pressure and gives the gas cells about 0.6 L more room.
 - **Shrouded fan housing:** the housing *is* the fan's shroud.
   - At the bottom of the shaft the wall turns from axial to radial over the blade tips, with 1.5 mm clearance, and runs out flat as the housing ceiling. That's z = −71.3 for 8 thrusters, or 10 mm higher for 4 thrusters so the bigger duct mouths fit.
-  - At r = 66 the ceiling slopes down to meet the keel at r = 80.
-  - The housing holds the impeller (r 44) and the duct mouths (r ≈ 58–60). **The keel is solid only around this housing.**
+  - Past the blade tips the ceiling eases down to meet the ducts' tops at their mouths. The outer wall stands just past the mouths, at r = 60.5, and drops straight to the keel.
+  - The keel skin is the housing's floor. Each duct hugs the hull curve from its mouth, so **it runs straight on from the housing, flush top and bottom**, with no step for the air to trip over (since v0.2.1).
+  - The housing holds the impeller (r 44) and the duct mouths (r ≈ 57–60). **The keel is solid only under this housing**; from its outer wall outward it's lattice.
 - **Fan hatch opening:** the keel under the fan is a Ø94 opening that the impeller and motor come in and out through. A ring wall round it carries this slice's **bayonet lug** and **stop post**. The removable `fan_hatch` (see `../Propulsion`) locks onto the 8 lugs.
-- **Ducts:** they run *inside* the skin from their mouths in the fan housing up to the equator, where each ends in a bulb behind the stem hole and its bearing sleeve. Each duct is split by a seam plane, so two slices close it. Their own 0.86 mm walls keep them airtight; the lattice runs straight over them.
+- **Ducts:** they run *inside* the skin, at a constant depth along the hull curve, from their mouths in the fan housing up to the equator, where each ends in a bulb behind the stem hole and its bearing sleeve. Each duct is split by a seam plane, so two slices close it. Their own 0.86 mm walls keep them airtight; the lattice runs straight over them.
   - **8 thrusters:** Ø24 ducts on every seam, a Ø32 bulb and a Ø25.4 stem hole.
   - **4 thrusters:** Ø34 ducts on every other seam (twice the flow each), a Ø44 bulb and a Ø34.4 stem hole. A **left** slice carries its half-duct on its +22.5° seam; a **right** slice carries it on its −22.5° seam, plus the servo hole. Assemble them alternating, left, right, left, right, so each pair closes one duct.
 - **Lattice:** everything else is structure only.
@@ -71,12 +72,12 @@ The self-contained build that floats on hydrogen alone. See [FLOAT.md](../../Ana
   - Epoxy the sockets, since the tube is part of the air path.
 - **Lattice:** 1.2 mm webs (`OAS_RIB=1.2`). The equator rib is two-sided, carrying the servo collars.
 - **Thrusters:** the 8-thruster size (Ø24 ducts, Ø32 bulbs, 64 mm rings) on the 4 left/right seams.
-- **Print files:** `Print Files/v0.2 double Kobra/`, 15 pieces (5 each for left, right and plain) plus 2 tubes, all watertight.
+- **Print files:** `Print Files/v0.2.1 double Kobra/`, 15 pieces (5 each for left, right and plain) plus 2 tubes, all watertight.
   - Each slice piece lies on its seam, and the tubes stand upright.
   - Print them in full-foam lightweight PLA, with the settings below.
 - **CAD:**
-  - `pieces/airship pie slice 926 v0.2 {left,right,plain} (pieces).FCStd`, plus STEP files per piece in `pieces/<slice>/`.
-  - The whole slices are in `airship pie slice 926 4T {left,right,plain} 12s small x3.8.step`.
+  - `pieces/airship pie slice 1026 v0.2.1 {left,right,plain} (pieces).FCStd`, plus STEP files per piece in `pieces/<slice>/`.
+  - The whole slices are in `airship pie slice 1026 4T {left,right,plain} 12s small x3.8.step`.
 
 To regenerate:
 ```
@@ -96,12 +97,13 @@ freecadcmd make_pieces.py
 ## Weight and volume
 Weights and lift for every version and material are in [Analysis/FLOAT.md](../../Analysis/FLOAT.md).
 
-| Version | Printed hull (8 slices) | PLA | Moderate-foam lightweight PLA | Hydrogen volume |
-|---|---|---|---|---|
-| 8 thrusters, bench | 229 cm³ | 284 g | 183 g | 16.4 L |
-| 4 thrusters, bench | 199 cm³ | 246 g | 159 g | 16.3 L |
-| 8 thrusters, Kobra Max | 434 cm³ | 538 g | 347 g | 124 L |
-| 4 thrusters, Kobra Max | 368 cm³ | 457 g | 295 g | 124 L |
+| Version | Printed hull | PLA | Moderate-foam lightweight PLA | Full-foam lightweight PLA | Hydrogen volume |
+|---|---|---|---|---|---|
+| 8 thrusters, bench (8 slices) | 214 cm³ | 265 g | 171 g | 128 g | 16.5 L |
+| 4 thrusters, bench (8 slices) | 184 cm³ | 228 g | 147 g | 110 g | 16.5 L |
+| 8 thrusters, Kobra Max (8 slices) | 415 cm³ | 514 g | 332 g | 249 g | 124 L |
+| 4 thrusters, Kobra Max (8 slices) | 349 cm³ | 432 g | 279 g | 209 g | 124 L |
+| double Kobra, 12 slices (v0.2 build) | 474 cm³ | 588 g | 379 g | 284 g | 1022 L |
 
 ## Printing
 - **Walls:** 0.20 mm layers, 0.4 mm nozzle, 2 perimeters, with no infill needed (the walls are 2 lines thick). Don't let "detect thin walls" change them.
@@ -124,7 +126,7 @@ It saves about a third of the hull's weight; see the table above.
 - **What to print in it:** the hull slices, thruster rings and servo mounts. Keep the stems, gears and fan hatch in standard PLA (accurate teeth, bearing surfaces and bayonet tabs). Keep the impeller in PETG, and never foam it: its tip runs at 72 m/s, and uneven foam would throw it out of balance.
 
 ## Files
-- **FreeCAD documents:** `airship pie slice 926[ 4T left| 4T right][ x1.9].FCStd`. Each holds the part as the base feature of a PartDesign Body, plus a parameter spreadsheet.
+- **FreeCAD documents:** `airship pie slice 1026[ 4T left| 4T right][ x1.9].FCStd`. Each holds the part as the base feature of a PartDesign Body, plus a parameter spreadsheet.
 - **STEP:** the same parts, in the matching `.step` files.
 - **`airship_slice.py`:** the parametric source (CadQuery). Everything is set at the top of the file. The version is chosen with environment variables:
   - `OAS_VARIANT=8T|4T`

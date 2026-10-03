@@ -285,8 +285,8 @@ def report():
         t_ = solve_motor(m, slot / 1000, stem / 1000, eta_fan=e)["thrust"]
         w(f"  - fan efficiency {e:.2f}: {t_:.2f} N ≈ {t_/9.81e-3:.0f} gf")
     w(f"  - This analysis uses η = {ETA_FAN} for the shrouded housing (0.35 was the open impeller's estimate). Measure it on the bench.")
-    w(f"- **As built (rev E):** the ceiling is flat out to r = {hull.PLENUM_FLAT_R:.0f} mm, then slopes down to the keel at r = {hull.PLENUM_KEEL_R:.0f} mm. The duct mouths sit at r ≈ {DUCT_MOUTH_R*1000:.0f} mm, just outside the impeller tip.")
-    w("  - The keel is solid only round this housing, and a removable bayonet hatch closes the middle and carries the motor. Outside it the skin is the oval lattice; the ducts carry the air from there, and their own walls keep it airtight.")
+    w(f"- **As built (v0.2.1, flush mouths):** the ceiling is flat over the blade tips, then eases down to meet the ducts' tops at their mouths. The keel skin is the floor, and the ducts hug the hull curve from their mouths, so each duct runs straight on from the housing, flush top and bottom. The outer wall stands just past the mouths, at r = {hull.PLENUM_FLAT_R:.1f} mm. The duct mouths sit at r ≈ {DUCT_MOUTH_R*1000:.0f} mm, just outside the impeller tip.")
+    w("  - The keel is solid only under this housing, out to its outer wall, and a removable bayonet hatch closes the middle and carries the motor. Outside it the skin is the oval lattice, right up to the wall; the ducts carry the air from there, and their own walls keep it airtight.")
     w("  - The intake mouth at the top is a rounded bellmouth (the skin rolls into the shaft over a 12 mm radius), which keeps the entry loss small. The shaft has no ledge or spider in it: the motor stands on the fan hatch.\n")
 
     w("## 6. What to measure on the bench\n")

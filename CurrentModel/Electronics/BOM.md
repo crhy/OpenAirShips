@@ -1,4 +1,4 @@
-# Bill of materials: 926 tethered bench demo
+# Bill of materials: 1026 model (tethered bench demo and self-contained build)
 
 The links are **Amazon search links**, not specific listings. Listings and prices change constantly, so pick a well-reviewed seller. Prices are rough USD estimates as of September 2026. **Check each listing's specs against the "Must match" column before buying.** Those dimensions are the ones the printed parts are designed around.
 

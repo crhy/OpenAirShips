@@ -21,10 +21,10 @@ if N != 8:
     HERE = os.path.join(HERE, f"{N}s")
 if SCALE != 1:
     HERE = os.path.join(HERE, f"x{SCALE:g}")
-OUT = os.path.join(HERE, "propulsion 926" + (" 4T" if FOUR else "") + ("" if not FOUR or LARGE else " small")
+OUT = os.path.join(HERE, "propulsion 1026" + (" 4T" if FOUR else "") + ("" if not FOUR or LARGE else " small")
                    + ("" if N == 8 else f" {N}s") + ("" if SCALE == 1 else f" x{SCALE:g}") + ".FCStd")
 
-doc = App.newDocument("propulsion_926_4T" if FOUR else "propulsion_926")
+doc = App.newDocument("propulsion_1026_4T" if FOUR else "propulsion_1026")
 for step in sorted(glob.glob(os.path.join(HERE, "*.step"))):
     name = os.path.splitext(os.path.basename(step))[0]
     shape = Part.Shape()

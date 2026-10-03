@@ -1,4 +1,4 @@
-# Propulsion: shrouded fan, thrust ducts and air-multiplier thrusters (926 v0.1)
+# Propulsion: shrouded fan, thrust ducts and air-multiplier thrusters (1026 v0.2.1)
 
 ![8 thrusters](../../Renders/v0.1-8T-ship.png)
 ![4 thrusters](../../Renders/v0.1-4T-ship.png)

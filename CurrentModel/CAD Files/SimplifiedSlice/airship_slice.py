@@ -18,9 +18,9 @@ windows on the seams stop short of a continuous edge strip).
 There are no decks. See ../../DESIGN-CONSTRAINTS.md.
 
 Run: pip install cadquery && python3 airship_slice.py
-     -> "airship pie slice 926.step"
+     -> "airship pie slice 1026.step"
      then: freecadcmd make_fcstd.py
-     -> "airship pie slice 926.FCStd", and Print Files/PieSlice926-v0.1-8T.stl laid
+     -> "airship pie slice 1026.FCStd", and Print Files/PieSlice1026-v0.2.1-8T.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
 """
 import math
@@ -88,6 +88,7 @@ UP = cq.Vector(math.sin(math.radians(HALF)), math.cos(math.radians(HALF)), 0)
 # wall, housing air can't leak back up the shaft: the fan works as a shrouded
 # fan. Nothing but this smooth nozzle is inside the shaft.
 EYE_R = 33.0               # impeller eye (blade inlet) radius, from Analysis/AIRFLOW.md
+IMP_TIP_R = 44.0           # impeller blade tip radius (88 mm impeller)
 # The intake shaft is the eye's diameter all the way up (Ø66). It was Ø95 only so
 # the impeller could drop in from the top; it now comes in through the keel
 # hatch. The narrower shaft costs ~1% of the fan pressure and gives the
@@ -120,12 +121,17 @@ DUCT_W = T                 # duct wall
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
 
-# Plenum (fan housing): only as big as the fan and the duct mouths. Flat under
-# the floor out past the mouths, then a sloped ceiling down to the keel.
-# Everything outside it, keel included, is oval lattice with hollow junctions: the ducts
-# carry the air from here and their own walls keep it airtight.
-PLENUM_FLAT_R = 66.0
-PLENUM_KEEL_R = 80.0
+# Plenum (fan housing): only as big as the fan and the duct mouths. The keel
+# skin is its floor, and the ducts hug the skin from their mouths, so their
+# bottoms run straight on from it. The ceiling covers the blade tips, then eases
+# down to meet the ducts' tops at the mouths, so they are flush there too; the
+# outer wall stands at the mouths. Everything outside it is oval lattice with
+# hollow junctions: the ducts carry the air from here in their own airtight walls.
+PLENUM_FLAT_R = DUCT_MOUTH_R + 0.5   # the outer wall (air side), just past the duct mouths
+PLENUM_KEEL_R = PLENUM_FLAT_R + T    # where its dry side meets the keel
+PLENUM_RC = 3.0            # rounded corner where the ceiling meets the outer wall
+PLENUM_RAMP = (IMP_TIP_R + 2.0, PLENUM_FLAT_R - PLENUM_RC)   # the ceiling eases down over this radius span
+DUCT_FLUSH = 0.3           # the bore's top runs this far past the ceiling at the mouth (no tangent faces)
 # OUT_Z (stem and servo axis height) is set below skin_ribs(): it sits on a
 # ring rib, so the stem and servo holes' collars are part of that rib.
 STEM_HOLE = 34.4 if LARGE else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (see Analysis/AIRFLOW*.md)
@@ -224,8 +230,9 @@ def seam_axis(r, z, phi):
 
 
 def keel_edge_z():
-    """Skin height of the first ring rib above where the plenum meets the keel."""
-    return -B * math.sqrt(1 - (PLENUM_KEEL_R / A) ** 2) + RIB + 1.0
+    """Skin height of the first ring rib, just outside where the housing wall
+    meets the keel (measured along the nearly flat keel, not straight up)."""
+    return -B * math.sqrt(1 - ((PLENUM_KEEL_R + T + RIB / 2) / A) ** 2)
 
 
 def ellipse_arc(p0, p1, n=200):
@@ -317,12 +324,12 @@ def joints():
                 (c["z_lo"] + c["r_lo"]) / 2,          # bottom outer piece
                 c["z_hi"] * 0.6]                      # middle band, clear of the stem hole
         return ([skin_point(p, edge) for p in mids]
-                + [(55.0, FLOOR_Z + T + BOSS_D / 2 - 0.5),        # on the housing ceiling
+                + [(IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5),   # on the housing ceiling, over the blade tips
                    skin_point(-math.acos(53.0 / A), edge)])       # keel, outside the hatch ring
     return [(r_shaft, intake()[2] - 4.0),           # shaft top, under the bellmouth
             skin_point(ribs[-3], edge),             # upper skin, on a ring rib
             (r_shaft, nozzle_top() + 4.0),          # shaft, above the contraction
-            (55.0, FLOOR_Z + T + BOSS_D / 2 - 0.5),  # on the housing ceiling
+            (IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5),   # on the housing ceiling, over the blade tips
             skin_point(-math.acos(53.0 / A), edge)]  # keel, outside the hatch ring
 
 
@@ -398,12 +405,43 @@ def shroud_curve(n=24):
     for i in range(1, n + 1):                       # turn from axial to radial
         ph = math.pi / 2 * i / n
         pts.append((EYE_R + SHROUD_RC - SHROUD_RC * math.cos(ph), z_eye - SHROUD_RC * math.sin(ph)))
-    pts.append((PLENUM_FLAT_R, FLOOR_Z))
-    zk = -(B - T) * math.sqrt(1 - (PLENUM_KEEL_R / (A - T)) ** 2)
-    d = (PLENUM_KEEL_R - PLENUM_FLAT_R, zk - FLOOR_Z)
-    L = math.hypot(*d)
-    pts.append((PLENUM_KEEL_R + d[0] / L * 1.5, zk + d[1] / L * 1.5))   # into the skin
+    zm = duct_path()[0].z + DUCT_BORE / 2 - DUCT_FLUSH   # ceiling at the mouths: the ducts' tops
+    r0, r1 = PLENUM_RAMP
+    pts.append((r0, FLOOR_Z))
+    for i in range(1, n + 1):                       # ease down to the ducts' tops (cosine: no kinks)
+        pts.append((r0 + (r1 - r0) * i / n, FLOOR_Z + (zm - FLOOR_Z) * (1 - math.cos(math.pi * i / n)) / 2))
+    rc, ro = PLENUM_RC, PLENUM_FLAT_R
+    for i in range(1, n // 2 + 1):                  # round into the outer wall
+        ph = math.pi / 2 * i / (n // 2)
+        pts.append((ro - rc + rc * math.sin(ph), zm - rc + rc * math.cos(ph)))
+    zk = -(B - T) * math.sqrt(1 - (ro / (A - T)) ** 2)
+    pts.append((ro, zk - 1.5))                      # down the outer wall into the keel skin
     return pts
+
+
+def housing_space(grow=0.0):
+    """The air inside the housing, from the keel up to its ceiling and out to its
+    outer wall, grown `grow` into the walls (to trim a duct's start against)."""
+    pts = [(r, z) for r, z in shroud_curve()[1:]
+           if r >= EYE_R + SHROUD_RC - 1e-9 and z <= FLOOR_Z + 1e-9]
+    off = []
+    for i, (r, z) in enumerate(pts):                 # same dry-side normal as plenum_ceiling()
+        a_, b_ = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        dr, dz = b_[0] - a_[0], b_[1] - a_[1]
+        L = math.hypot(dr, dz)
+        off.append((r - dz / L * grow, z + dr / L * grow))
+    return wedge([(0, FLOOR_Z + grow)] + off + [(off[-1][0], -B - 1), (0, -B - 1)], half=60)
+
+
+def housing_outline():
+    """(r, z) outline of everything the housing takes up, walls included, from
+    the axis out (for gas-volume sums)."""
+    ceil = [(r, z) for r, z in shroud_curve()[1:-1]
+            if EYE_R + SHROUD_RC - 1e-9 <= r <= PLENUM_FLAT_R - PLENUM_RC + 1e-9 and z <= FLOOR_Z + 1e-9]
+    ceil = sorted(set(ceil), key=lambda q: -q[0])   # outside in
+    return ([(0, -B - 1), (PLENUM_KEEL_R, -B - 1), (PLENUM_KEEL_R, ceil[0][1] + T)]
+            + [(r, z + T) for r, z in ceil]
+            + [(SHAFT_R + T, FLOOR_Z + T), (SHAFT_R + T, nozzle_top()), (0, nozzle_top())])
 
 
 def plenum_ceiling():
@@ -531,9 +569,27 @@ def junction(psi, theta, ovals, keep_side=0):
                      B * math.cos(psi)).normalized()                 # up the skin
     sgn = 1.0 if v.dot(tang) > 0 else -1.0
     reach = 60.0 * SCALE
+    x0 = skin_point(psi, T / 2)[0]
+    if PIECES:
+        # big cells near the axis are long compared with their radius, where a
+        # flat tangent plane distorts badly: work on the skin unrolled instead,
+        # v = distance up the skin from this rib, u = distance round it
+        sgn = 1.0
+        def to_uv(p):
+            ps = math.atan2(p.z * A, math.hypot(p.x, p.y) * B)
+            return ((math.atan2(p.y, p.x) - theta) * skin_point(ps, T / 2)[0],
+                    math.copysign(ellipse_arc(min(psi, ps), max(psi, ps), 24), ps - psi))
+        def to_skin(uu, vv):
+            ps = psi + vv / ds_dpsi(psi)
+            for _ in range(4):                       # Newton: distance up the skin -> angle
+                ps -= (math.copysign(ellipse_arc(min(psi, ps), max(psi, ps), 24), ps - psi) - vv) / ds_dpsi(ps)
+            return surface(ps, theta + uu / skin_point(ps, T / 2)[0])
+    else:
+        to_uv = lambda p: ((p - origin).dot(u), (p - origin).dot(v))
+        to_skin = lambda uu, vv: surface(psi + sgn * vv / ds_dpsi(psi), theta + uu / x0)
     polys = []
     for ring in ovals:
-        uv = [((p - origin).dot(u), (p - origin).dot(v)) for p, _ in ring]
+        uv = [to_uv(p) for p, _ in ring]
         if min(math.hypot(a_, b_) for a_, b_ in uv) < reach:
             polys.append(Polygon(uv).buffer(RIB))
     region = box(-reach, -reach, reach, reach).difference(unary_union(polys))
@@ -554,11 +610,7 @@ def junction(psi, theta, ovals, keep_side=0):
     ring = list(g.exterior.coords)[:-1]
     per = g.exterior.length
     pts = [g.exterior.interpolate(per * i / 80) for i in range(80)]    # even spacing
-    x0 = skin_point(psi, T / 2)[0]
-    out = []
-    for p in pts:
-        out.append(surface(psi + sgn * p.y / ds_dpsi(psi), theta + p.x / x0))
-    return out
+    return [to_skin(p.x, p.y) for p in pts]
 
 
 def windows():
@@ -687,7 +739,7 @@ def duct_solids():
     centre = pts[-1] - n_end * (DUCT_BULB / 2 - DUCT_BORE / 2)
     # (the tube's rounded end sits inside the bulb, so a plain sphere joins them)
     inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
-    outer = tube(DUCT_BORE / 2 + DUCT_W).fuse(
+    outer = tube(DUCT_BORE / 2 + DUCT_W, extra=8.0).fuse(   # reaches back into the housing wall (trimmed below)
         cq.Solid.makeSphere(DUCT_BULB / 2 + DUCT_W, centre, angleDegrees1=-90, angleDegrees2=90))
     bore = tube(DUCT_BORE / 2, extra=3.0).fuse(
         cq.Solid.makeSphere(DUCT_BULB / 2, centre, angleDegrees1=-90, angleDegrees2=90))
@@ -696,6 +748,9 @@ def duct_solids():
     boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
                                  cq.Vector(1, 0, 0))
     walls = outer.fuse(boss.intersect(inside))
+    # nothing of the duct inside the housing: its tilted start would leave a lip
+    # under the ceiling at the mouth; the housing's outer wall closes round it
+    walls = walls.cut(housing_space(T / 2))
     return walls, bore
 
 
@@ -791,7 +846,7 @@ def at_seams(shape):
 
 def slice_name(side=None):
     hand = {"L": "left", "R": "right", "P": "plain"}[side or SIDE]
-    return ("airship pie slice 926" + ("" if not FOUR else f" 4T {hand}")
+    return ("airship pie slice 1026" + ("" if not FOUR else f" 4T {hand}")
             + ("" if N == 8 else f" {N}s") + ("" if LARGE == FOUR else (" large" if LARGE else " small"))
             + ("" if SCALE == 1 else f" x{SCALE:g}"))
 
@@ -821,7 +876,11 @@ def build():
             bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
     body = body.fuse(cq.Compound.makeCompound(bosses).intersect(envelope))
     if duct_seams():
-        body = body.fuse(at_seams(walls)).cut(at_seams(bore))
+        try:
+            body = body.fuse(at_seams(walls))
+        except ValueError:                  # the kernel can fail on near-touching faces:
+            body = body.fuse(at_seams(walls), tol=1e-4)   # retry as a fuzzy boolean
+        body = body.cut(at_seams(bore))
         body = body.cut(at_seams(stem_hole))
     if has_servo():
         body = body.cut(servo_hole.rotate((0, 0, 0), (0, 0, 1), -HALF))  # this slice's servo

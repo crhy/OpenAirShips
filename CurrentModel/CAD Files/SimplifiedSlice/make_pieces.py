@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 N = int(os.environ.get("OAS_SLICES", "8"))
 HALF = 180.0 / N
 SCALE = float(os.environ.get("OAS_SCALE", "1"))
-OUT = os.path.join(HERE, "..", "..", "Print Files", os.environ.get("OAS_PRINT_DIR", "v0.2 double Kobra"))
+OUT = os.path.join(HERE, "..", "..", "Print Files", os.environ.get("OAS_PRINT_DIR", "v0.2.1 double Kobra"))
 os.makedirs(OUT, exist_ok=True)
 
 
@@ -46,21 +46,21 @@ for d in sorted(glob.glob(os.path.join(HERE, "pieces", f"*{N}s*x{SCALE:g}"))):
                 continue
             pose = shape.copy()                      # stands upright on its foot
             pose.translate(App.Vector(0, 0, -pose.BoundBox.ZMin))
-            out = os.path.join(OUT, f"PieSlice926-v0.2-{name.replace('_', '-')}.stl")
+            out = os.path.join(OUT, f"PieSlice1026-v0.2.1-{name.replace('_', '-')}.stl")
         else:
             doc.addObject("Part::Feature", name).Shape = shape
             pose = shape.copy()                      # lies on its -HALF seam
             pose.rotate(App.Vector(), App.Vector(0, 0, 1), HALF)
             pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
             pose.translate(App.Vector(-pose.BoundBox.XMin, -pose.BoundBox.YMin, -pose.BoundBox.ZMin))
-            out = os.path.join(OUT, f"PieSlice926-v0.2-{kind}-{name.replace('_', '-')}.stl")
+            out = os.path.join(OUT, f"PieSlice1026-v0.2.1-{kind}-{name.replace('_', '-')}.stl")
         m = mesh(pose)
         m.write(out)
         bb = pose.BoundBox
         print(f"{os.path.basename(out):48} solid {m.isSolid()}  {bb.XLength:.0f} x {bb.YLength:.0f} x {bb.ZLength:.0f} mm")
     tubes_done = True
     doc.recompute()
-    path = os.path.join(HERE, "pieces", f"airship pie slice 926 v0.2 {kind} (pieces).FCStd")
+    path = os.path.join(HERE, "pieces", f"airship pie slice 1026 v0.2.1 {kind} (pieces).FCStd")
     if os.path.exists(path):
         os.remove(path)
     doc.saveAs(path)

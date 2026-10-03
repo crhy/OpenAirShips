@@ -1,6 +1,39 @@
-# Changelog: 926 buildable bench model
+# Changelog: OpenAirShips buildable model (1026, formerly 926)
 
-## v0.2: self-contained double-Kobra build (September 2026)
+## 1026 v0.2.1: flush fan housing and lighter keel (October 2026)
+
+The model is renamed **1026** for October 2026, following the project's month-year naming (the 926 files are in `OldFiles/PrintFiles/926` and `OldFiles/CAD/926`).
+
+- **Flush duct mouths.** Each thrust duct now runs straight on from the fan housing with no step, inside or out.
+  - The ducts hug the hull curve at a constant depth all the way from their mouths, so their bottoms continue the housing floor (the keel skin).
+  - The housing ceiling stays over the impeller's blade tips, then eases down to meet the ducts' tops at the mouths.
+  - The housing's outer wall stands just past the mouths (r = 60.5 mm instead of sloping out to r = 80). Where it meets a duct, the duct wall is trimmed to the housing's exact inside shape, so there's no lip inside and no gap outside.
+  - A new leak test checks that the inner half of every wall round the joint is solid. It found the gap in the first attempt and passes on every slice now.
+- **Ovals and diamonds right up to the housing.** A bug placed the first ring of ribs 3 mm *higher* than the housing's edge. On the nearly flat keel that's about 13 mm further out, which left a band of plain skin. The first rib now sits just outside the housing wall, so the only solid keel is the housing floor between the hatch ring and that wall.
+- **Big cells near the axis (double Kobra):** the junction windows of the first row are now laid out on the unrolled skin instead of a flat tangent plane. Close to the axis that plane distorted enough to cut a web loose.
+- **Lighter.** Printed hull per ship:
+
+  | Version | v0.2 / v0.1.3 | 1026 v0.2.1 |
+  |---|---|---|
+  | Bench, 8 thrusters | 229 cm³ | 214 cm³ |
+  | Bench, 4 thrusters | 199 cm³ | 184 cm³ |
+  | Kobra Max, 8 thrusters | 434 cm³ | 415 cm³ |
+  | Kobra Max, 4 thrusters | 368 cm³ | 349 cm³ |
+  | Double Kobra, 12 slices | 502 cm³ | 474 cm³ |
+
+- **Float budget corrected.** The v0.2 budget measured the double Kobra's left and right slices from meshes with gaps, which undercounted the hull (350 cm³ instead of 502), so the v0.2 figure of 903 g was about 90 g light. The volume script now falls back to the CAD kernel's volume whenever a mesh isn't watertight. With the corrected count and the lighter hull:
+  - The double Kobra in full-foam LW-PLA with the LiPo weighs **977 g against 1145 g of hydrogen lift: +168 g**, 44 min of flight. With the 18650 pack it's +153 g and 83 min.
+  - In moderate foam it only just floats (+27 g with the LiPo, +12 g with the 18650 pack), and the 21700 pack makes it 93 g heavy, so **print it in full foam**.
+  - On helium the full-foam LiPo build still floats, with about 84 g to spare.
+  - The 4-thruster Kobra Max model (full foam, 503 g) hovers on its fan with 55 g to spare; the 4-thruster bench model (368 g) with 73 g.
+- **Checks:**
+  - Every slice and piece is a single valid solid.
+  - The keel, housing and shaft are airtight, and the duct/housing joint has no leak path.
+  - Nothing intrudes into the air path except the keel joint bosses.
+  - Neighbouring slices overlap by 0 mm³.
+  - All fit checks pass, and every print STL is watertight.
+
+## 926 v0.2: self-contained double-Kobra build (September 2026)
 
 A 1.58 m ship (x3.8) that carries its own battery and controller and **floats on hydrogen alone**, for indoor flights in a garage or warehouse. Everything is designed as light as it can print; stiffness comes second.
 
@@ -30,7 +63,7 @@ A 1.58 m ship (x3.8) that carries its own battery and controller and **floats on
   - The keel and housing are airtight, neighbouring slices overlap by 0 mm³, every fit check passes, and all 17 print STLs are watertight.
 - **Also changed:** the glue is now counted in the weight budget (epoxy on airtight seams, CA on lattice seams), so the v0.1 numbers moved by a few grams. The 4-thruster Kobra Max build in full foam now hovers with 49 g to spare.
 
-## v0.1.3: minimum-material lattice (September 2026)
+## 926 v0.1.3: minimum-material lattice (September 2026)
 
 - **Lattice cut on the real skin.**
   - The ovals were drawn flat at each cell's centre and cut only 4 mm deep. Where the hull curves (worst near the equator, and at Kobra Max size) the cut didn't reach the skin at the oval's ends, so the holes came out smaller than drawn and left thick material round the ovals and diamonds.

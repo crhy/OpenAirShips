@@ -1,4 +1,4 @@
-# Electronics: 926 tethered bench demo
+# Electronics: 1026 model (tethered bench demo and self-contained build)
 
 - **Parts list:** [BOM.md](BOM.md), with Amazon links.
 - **Firmware:** [`firmware/airship_bench`](firmware/airship_bench).
@@ -74,7 +74,7 @@ flowchart LR
 - **Wiring:** run the leads along the ribs outside the gas cells. Nothing crosses the intake tubes.
 - **Hydrogen indoors:**
   - Keep every connector and switch outside the gas cells, and fill and vent the cells outdoors or with good ventilation.
-  - **Helium works too:** it lifts about 7% less, 1061 g instead of 1145 g. The full-foam build with the LiPo still floats on it, with about 160 g to spare.
+  - **Helium works too:** it lifts about 7% less, 1061 g instead of 1145 g. The full-foam build with the LiPo still floats on it, with about 84 g to spare.
 - **Flight time:** 44 min on the 1500 mAh LiPo, 83 min on the 18650 pack, at 24 W average. See [FLOAT.md](../Analysis/FLOAT.md).
 
 ## Bench bring-up
