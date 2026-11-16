@@ -37,7 +37,7 @@ The same parametric source (`propulsion.py`) builds the parts for every hull ver
 Expected thrust (8 thrusters): **about 4.0 N (≈ 410 gf)** at 15,650 rpm, 62 L/s. The range is 306–564 gf depending on the fan efficiency and air-multiplier gain measured on the bench; see [../../Analysis/AIRFLOW.md](../../Analysis/AIRFLOW.md).
 
 ## Parts
-Print from the version's `print/*.stl`. Each file is already posed for printing: 0.2 mm layers, 0.4 mm nozzle. The table gives the 8-thruster bench sizes; 4-thruster rings are 19.8 cm³, stems 4.9, gears 2.4 and 4.8, and the fan hatch 11.3.
+Print from the version's `print/*.stl`. Each file is already posed for printing: 0.2 mm layers, 0.4 mm nozzle. The table gives the 8-thruster bench sizes; 4-thruster rings are 18.4 cm³, stems 4.9, gears 2.4 and 4.8, and the fan hatch 11.3. (Every figure in this section is measured from the print STLs by [../../Analysis/print_mass.py](../../Analysis/print_mass.py); see [PRINT-MASS.md](../../Analysis/PRINT-MASS.md).)
 
 | Part | Qty | cm³ each | Print notes |
 |---|---|---|---|
@@ -47,9 +47,9 @@ Print from the version's `print/*.stl`. Each file is already posed for printing:
 | `stem` | 8 | 3.6 | Flange down; no supports. Put it into the stem hole from inside the half-duct **before** joining the neighbouring slice. Wrap it in PTFE tape. |
 | `stem_gear` | 8 | 2.1 | Flat. Glue it on the stem's D-flat. |
 | `servo_gear` | 8 | 3.8 | Hub down. Its hub reaches through the Ø8 skin hole onto the servo spline. Glue it and fix it with the servo's horn screw from outside. |
-| `thruster_ring` | 8 | 14.1 | Exit down, axis vertical; no supports. Every surface faces up or overhangs 45° or less. Check the 1.6 mm slot is clear; a 1.5 mm shim works. |
+| `thruster_ring` | 8 | 14.4 | Exit down, axis vertical; no supports. Every surface faces up or overhangs 45° or less. Check the 1.6 mm slot is clear; a 1.5 mm shim works. |
 
-- **Total printed propulsion:** about 233 cm³ (≈ 290 g of PLA) for 8 thrusters, or 154 cm³ (≈ 190 g) for 4, plus the PETG impeller (≈ 8 g). Lightweight PLA for the rings and servo mounts saves about a third of theirs; see [FLOAT.md](../../Analysis/FLOAT.md).
+- **Total printed propulsion:** 241.5 cm³ (≈ 299 g of PLA) for 8 thrusters, or 154.9 cm³ (≈ 192 g) for 4, the impeller included (6.2 cm³ of PETG, ≈ 8 g). Lightweight PLA for the rings and servo mounts saves about a third of theirs; see [FLOAT.md](../../Analysis/FLOAT.md) and [PRINT-MASS.md](../../Analysis/PRINT-MASS.md).
 - **Motor:** 2207 1750 KV on 4S (≈ 32 g, ≈ 25 A at full throttle). It must spin **counter-clockwise seen from above**; swap any two motor wires if it doesn't.
 - **Parametric source:** `propulsion.py`. All dimensions are at the top.
 - **Fit checks:** `check_fit.py` runs 35 checks against the assembled hull, and they all pass for all four versions. They cover:

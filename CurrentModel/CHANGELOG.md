@@ -1,5 +1,14 @@
 # Changelog: OpenAirShips buildable model (1026, formerly 926)
 
+## Analysis: printed mass budget, measured from the print STLs (November 2026)
+
+No model change. [`Analysis/print_mass.py`](Analysis/print_mass.py) reads the 59 committed print STLs directly (binary STL records, no CAD kernel, no slicer), checks every undirected edge is used exactly twice, and integrates volume and area in float64. Mass = volume × density, the rule `Analysis/float_budget.py` uses. It writes [`Analysis/PRINT-MASS.md`](Analysis/PRINT-MASS.md); `--check` recomputes it and fails if the committed file differs from the meshes.
+
+- **Baseline for #1 (Current Model Too Heavy).** Printed volume, surface area and mass per part and per ship, in PLA, moderate-foam and full-foam lightweight PLA, at the shipped settings (0.4 mm nozzle, 0.20 mm layers, 2 perimeters, 0.86 mm walls, 2.0 mm ribs, 1.2 mm webs on the v0.2 build). The measured hull volumes reproduce the published tables: 214 / 184 / 415 / 349 / 474 cm³.
+- **Where the grams are.** The double Kobra's two intake tubes are 127.1 cm³ — 158 g in PLA, 102 g in moderate foam, 76 g in full foam — more than any one slice set of that ship (118.5 cm³). The thruster rings carry 115.3 cm³ of the bench 8-thruster ship's 241.5 cm³ of propulsion.
+- **Two recorded numbers corrected** (`CAD Files/Propulsion/README.md`): 4-thruster rings 19.8 → 18.4 cm³, and total printed propulsion 233 → 241.5 cm³ (≈ 299 g of PLA) for 8 thrusters; the 4-thruster 154 cm³ was right. The 8-thruster ring row is 14.4 cm³, not 14.1.
+- **Wall thickness is not a free knob.** The meshes are already at the 0.86 mm airtight minimum: the two intake tubes, which are that wall and nothing else, average 0.858 and 0.861 mm. Halving it to 0.43 mm is one perimeter, below the minimum `DESIGN-CONSTRAINTS.md:20` sets, so the mass has to come from material, part count and geometry. Weighing, load tests and a whole-assembly target stay open.
+
 ## 1026 v0.2.1: flush fan housing and lighter keel (October 2026)
 
 The model is renamed **1026** for October 2026, following the project's month-year naming (the 926 files are in `OldFiles/PrintFiles/926` and `OldFiles/CAD/926`).
