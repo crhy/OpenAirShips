@@ -60,6 +60,7 @@ SCALE = float(os.environ.get("OAS_SCALE", "1"))
 
 # ---- parameters (mm) -------------------------------------------------------
 A, B = 207.765 * SCALE, 104.0 * SCALE   # hull outer semi-axes (radius, half-height)
+MIN_WEB = 0.4          # mm, one nozzle width: no wall, web or sliver thinner than this
 T = 0.86                   # wall: exactly 2 perimeters of 0.45 mm at 0.2 mm layers
 HALF = 180.0 / N           # half-angle of one slice, degrees
 
@@ -532,6 +533,132 @@ def skin_shell():
     return _SHELL
 
 
+def rib_band(psi, hw=None):
+    """The rib strip centred on the ring rib at ellipse angle psi, `hw` mm of
+    skin each side, as a solid the window cutters must stay out of.
+
+    A junction on a piece cut line is built as two halves, one each side of the
+    rib, and each half used to be clipped by its own flat box in that half's
+    tangent plane. The two planes - each perpendicular to its own half's average
+    skin normal, which differ by several degrees across a 90 mm junction - sat
+    a fraction of a millimetre off one another, and the boolean left a 0.01 mm
+    sliver of skin between them: a hole at 0.2 mm layers. Clipping both halves
+    with this one solid makes the faces they leave on the rib the rib's own
+    ring, exactly 2*hw apart.
+    """
+    hw = RIB / 2 if hw is None else hw
+    d = hw / ds_dpsi(psi)
+    n = max(4, int(2 * d * 400))
+    outer = ellipse(A + 0.5, B + 0.5, psi - d, psi + d, n)
+    inner = ellipse(A - T - 0.5, B - T - 0.5, psi - d, psi + d, n)
+    return wedge(outer + inner[::-1], half=HALF + 3)
+
+
+def thin_spots(shape, min_web=MIN_WEB, deflection=0.02, cluster=1.0):
+    """Every place the finished solid came out thinner than one nozzle width.
+
+    Cast each facet's inward normal `min_web` mm and report the facets that hit
+    another facet. A wall that thin is not a wall at 0.2 mm layers - the slicer
+    cannot lay a 1/20th-of-a-layer shell, so it prints as a gap in the skin.
+    Returns the spots, at least `cluster` mm apart.
+    """
+    vs, tris = shape.tessellate(deflection, 0.1)
+    P = [(v.x, v.y, v.z) for v in vs]
+    cell = min_web
+    cen, nor, grid = [], [], {}
+    for i, t in enumerate(tris):
+        a, b, c = P[t[0]], P[t[1]], P[t[2]]
+        ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
+        vx, vy, vz = c[0] - a[0], c[1] - a[1], c[2] - a[2]
+        nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+        ln = math.sqrt(nx * nx + ny * ny + nz * nz)
+        cx, cy, cz = (a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3
+        cen.append((cx, cy, cz))
+        nor.append((nx / ln, ny / ln, nz / ln) if ln > 1e-12 else None)
+        grid.setdefault((int(cx // cell), int(cy // cell), int(cz // cell)), []).append(i)
+    d2max = min_web * min_web
+    hits = []
+    for i, c in enumerate(cen):
+        n = nor[i]
+        if n is None:
+            continue
+        ox, oy, oz = c[0] + n[0] * 0.005, c[1] + n[1] * 0.005, c[2] + n[2] * 0.005
+        dx, dy, dz = -n[0], -n[1], -n[2]
+        kx, ky, kz = int(ox // cell), int(oy // cell), int(oz // cell)
+        hit = False
+        for gx in range(kx - 1, kx + 2):
+            for gy in range(ky - 1, ky + 2):
+                for gz in range(kz - 1, kz + 2):
+                    for j in grid.get((gx, gy, gz), ()):
+                        if j == i:
+                            continue
+                        cc = cen[j]
+                        ex, ey, ez = cc[0] - ox, cc[1] - oy, cc[2] - oz
+                        if ex * ex + ey * ey + ez * ez > d2max:
+                            continue
+                        ax, ay, az = P[tris[j][0]]
+                        e1 = (P[tris[j][1]][0] - ax, P[tris[j][1]][1] - ay, P[tris[j][1]][2] - az)
+                        e2 = (P[tris[j][2]][0] - ax, P[tris[j][2]][1] - ay, P[tris[j][2]][2] - az)
+                        pv = (dy * e2[2] - dz * e2[1], dz * e2[0] - dx * e2[2], dx * e2[1] - dy * e2[0])
+                        det = e1[0] * pv[0] + e1[1] * pv[1] + e1[2] * pv[2]
+                        if abs(det) < 1e-9:
+                            continue
+                        tx, ty, tz = ox - ax, oy - ay, oz - az
+                        u = (tx * pv[0] + ty * pv[1] + tz * pv[2]) / det
+                        if u < -1e-9 or u > 1 + 1e-9:
+                            continue
+                        q = (ty * e1[2] - tz * e1[1], tz * e1[0] - tx * e1[2], tx * e1[1] - ty * e1[0])
+                        v = (dx * q[0] + dy * q[1] + dz * q[2]) / det
+                        if v < -1e-9 or u + v > 1 + 1e-9:
+                            continue
+                        t = (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) / det
+                        if 0.005 < t <= min_web:
+                            hit = True
+                            break
+                    if hit:
+                        break
+                if hit:
+                    break
+            if hit:
+                break
+        if hit:
+            hits.append(c)
+    out = []
+    for p in hits:
+        if all((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2 >= cluster * cluster
+               for q in out):
+            out.append(p)
+    return out
+
+
+def fill_slivers(shape, name="", min_web=MIN_WEB, passes=3, plug=1.0):
+    """Fuse a plug of skin over every sliver thinner than one nozzle width.
+
+    The lattice's windows meet the skin band, the ribs and the joint collars
+    at tangents, and the boolean leaves a zero-thickness sliver there: measured
+    on the shipped files, 0.009-0.05 mm walls where a junction grazes a rib. Filling
+    each one costs under 2 mm3 of material per slice and cannot hide a design
+    error: the plug is confined to the skin's own band (skin_shell), so a wall
+    that is thin *by design* - a rib set to OAS_RIB below MIN_WEB, say - is still
+    reported by check_outputs.py rather than silently thickened.
+    """
+    env = skin_shell()
+    filled, total = 0, 0
+    for _ in range(passes):
+        spots = thin_spots(shape, min_web)
+        if not spots:
+            break
+        plugs = [cq.Solid.makeSphere(plug, cq.Vector(*p), angleDegrees1=-90, angleDegrees2=90)
+                 .intersect(env) for p in spots]
+        shape = shape.fuse(cq.Compound.makeCompound(plugs))
+        total += len(spots)
+        if not spots:
+            break
+    if total:
+        print(f"filled {total} slivers thinner than {min_web} mm in {name}")
+    return shape
+
+
 def skin_cutter(pts):
     """Window cutter from an outline on the skin (points and normals): the
     outline projected onto the plane at its centre, pushed straight through
@@ -594,8 +721,10 @@ def junction(psi, theta, ovals, keep_side=0):
             polys.append(Polygon(uv).buffer(RIB))
     region = box(-reach, -reach, reach, reach).difference(unary_union(polys))
     if keep_side:
-        cut_line = box(-reach, -reach, reach, reach).intersection(
-            box(-reach, RIB / 2, reach, reach) if keep_side * sgn > 0 else box(-reach, -reach, reach, -RIB / 2))
+        # clip at the rib line itself, not RIB/2 off it: the rib strip is taken
+        # off by the shared 3D band in windows(), and two clip surfaces a hair
+        # apart (this flat one, that the skin's own ring) is what leaves a sliver
+        cut_line = box(-reach, 0, reach, reach) if keep_side * sgn > 0 else box(-reach, -reach, reach, 0)
         region = region.intersection(cut_line)
     parts = getattr(region, "geoms", [region])
     probe = Point(0, keep_side * sgn * (RIB / 2 + 0.5))
@@ -639,6 +768,9 @@ def windows():
         # cut lines, and (in pieces builds, whose big junctions would otherwise cross
         # it) the equator rib that carries the thruster and servo collars
         on_cut = PIECES and (any(abs(psi - c_) < 1e-9 for c_ in cut_ribs().values()) or psi == 0.0)
+        # the rib strip the cutters must stay out of: shared by both halves of
+        # a junction split by this rib, and by the first / last rib's keep-out
+        band = rib_band(psi) if (on_cut or keep) else None
         spots = [(0.0, near), (-HALF, near + turn(near, -2 * HALF)), (HALF, near + turn(near, 2 * HALF))]
         for th, around in spots:
             # on a cut line a full rib stays whole: the junction splits either side of it
@@ -647,6 +779,8 @@ def windows():
                 if pts is None:
                     continue
                 c_ = skin_cutter(pts)
+                if band is not None:
+                    c_ = c_.cut(band)
                 # seam junctions stop RIB/2 short of the seam: the side edge stays continuous
                 cut.append(c_ if th == 0.0 else c_.intersect(whole))
     keep = outlet_keepout()
@@ -824,7 +958,7 @@ def pieces(body):
         hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, face - ax * 0.01, ax)
         out[peg_on[key]] = out[peg_on[key]].fuse(peg)
         out[hole_in[key]] = out[hole_in[key]].cut(hole)
-    return {k: v.clean() for k, v in out.items()}
+    return {k: fill_slivers(v.clean(), f"{slice_name()} {k}") for k, v in out.items()}
 
 
 def print_pose(shape):
@@ -870,7 +1004,9 @@ def build():
         body = body.cut(w)
         if v - body.Volume() < 0.5:
             c = w.Center()
-            print(f"warning: window cut had no effect at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}")
+            raise RuntimeError(f"window cut had no effect at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}: "
+                               f"the kernel skipped it, and a window that will not cut is a "
+                               f"hole in the print - not something to warn about and ship")
     if PIECES:                                      # bosses for the pegs across the cuts
         for _, p, ax in cut_joints():
             bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
@@ -887,7 +1023,7 @@ def build():
     body = body.cut(cq.Compound.makeCompound(holes))
     body = body.fuse(cq.Compound.makeCompound(pegs))
     body = body.cut(hatch_hole()).clean()
-    return body
+    return fill_slivers(body, slice_name())
 
 
 if __name__ == "__main__":
