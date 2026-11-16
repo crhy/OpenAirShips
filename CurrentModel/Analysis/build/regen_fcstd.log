@@ -1,0 +1,115 @@
+=== SimplifiedSlice: 6 whole-slice documents ===
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(50 %)							(100 %)									=== SimplifiedSlice: 3 pieces documents ===
+airship pie slice 1026 v0.2.1 left (pieces).FCStd    parts 5
+airship pie slice 1026 v0.2.1 plain (pieces).FCStd   parts 5
+airship pie slice 1026 v0.2.1 right (pieces).FCStd   parts 5
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									Recompute......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									Recompute......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									=== Propulsion: 5 assembly documents ===
+fan_hatch      valid True  solids 1
+impeller       valid True  solids 1
+servo_gear     valid True  solids 1
+servo_mount    valid True  solids 1
+stem           valid True  solids 1
+stem_gear      valid True  solids 1
+thruster_ring  valid True  solids 1
+propulsion 1026.FCStd                                parts 7
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									fan_hatch      valid True  solids 1
+impeller       valid True  solids 1
+servo_gear     valid True  solids 1
+servo_mount    valid True  solids 1
+stem           valid True  solids 1
+stem_gear      valid True  solids 1
+thruster_ring  valid True  solids 1
+propulsion 1026 x1.9.FCStd                           parts 7
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									fan_hatch      valid True  solids 1
+impeller       valid True  solids 1
+servo_gear     valid True  solids 1
+servo_mount    valid True  solids 1
+stem           valid True  solids 1
+stem_gear      valid True  solids 1
+thruster_ring  valid True  solids 1
+propulsion 1026 4T.FCStd                             parts 7
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									fan_hatch      valid True  solids 1
+impeller       valid True  solids 1
+servo_gear     valid True  solids 1
+servo_mount    valid True  solids 1
+stem           valid True  solids 1
+stem_gear      valid True  solids 1
+thruster_ring  valid True  solids 1
+propulsion 1026 4T x1.9.FCStd                        parts 7
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Recompute......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									Exception while processing file: make_fcstd.py [/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/12s/x3.8/propulsion 1026 4T 12s x3.8.FCStd: no part to store]
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+=== done ===
+-rw-r--r-- 1 rhy rhy  490927 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/propulsion 1026 4T.FCStd
+-rw-rw-r-- 1 rhy rhy  501239 Nov 14 13:33 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/propulsion 1026 4T small 12s x3.8.FCStd
+-rw-r--r-- 1 rhy rhy  488323 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/propulsion 1026 4T x1.9.FCStd
+-rw-r--r-- 1 rhy rhy  495036 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/propulsion 1026.FCStd
+-rw-r--r-- 1 rhy rhy  496441 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/propulsion 1026 x1.9.FCStd
+-rw-r--r-- 1 rhy rhy 3467438 Nov 16 12:09 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.FCStd
+-rw-r--r-- 1 rhy rhy 3715164 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.FCStd
+-rw-r--r-- 1 rhy rhy 3554023 Nov 16 12:09 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.FCStd
+-rw-r--r-- 1 rhy rhy 3678671 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.FCStd
+-rw-r--r-- 1 rhy rhy 3968646 Nov 16 12:09 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026.FCStd
+-rw-r--r-- 1 rhy rhy 4135805 Nov 16 12:09 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.FCStd
+-rw-r--r-- 1 rhy rhy 4138996 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 left (pieces).FCStd
+-rw-r--r-- 1 rhy rhy 3544075 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 plain (pieces).FCStd
+-rw-r--r-- 1 rhy rhy 4236296 Nov 16 12:10 /home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 right (pieces).FCStd

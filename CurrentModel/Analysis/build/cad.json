@@ -1,0 +1,7030 @@
+[
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/propulsion 1026 4T.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened",
+   "sibling STEP not in the document: avionics_tray.step, fan_hatch.step, fan_hatch.step, impeller.step, impeller.step, servo_gear.step, servo_gear.step, servo_mount.step, servo_mount.step, stem.step, stem.step, stem_gear.step, stem_gear.step, thruster_ring.step, thruster_ring.step"
+  ],
+  "facts": {
+   "zipEntries": 9,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "fan_hatch.Shape.brp",
+     "bytes": 282682
+    },
+    {
+     "name": "impeller.Shape.brp",
+     "bytes": 838139
+    },
+    {
+     "name": "servo_gear.Shape.brp",
+     "bytes": 878483
+    },
+    {
+     "name": "servo_mount.Shape.brp",
+     "bytes": 32717
+    },
+    {
+     "name": "stem.Shape.brp",
+     "bytes": 12843
+    },
+    {
+     "name": "stem_gear.Shape.brp",
+     "bytes": 860706
+    },
+    {
+     "name": "thruster_ring.Shape.brp",
+     "bytes": 162447
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 490927,
+   "bytesUncompressed": 3088975,
+   "brpBytesTotal": 3068017,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "propulsion 1026 4T",
+   "objectsInXml": 7,
+   "viewObjects": {
+    "fan_hatch": true,
+    "impeller": true,
+    "servo_gear": true,
+    "servo_mount": true,
+    "stem": true,
+    "stem_gear": true,
+    "thruster_ring": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "propulsion_1026_4T",
+   "labelAfterOpen": "propulsion 1026 4T",
+   "objects": [
+    {
+     "name": "fan_hatch",
+     "type": "Solid",
+     "label": "fan_hatch",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 50,
+     "edges": 141,
+     "volume": 11247.406773532253,
+     "area": 23066.22734668424,
+     "bbox": [
+      93.60000000010689,
+      93.60000000010689,
+      14.200000000000003
+     ],
+     "bboxMin": [
+      -46.800000000053444,
+      -46.800000000053444,
+      -104.0
+     ],
+     "bboxMax": [
+      46.800000000053444,
+      46.800000000053444,
+      -89.8
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "impeller",
+     "type": "Solid",
+     "label": "impeller",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 476,
+     "edges": 1376,
+     "volume": 6160.766892617067,
+     "area": 16855.244097057657,
+     "bbox": [
+      86.71679253766932,
+      85.04402965460467,
+      17.69723029789551
+     ],
+     "bboxMin": [
+      -43.17370664366883,
+      -44.0,
+      -75.8
+     ],
+     "bboxMax": [
+      43.54308589400049,
+      41.04402965460467,
+      -58.10276970210449
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_gear",
+     "type": "Solid",
+     "label": "servo_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 675,
+     "edges": 2010,
+     "volume": 4823.233691470871,
+     "area": 4380.963311127346,
+     "bbox": [
+      12.0,
+      45.993600796778,
+      45.993600796769286
+     ],
+     "bboxMin": [
+      201.0,
+      21.003199601611,
+      -22.996800398380287
+     ],
+     "bboxMax": [
+      213.0,
+      66.996800398389,
+      22.996800398389
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_mount",
+     "type": "Solid",
+     "label": "servo_mount",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 17,
+     "edges": 42,
+     "volume": 3879.906618618569,
+     "area": 3810.926026302501,
+     "bbox": [
+      14.933068988640002,
+      27.23169495564546,
+      42.30000000001654
+     ],
+     "bboxMin": [
+      189.5,
+      30.824690439453008,
+      -15.750000000016536
+     ],
+     "bboxMax": [
+      204.43306898864,
+      58.05638539509847,
+      26.55
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem",
+     "type": "Solid",
+     "label": "stem",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 9,
+     "edges": 18,
+     "volume": 4919.856675224737,
+     "area": 6860.604939966144,
+     "bbox": [
+      30.335000000000008,
+      37.0,
+      37.0
+     ],
+     "bboxMin": [
+      193.665,
+      -18.5,
+      -18.5
+     ],
+     "bboxMax": [
+      224.0,
+      18.5,
+      18.5
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem_gear",
+     "type": "Solid",
+     "label": "stem_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 664,
+     "edges": 1986,
+     "volume": 2381.2700735609183,
+     "area": 2746.094914530968,
+     "bbox": [
+      4.0,
+      45.993600796769286,
+      45.993600796769286
+     ],
+     "bboxMin": [
+      209.0,
+      -22.996800398380287,
+      -22.996800398380287
+     ],
+     "bboxMax": [
+      213.0,
+      22.996800398389,
+      22.996800398389
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "thruster_ring",
+     "type": "Solid",
+     "label": "thruster_ring",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 37,
+     "edges": 90,
+     "volume": 18380.535029819104,
+     "area": 35692.774701303264,
+     "bbox": [
+      85.0,
+      69.0,
+      40.51751218889126
+     ],
+     "bboxMin": [
+      -50.5,
+      -34.50000000000001,
+      -1.801288525246
+     ],
+     "bboxMax": [
+      34.50000000000001,
+      34.5,
+      38.71622366364526
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 7,
+   "objectsWithGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "visibleGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "thruster_ring",
+   "totalVolume": 51792.97575484352,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 18380.535029819104,
+   "mainFaces": 37,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10666,
+    "points": 5329,
+    "seconds": 0.0
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/Propulsion/4T/fan_hatch.step",
+    "CAD Files/Propulsion/4T/impeller.step",
+    "CAD Files/Propulsion/4T/servo_gear.step",
+    "CAD Files/Propulsion/4T/servo_mount.step",
+    "CAD Files/Propulsion/4T/stem.step",
+    "CAD Files/Propulsion/4T/stem_gear.step",
+    "CAD Files/Propulsion/4T/thruster_ring.step"
+   ],
+   "volume": 51792.97575484352,
+   "stepPartsVolume": 51792.975754843545,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [
+    "avionics_tray.step",
+    "fan_hatch.step",
+    "fan_hatch.step",
+    "impeller.step",
+    "impeller.step",
+    "servo_gear.step",
+    "servo_gear.step",
+    "servo_mount.step",
+    "servo_mount.step",
+    "stem.step",
+    "stem.step",
+    "stem_gear.step",
+    "stem_gear.step",
+    "thruster_ring.step",
+    "thruster_ring.step"
+   ],
+   "status": "same"
+  },
+  "seconds": 2.0
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/propulsion 1026 4T small 12s x3.8.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 10,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "avionics_tray.Shape.brp",
+     "bytes": 133245
+    },
+    {
+     "name": "fan_hatch.Shape.brp",
+     "bytes": 501469
+    },
+    {
+     "name": "impeller.Shape.brp",
+     "bytes": 840900
+    },
+    {
+     "name": "servo_gear.Shape.brp",
+     "bytes": 722160
+    },
+    {
+     "name": "servo_mount.Shape.brp",
+     "bytes": 27992
+    },
+    {
+     "name": "stem.Shape.brp",
+     "bytes": 12843
+    },
+    {
+     "name": "stem_gear.Shape.brp",
+     "bytes": 704031
+    },
+    {
+     "name": "thruster_ring.Shape.brp",
+     "bytes": 108611
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 502043,
+   "bytesUncompressed": 3074631,
+   "brpBytesTotal": 3051251,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "propulsion 1026 4T small 12s x3.8",
+   "objectsInXml": 8,
+   "viewObjects": {
+    "avionics_tray": true,
+    "fan_hatch": true,
+    "impeller": true,
+    "servo_gear": true,
+    "servo_mount": true,
+    "stem": true,
+    "stem_gear": true,
+    "thruster_ring": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.0,
+   "docName": "propulsion_1026_4T_small_12s_x3_8",
+   "labelAfterOpen": "propulsion 1026 4T small 12s x3.8",
+   "objects": [
+    {
+     "name": "avionics_tray",
+     "type": "Solid",
+     "label": "avionics_tray",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 94,
+     "edges": 298,
+     "volume": 24061.15033905931,
+     "area": 37202.08689997831,
+     "bbox": [
+      222.44624785050127,
+      229.09361349616898,
+      20.0
+     ],
+     "bboxMin": [
+      -111.22312392521127,
+      -114.54680674807298,
+      -304.5
+     ],
+     "bboxMax": [
+      111.22312392529,
+      114.54680674809599,
+      -284.5
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "fan_hatch",
+     "type": "Solid",
+     "label": "fan_hatch",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 71,
+     "edges": 207,
+     "volume": 10521.810570119602,
+     "area": 21427.162428597072,
+     "bbox": [
+      93.60000000000265,
+      93.60000000000265,
+      8.69358046567703
+     ],
+     "bboxMin": [
+      -46.800000000001326,
+      -46.800000000001326,
+      -395.19358046567703
+     ],
+     "bboxMax": [
+      46.800000000001326,
+      46.800000000001326,
+      -386.5
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "impeller",
+     "type": "Solid",
+     "label": "impeller",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 476,
+     "edges": 1376,
+     "volume": 6160.7668925902635,
+     "area": 16855.24409707541,
+     "bbox": [
+      86.71679253766932,
+      85.04402965460467,
+      17.697230297975523
+     ],
+     "bboxMin": [
+      -43.17370664366883,
+      -44.0,
+      -377.3
+     ],
+     "bboxMax": [
+      43.54308589400049,
+      41.04402965460467,
+      -359.6027697020245
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_gear",
+     "type": "Solid",
+     "label": "servo_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 555,
+     "edges": 1650,
+     "volume": 3846.905748849487,
+     "area": 3357.854749240771,
+     "bbox": [
+      12.0,
+      37.992544851782,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      782.742,
+      17.003727574108996,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      794.742,
+      54.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_mount",
+     "type": "Solid",
+     "label": "servo_mount",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 17,
+     "edges": 42,
+     "volume": 5396.614089415985,
+     "area": 5313.224333074669,
+     "bbox": [
+      17.08348715789134,
+      24.36954643519034,
+      42.300000000081226
+     ],
+     "bboxMin": [
+      771.242,
+      23.83984254095174,
+      -15.75
+     ],
+     "bboxMax": [
+      788.3254871578913,
+      48.20938897614208,
+      26.55000000008123
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem",
+     "type": "Solid",
+     "label": "stem",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 9,
+     "edges": 18,
+     "volume": 3560.8847642608653,
+     "area": 4974.111366651202,
+     "bbox": [
+      30.335000000000036,
+      28.0,
+      28.0
+     ],
+     "bboxMin": [
+      775.407,
+      -14.0,
+      -14.0
+     ],
+     "bboxMax": [
+      805.7420000000001,
+      14.0,
+      14.0
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem_gear",
+     "type": "Solid",
+     "label": "stem_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 544,
+     "edges": 1626,
+     "volume": 2063.3750440887907,
+     "area": 2240.587990814946,
+     "bbox": [
+      4.0,
+      37.992544851781005,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      790.742,
+      -18.996272425890005,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      794.742,
+      18.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "thruster_ring",
+     "type": "Solid",
+     "label": "thruster_ring",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 38,
+     "edges": 90,
+     "volume": 14339.52210205248,
+     "area": 30311.18040910818,
+     "bbox": [
+      76.0,
+      64.0,
+      37.4162236636464
+     ],
+     "bboxMin": [
+      -44.0,
+      -32.0,
+      -9.183764859699295e-13
+     ],
+     "bboxMax": [
+      32.00000000000001,
+      32.0,
+      37.41622366364548
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 8,
+   "objectsWithGeometry": [
+    "avionics_tray",
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "visibleGeometry": [
+    "avionics_tray",
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "avionics_tray",
+   "totalVolume": 69951.02955043678,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 24061.15033905931,
+   "mainFaces": 94,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1418,
+    "points": 693,
+    "seconds": 0.0
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/Propulsion/4T/small/12s/x3.8/avionics_tray.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/fan_hatch.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/impeller.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/servo_gear.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/servo_mount.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/stem.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/stem_gear.step",
+    "CAD Files/Propulsion/4T/small/12s/x3.8/thruster_ring.step"
+   ],
+   "volume": 69951.02955043678,
+   "stepPartsVolume": 69951.02955043677,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [],
+   "status": "same"
+  },
+  "seconds": 1.7
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/propulsion 1026 4T x1.9.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 9,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "fan_hatch.Shape.brp",
+     "bytes": 278254
+    },
+    {
+     "name": "impeller.Shape.brp",
+     "bytes": 840898
+    },
+    {
+     "name": "servo_gear.Shape.brp",
+     "bytes": 878483
+    },
+    {
+     "name": "servo_mount.Shape.brp",
+     "bytes": 28628
+    },
+    {
+     "name": "stem.Shape.brp",
+     "bytes": 12843
+    },
+    {
+     "name": "stem_gear.Shape.brp",
+     "bytes": 860706
+    },
+    {
+     "name": "thruster_ring.Shape.brp",
+     "bytes": 162447
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 488323,
+   "bytesUncompressed": 3083223,
+   "brpBytesTotal": 3062259,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "propulsion 1026 4T x1.9",
+   "objectsInXml": 7,
+   "viewObjects": {
+    "fan_hatch": true,
+    "impeller": true,
+    "servo_gear": true,
+    "servo_mount": true,
+    "stem": true,
+    "stem_gear": true,
+    "thruster_ring": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.0,
+   "docName": "propulsion_1026_4T_x1_9",
+   "labelAfterOpen": "propulsion 1026 4T x1.9",
+   "objects": [
+    {
+     "name": "fan_hatch",
+     "type": "Solid",
+     "label": "fan_hatch",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 50,
+     "edges": 141,
+     "volume": 11537.699351559482,
+     "area": 23710.905949800726,
+     "bbox": [
+      93.60000000004528,
+      93.60000000004528,
+      14.200000000000017
+     ],
+     "bboxMin": [
+      -46.80000000002264,
+      -46.80000000002264,
+      -197.6
+     ],
+     "bboxMax": [
+      46.80000000002264,
+      46.80000000002264,
+      -183.39999999999998
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "impeller",
+     "type": "Solid",
+     "label": "impeller",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 476,
+     "edges": 1376,
+     "volume": 6160.766892590265,
+     "area": 16855.244097075403,
+     "bbox": [
+      86.71679253766932,
+      85.04402965460467,
+      17.697230297975523
+     ],
+     "bboxMin": [
+      -43.17370664366883,
+      -44.0,
+      -169.4
+     ],
+     "bboxMax": [
+      43.54308589400049,
+      41.04402965460467,
+      -151.70276970202448
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_gear",
+     "type": "Solid",
+     "label": "servo_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 675,
+     "edges": 2010,
+     "volume": 4823.23369147087,
+     "area": 4380.963311127346,
+     "bbox": [
+      12.0,
+      45.993600796778,
+      45.993600796769286
+     ],
+     "bboxMin": [
+      387.9885,
+      21.003199601611,
+      -22.996800398380287
+     ],
+     "bboxMax": [
+      399.9885,
+      66.996800398389,
+      22.996800398389
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_mount",
+     "type": "Solid",
+     "label": "servo_mount",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 17,
+     "edges": 42,
+     "volume": 4800.562620420296,
+     "area": 4719.935129415841,
+     "bbox": [
+      16.195130246919746,
+      25.041912983182332,
+      42.30000000007566
+     ],
+     "bboxMin": [
+      376.4885,
+      31.575989221122217,
+      -15.75000000003552
+     ],
+     "bboxMax": [
+      392.68363024691973,
+      56.61790220430455,
+      26.550000000040143
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem",
+     "type": "Solid",
+     "label": "stem",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 9,
+     "edges": 18,
+     "volume": 4919.856675224732,
+     "area": 6860.604939966139,
+     "bbox": [
+      30.335000000000036,
+      37.0,
+      37.0
+     ],
+     "bboxMin": [
+      380.6535,
+      -18.5,
+      -18.5
+     ],
+     "bboxMax": [
+      410.98850000000004,
+      18.5,
+      18.5
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem_gear",
+     "type": "Solid",
+     "label": "stem_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 664,
+     "edges": 1986,
+     "volume": 2381.2700735609174,
+     "area": 2746.094914530968,
+     "bbox": [
+      4.0,
+      45.993600796769286,
+      45.993600796769286
+     ],
+     "bboxMin": [
+      395.9885,
+      -22.996800398380287,
+      -22.996800398380287
+     ],
+     "bboxMax": [
+      399.9885,
+      22.996800398389,
+      22.996800398389
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "thruster_ring",
+     "type": "Solid",
+     "label": "thruster_ring",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 37,
+     "edges": 90,
+     "volume": 18380.535029819104,
+     "area": 35692.774701303264,
+     "bbox": [
+      85.0,
+      69.0,
+      40.51751218889126
+     ],
+     "bboxMin": [
+      -50.5,
+      -34.50000000000001,
+      -1.801288525246
+     ],
+     "bboxMax": [
+      34.50000000000001,
+      34.5,
+      38.71622366364526
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 7,
+   "objectsWithGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "visibleGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "thruster_ring",
+   "totalVolume": 53003.924334645664,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 18380.535029819104,
+   "mainFaces": 37,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10666,
+    "points": 5329,
+    "seconds": 0.0
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/Propulsion/4T/x1.9/fan_hatch.step",
+    "CAD Files/Propulsion/4T/x1.9/impeller.step",
+    "CAD Files/Propulsion/4T/x1.9/servo_gear.step",
+    "CAD Files/Propulsion/4T/x1.9/servo_mount.step",
+    "CAD Files/Propulsion/4T/x1.9/stem.step",
+    "CAD Files/Propulsion/4T/x1.9/stem_gear.step",
+    "CAD Files/Propulsion/4T/x1.9/thruster_ring.step"
+   ],
+   "volume": 53003.924334645664,
+   "stepPartsVolume": 53003.92433464571,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [],
+   "status": "same"
+  },
+  "seconds": 2.0
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/propulsion 1026.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened",
+   "sibling STEP not in the document: avionics_tray.step, fan_hatch.step, fan_hatch.step, fan_hatch.step, fan_hatch.step, impeller.step, impeller.step, impeller.step, impeller.step, servo_gear.step, servo_gear.step, servo_gear.step, servo_gear.step, servo_mount.step, servo_mount.step, servo_mount.step, servo_mount.step, stem.step, stem.step, stem.step, stem.step, stem_gear.step, stem_gear.step, stem_gear.step, stem_gear.step, thruster_ring.step, thruster_ring.step, thruster_ring.step, thruster_ring.step"
+  ],
+  "facts": {
+   "zipEntries": 9,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "fan_hatch.Shape.brp",
+     "bytes": 481882
+    },
+    {
+     "name": "impeller.Shape.brp",
+     "bytes": 838151
+    },
+    {
+     "name": "servo_gear.Shape.brp",
+     "bytes": 722160
+    },
+    {
+     "name": "servo_mount.Shape.brp",
+     "bytes": 32717
+    },
+    {
+     "name": "stem.Shape.brp",
+     "bytes": 12843
+    },
+    {
+     "name": "stem_gear.Shape.brp",
+     "bytes": 704031
+    },
+    {
+     "name": "thruster_ring.Shape.brp",
+     "bytes": 112389
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 495036,
+   "bytesUncompressed": 2925121,
+   "brpBytesTotal": 2904173,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "propulsion 1026",
+   "objectsInXml": 7,
+   "viewObjects": {
+    "fan_hatch": true,
+    "impeller": true,
+    "servo_gear": true,
+    "servo_mount": true,
+    "stem": true,
+    "stem_gear": true,
+    "thruster_ring": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.0,
+   "docName": "propulsion_1026",
+   "labelAfterOpen": "propulsion 1026",
+   "objects": [
+    {
+     "name": "fan_hatch",
+     "type": "Solid",
+     "label": "fan_hatch",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 55,
+     "edges": 156,
+     "volume": 10072.265762252879,
+     "area": 20394.37207584189,
+     "bbox": [
+      93.60000000010689,
+      93.60000000010689,
+      8.675603106121159
+     ],
+     "bboxMin": [
+      -46.800000000053444,
+      -46.800000000053444,
+      -103.97560310612116
+     ],
+     "bboxMax": [
+      46.800000000053444,
+      46.800000000053444,
+      -95.3
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "impeller",
+     "type": "Solid",
+     "label": "impeller",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 476,
+     "edges": 1376,
+     "volume": 6160.766892616918,
+     "area": 16855.244097057614,
+     "bbox": [
+      86.71679253766932,
+      85.04402965460467,
+      17.6972302978955
+     ],
+     "bboxMin": [
+      -43.17370664366883,
+      -44.0,
+      -86.1
+     ],
+     "bboxMax": [
+      43.54308589400049,
+      41.04402965460467,
+      -68.4027697021045
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_gear",
+     "type": "Solid",
+     "label": "servo_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 555,
+     "edges": 1650,
+     "volume": 3846.905748849486,
+     "area": 3357.854749240771,
+     "bbox": [
+      12.0,
+      37.992544851782,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      201.0,
+      17.003727574108996,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      213.0,
+      54.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_mount",
+     "type": "Solid",
+     "label": "servo_mount",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 17,
+     "edges": 42,
+     "volume": 4280.74921412289,
+     "area": 4209.658652316729,
+     "bbox": [
+      16.024604927849992,
+      26.683331670636456,
+      42.30000000001654
+     ],
+     "bboxMin": [
+      189.5,
+      23.094068284875284,
+      -15.750000000016536
+     ],
+     "bboxMax": [
+      205.52460492785,
+      49.77739995551174,
+      26.55
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem",
+     "type": "Solid",
+     "label": "stem",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 9,
+     "edges": 18,
+     "volume": 3560.8847642608825,
+     "area": 4974.111366651216,
+     "bbox": [
+      30.335000000000008,
+      28.0,
+      28.0
+     ],
+     "bboxMin": [
+      193.665,
+      -14.0,
+      -14.0
+     ],
+     "bboxMax": [
+      224.0,
+      14.0,
+      14.0
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem_gear",
+     "type": "Solid",
+     "label": "stem_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 544,
+     "edges": 1626,
+     "volume": 2063.3750440887898,
+     "area": 2240.587990814946,
+     "bbox": [
+      4.0,
+      37.992544851781005,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      209.0,
+      -18.996272425890005,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      213.0,
+      18.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "thruster_ring",
+     "type": "Solid",
+     "label": "thruster_ring",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 37,
+     "edges": 87,
+     "volume": 14404.995254001711,
+     "area": 30465.486635027588,
+     "bbox": [
+      76.0,
+      64.0,
+      37.8162236636464
+     ],
+     "bboxMin": [
+      -44.0,
+      -32.0,
+      -9.183764859699295e-13
+     ],
+     "bboxMax": [
+      32.00000000000001,
+      32.0,
+      37.81622366364548
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 7,
+   "objectsWithGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "visibleGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "thruster_ring",
+   "totalVolume": 44389.942680193555,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 14404.995254001711,
+   "mainFaces": 37,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10108,
+    "points": 5050,
+    "seconds": 0.0
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/Propulsion/fan_hatch.step",
+    "CAD Files/Propulsion/impeller.step",
+    "CAD Files/Propulsion/servo_gear.step",
+    "CAD Files/Propulsion/servo_mount.step",
+    "CAD Files/Propulsion/stem.step",
+    "CAD Files/Propulsion/stem_gear.step",
+    "CAD Files/Propulsion/thruster_ring.step"
+   ],
+   "volume": 44389.942680193555,
+   "stepPartsVolume": 44389.94268019361,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [
+    "avionics_tray.step",
+    "fan_hatch.step",
+    "fan_hatch.step",
+    "fan_hatch.step",
+    "fan_hatch.step",
+    "impeller.step",
+    "impeller.step",
+    "impeller.step",
+    "impeller.step",
+    "servo_gear.step",
+    "servo_gear.step",
+    "servo_gear.step",
+    "servo_gear.step",
+    "servo_mount.step",
+    "servo_mount.step",
+    "servo_mount.step",
+    "servo_mount.step",
+    "stem.step",
+    "stem.step",
+    "stem.step",
+    "stem.step",
+    "stem_gear.step",
+    "stem_gear.step",
+    "stem_gear.step",
+    "stem_gear.step",
+    "thruster_ring.step",
+    "thruster_ring.step",
+    "thruster_ring.step",
+    "thruster_ring.step"
+   ],
+   "status": "same"
+  },
+  "seconds": 1.6
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/propulsion 1026 x1.9.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 9,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "fan_hatch.Shape.brp",
+     "bytes": 493228
+    },
+    {
+     "name": "impeller.Shape.brp",
+     "bytes": 840902
+    },
+    {
+     "name": "servo_gear.Shape.brp",
+     "bytes": 722160
+    },
+    {
+     "name": "servo_mount.Shape.brp",
+     "bytes": 28631
+    },
+    {
+     "name": "stem.Shape.brp",
+     "bytes": 12843
+    },
+    {
+     "name": "stem_gear.Shape.brp",
+     "bytes": 704031
+    },
+    {
+     "name": "thruster_ring.Shape.brp",
+     "bytes": 112389
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 496441,
+   "bytesUncompressed": 2935145,
+   "brpBytesTotal": 2914184,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "propulsion 1026 x1.9",
+   "objectsInXml": 7,
+   "viewObjects": {
+    "fan_hatch": true,
+    "impeller": true,
+    "servo_gear": true,
+    "servo_mount": true,
+    "stem": true,
+    "stem_gear": true,
+    "thruster_ring": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.0,
+   "docName": "propulsion_1026_x1_9",
+   "labelAfterOpen": "propulsion 1026 x1.9",
+   "objects": [
+    {
+     "name": "fan_hatch",
+     "type": "Solid",
+     "label": "fan_hatch",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 55,
+     "edges": 156,
+     "volume": 10362.566517979063,
+     "area": 21039.07643953065,
+     "bbox": [
+      93.60000000004528,
+      93.60000000004528,
+      8.687160618501991
+     ],
+     "bboxMin": [
+      -46.80000000002264,
+      -46.80000000002264,
+      -197.587160618502
+     ],
+     "bboxMax": [
+      46.80000000002264,
+      46.80000000002264,
+      -188.9
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "impeller",
+     "type": "Solid",
+     "label": "impeller",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 476,
+     "edges": 1376,
+     "volume": 6160.766892590136,
+     "area": 16855.244097075396,
+     "bbox": [
+      86.71679253766932,
+      85.04402965460467,
+      17.697230297975494
+     ],
+     "bboxMin": [
+      -43.17370664366883,
+      -44.0,
+      -179.7
+     ],
+     "bboxMax": [
+      43.54308589400049,
+      41.04402965460467,
+      -162.0027697020245
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_gear",
+     "type": "Solid",
+     "label": "servo_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 555,
+     "edges": 1650,
+     "volume": 3846.9057488494855,
+     "area": 3357.854749240771,
+     "bbox": [
+      12.0,
+      37.992544851782,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      387.9885,
+      17.003727574108996,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      399.9885,
+      54.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "servo_mount",
+     "type": "Solid",
+     "label": "servo_mount",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 17,
+     "edges": 42,
+     "volume": 5005.62496423072,
+     "area": 4924.4678770339815,
+     "bbox": [
+      16.763108260567208,
+      24.886800208123216,
+      42.30000000007566
+     ],
+     "bboxMin": [
+      376.4885,
+      23.657247849517855,
+      -15.75000000003552
+     ],
+     "bboxMax": [
+      393.2516082605672,
+      48.54404805764107,
+      26.550000000040143
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem",
+     "type": "Solid",
+     "label": "stem",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 9,
+     "edges": 18,
+     "volume": 3560.8847642608775,
+     "area": 4974.111366651211,
+     "bbox": [
+      30.335000000000036,
+      28.0,
+      28.0
+     ],
+     "bboxMin": [
+      380.6535,
+      -14.0,
+      -14.0
+     ],
+     "bboxMax": [
+      410.98850000000004,
+      14.0,
+      14.0
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "stem_gear",
+     "type": "Solid",
+     "label": "stem_gear",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 544,
+     "edges": 1626,
+     "volume": 2063.3750440887907,
+     "area": 2240.587990814946,
+     "bbox": [
+      4.0,
+      37.992544851781005,
+      37.992544851781005
+     ],
+     "bboxMin": [
+      395.9885,
+      -18.996272425890005,
+      -18.99627242589
+     ],
+     "bboxMax": [
+      399.9885,
+      18.996272425891,
+      18.996272425891004
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "thruster_ring",
+     "type": "Solid",
+     "label": "thruster_ring",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 37,
+     "edges": 87,
+     "volume": 14404.995254001711,
+     "area": 30465.486635027588,
+     "bbox": [
+      76.0,
+      64.0,
+      37.8162236636464
+     ],
+     "bboxMin": [
+      -44.0,
+      -32.0,
+      -9.183764859699295e-13
+     ],
+     "bboxMax": [
+      32.00000000000001,
+      32.0,
+      37.81622366364548
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 7,
+   "objectsWithGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "visibleGeometry": [
+    "fan_hatch",
+    "impeller",
+    "servo_gear",
+    "servo_mount",
+    "stem",
+    "stem_gear",
+    "thruster_ring"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "thruster_ring",
+   "totalVolume": 45405.11918600078,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 14404.995254001711,
+   "mainFaces": 37,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10108,
+    "points": 5050,
+    "seconds": 0.0
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/Propulsion/x1.9/fan_hatch.step",
+    "CAD Files/Propulsion/x1.9/impeller.step",
+    "CAD Files/Propulsion/x1.9/servo_gear.step",
+    "CAD Files/Propulsion/x1.9/servo_mount.step",
+    "CAD Files/Propulsion/x1.9/stem.step",
+    "CAD Files/Propulsion/x1.9/stem_gear.step",
+    "CAD Files/Propulsion/x1.9/thruster_ring.step"
+   ],
+   "volume": 45405.11918600078,
+   "stepPartsVolume": 45405.11918600084,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [],
+   "status": "same"
+  },
+  "seconds": 1.6
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 13039910
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3715164,
+   "bytesUncompressed": 13050133,
+   "brpBytesTotal": 13039910,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 4T left x1.9",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_4T_left_x1_9",
+   "labelAfterOpen": "airship pie slice 1026 4T left x1.9",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4581,
+     "edges": 13741,
+     "volume": 43549.47750974096,
+     "area": 111085.06089160602,
+     "bbox": [
+      364.1863464557519,
+      333.6889481927822,
+      422.18630074442
+     ],
+     "bboxMin": [
+      30.488024572872,
+      -151.06562431814223,
+      -225.8944839418
+     ],
+     "bboxMax": [
+      394.6743710286239,
+      182.62332387464,
+      196.29181680262
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 43549.47750974096,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 43549.47750974096,
+   "mainFaces": 4581,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 61003,
+    "points": 30423,
+    "seconds": 0.4
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.step",
+   "volume": 43549.47750974096,
+   "stepVolume": 43549.47750973763,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 13.5
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 12337944
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3467438,
+   "bytesUncompressed": 12348159,
+   "brpBytesTotal": 12337944,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 4T left",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_4T_left",
+   "labelAfterOpen": "airship pie slice 1026 4T left",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4484,
+     "edges": 13447,
+     "volume": 22915.432723178445,
+     "area": 56740.78352744253,
+     "bbox": [
+      189.41648441116803,
+      190.42807849525803,
+      231.289446096503
+     ],
+     "bboxMin": [
+      30.48802457287197,
+      -79.50822332533802,
+      -129.8342674234
+     ],
+     "bboxMax": [
+      219.90450898404,
+      110.91985516992,
+      101.455178673103
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 22915.432723178445,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 22915.432723178445,
+   "mainFaces": 4484,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 53425,
+    "points": 26590,
+    "seconds": 0.3
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.step",
+   "volume": 22915.432723178445,
+   "stepVolume": 22915.432723180053,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 10.3
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 12984915
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3678671,
+   "bytesUncompressed": 12995139,
+   "brpBytesTotal": 12984915,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 4T right x1.9",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_4T_right_x1_9",
+   "labelAfterOpen": "airship pie slice 1026 4T right x1.9",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4577,
+     "edges": 13729,
+     "volume": 43616.48567359931,
+     "area": 111250.41286592334,
+     "bbox": [
+      364.1863464557519,
+      333.68894819274226,
+      422.18630074442
+     ],
+     "bboxMin": [
+      30.488024572872,
+      -182.6233238746,
+      -225.8944839418
+     ],
+     "bboxMax": [
+      394.6743710286239,
+      151.06562431814223,
+      196.29181680262
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 43616.48567359931,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 43616.48567359931,
+   "mainFaces": 4577,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 62453,
+    "points": 31144,
+    "seconds": 0.3
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.step",
+   "volume": 43616.48567359931,
+   "stepVolume": 43616.485673600764,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 12.6
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 12472067
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3554023,
+   "bytesUncompressed": 12482283,
+   "brpBytesTotal": 12472067,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 4T right",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_4T_right",
+   "labelAfterOpen": "airship pie slice 1026 4T right",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4477,
+     "edges": 13426,
+     "volume": 22992.50339017955,
+     "area": 56956.513546801834,
+     "bbox": [
+      189.416484411168,
+      190.42807849523803,
+      231.289446096503
+     ],
+     "bboxMin": [
+      30.488024572872,
+      -110.9198551699,
+      -129.8342674234
+     ],
+     "bboxMax": [
+      219.90450898404,
+      79.50822332533802,
+      101.455178673103
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 22992.50339017955,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 22992.50339017955,
+   "mainFaces": 4477,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 54539,
+    "points": 27145,
+    "seconds": 0.3
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.step",
+   "volume": 22992.50339017955,
+   "stepVolume": 22992.50339017934,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 10.3
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 14178363
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 4135805,
+   "bytesUncompressed": 14188578,
+   "brpBytesTotal": 14178363,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 x1.9",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_x1_9",
+   "labelAfterOpen": "airship pie slice 1026 x1.9",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4597,
+     "edges": 13815,
+     "volume": 51820.54917613854,
+     "area": 130029.90212152725,
+     "bbox": [
+      364.1863464557519,
+      347.48084040868,
+      413.49398280241996
+     ],
+     "bboxMin": [
+      30.488024572872,
+      -173.7404202043,
+      -217.2021659998
+     ],
+     "bboxMax": [
+      394.6743710286239,
+      173.74042020438,
+      196.29181680262
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 51820.54917613854,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 51820.54917613854,
+   "mainFaces": 4597,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 92825,
+    "points": 46332,
+    "seconds": 0.4
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.step",
+   "volume": 51820.54917613854,
+   "stepVolume": 51820.54917613477,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 10.1
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026.FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened"
+  ],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 13456695
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3968646,
+   "bytesUncompressed": 13466902,
+   "brpBytesTotal": 13456695,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026",
+   "labelAfterOpen": "airship pie slice 1026",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4436,
+     "edges": 13346,
+     "volume": 26749.136041413512,
+     "area": 65398.930956790005,
+     "bbox": [
+      181.370028187698,
+      204.06909561005,
+      222.689139020703
+     ],
+     "bboxMin": [
+      30.48802457287197,
+      -102.034547805,
+      -121.2339603476
+     ],
+     "bboxMax": [
+      211.85805276057,
+      102.03454780505,
+      101.455178673103
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 26749.136041413512,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 26749.136041413512,
+   "mainFaces": 4436,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 71809,
+    "points": 35782,
+    "seconds": 0.3
+   }
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026.step",
+   "volume": 26749.136041413512,
+   "stepVolume": 26749.13604141402,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 12.9
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 left (pieces).FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened",
+   "sibling STEP not in the document: bottom_inner.step, bottom_inner.step, bottom_outer.step, bottom_outer.step, intake_tube_1.step, intake_tube_1.step, intake_tube_1.step, intake_tube_2.step, intake_tube_2.step, intake_tube_2.step, middle.step, middle.step, top_inner.step, top_inner.step, top_outer.step, top_outer.step"
+  ],
+  "facts": {
+   "zipEntries": 7,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "bottom_inner.Shape.brp",
+     "bytes": 3300202
+    },
+    {
+     "name": "bottom_outer.Shape.brp",
+     "bytes": 2828282
+    },
+    {
+     "name": "middle.Shape.brp",
+     "bytes": 3521240
+    },
+    {
+     "name": "top_inner.Shape.brp",
+     "bytes": 2328906
+    },
+    {
+     "name": "top_outer.Shape.brp",
+     "bytes": 2316648
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 4138996,
+   "bytesUncompressed": 14311505,
+   "brpBytesTotal": 14295278,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 v0.2.1 left (pieces)",
+   "objectsInXml": 5,
+   "viewObjects": {
+    "bottom_inner": true,
+    "bottom_outer": true,
+    "middle": true,
+    "top_inner": true,
+    "top_outer": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_v0_2_1_left__pieces_",
+   "labelAfterOpen": "airship pie slice 1026 v0.2.1 left (pieces)",
+   "objects": [
+    {
+     "name": "bottom_inner",
+     "type": "Solid",
+     "label": "bottom_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1067,
+     "edges": 3203,
+     "volume": 17431.857960802412,
+     "area": 43304.59264899872,
+     "bbox": [
+      441.01122324897483,
+      255.57729558694018,
+      126.85389598059999
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -107.40990371806016,
+      -416.0331803008
+     ],
+     "bboxMax": [
+      472.88677551651,
+      148.16739186888,
+      -289.1792843202
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "bottom_outer",
+     "type": "Solid",
+     "label": "bottom_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 900,
+     "edges": 2722,
+     "volume": 14447.283828581762,
+     "area": 38769.91790224728,
+     "bbox": [
+      363.65799386873005,
+      404.33014240465894,
+      240.86652718759998
+     ],
+     "bboxMin": [
+      368.88949057604,
+      -189.04858718534894,
+      -363.1383305852
+     ],
+     "bboxMax": [
+      732.54748444477,
+      215.28155521931,
+      -122.2718033976
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "middle",
+     "type": "Solid",
+     "label": "middle",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1215,
+     "edges": 3666,
+     "volume": 10827.916555281357,
+     "area": 30167.496834659927,
+     "bbox": [
+      138.38240872846995,
+      432.3528210259924,
+      353.84683401259997
+     ],
+     "bboxMin": [
+      651.12459127153,
+      -204.33944784212238,
+      -200.2468340126
+     ],
+     "bboxMax": [
+      789.507,
+      228.01337318387,
+      153.6
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_inner",
+     "type": "Solid",
+     "label": "top_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 899,
+     "edges": 2691,
+     "volume": 3561.740467040433,
+     "area": 11628.490635645261,
+     "bbox": [
+      383.12445554504285,
+      214.81980850534384,
+      65.2075063016
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -107.40990425276777,
+      329.34508649368
+     ],
+     "bboxMax": [
+      415.000007812578,
+      107.40990425257607,
+      394.55259279528
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_outer",
+     "type": "Solid",
+     "label": "top_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 897,
+     "edges": 2703,
+     "volume": 3085.328755272996,
+     "area": 11945.752663239298,
+     "bbox": [
+      329.56875612217925,
+      378.09717437095924,
+      186.27865320278977
+     ],
+     "bboxMin": [
+      400.8592102493924,
+      -189.04858718534894,
+      149.9197023954074
+     ],
+     "bboxMax": [
+      730.4279663715716,
+      189.04858718561033,
+      336.19835559819717
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 5,
+   "objectsWithGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "visibleGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "bottom_inner",
+   "totalVolume": 49354.12756697896,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 17431.857960802412,
+   "mainFaces": 1067,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 31548,
+    "points": 15750,
+    "seconds": 0.1
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_outer.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/middle.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_outer.step"
+   ],
+   "volume": 49354.12756697896,
+   "stepPartsVolume": 49354.12756698003,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [
+    "bottom_inner.step",
+    "bottom_inner.step",
+    "bottom_outer.step",
+    "bottom_outer.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "middle.step",
+    "middle.step",
+    "top_inner.step",
+    "top_inner.step",
+    "top_outer.step",
+    "top_outer.step"
+   ],
+   "status": "same"
+  },
+  "seconds": 8.8
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 plain (pieces).FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened",
+   "sibling STEP not in the document: bottom_inner.step, bottom_inner.step, bottom_outer.step, bottom_outer.step, intake_tube_1.step, intake_tube_1.step, intake_tube_1.step, intake_tube_2.step, intake_tube_2.step, intake_tube_2.step, middle.step, middle.step, top_inner.step, top_inner.step, top_outer.step, top_outer.step"
+  ],
+  "facts": {
+   "zipEntries": 7,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "bottom_inner.Shape.brp",
+     "bytes": 2703993
+    },
+    {
+     "name": "bottom_outer.Shape.brp",
+     "bytes": 2348155
+    },
+    {
+     "name": "middle.Shape.brp",
+     "bytes": 3029188
+    },
+    {
+     "name": "top_inner.Shape.brp",
+     "bytes": 2328906
+    },
+    {
+     "name": "top_outer.Shape.brp",
+     "bytes": 2316648
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3544075,
+   "bytesUncompressed": 12743118,
+   "brpBytesTotal": 12726890,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 v0.2.1 plain (pieces)",
+   "objectsInXml": 5,
+   "viewObjects": {
+    "bottom_inner": true,
+    "bottom_outer": true,
+    "middle": true,
+    "top_inner": true,
+    "top_outer": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_v0_2_1_plain__pieces_",
+   "labelAfterOpen": "airship pie slice 1026 v0.2.1 plain (pieces)",
+   "objects": [
+    {
+     "name": "bottom_inner",
+     "type": "Solid",
+     "label": "bottom_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1057,
+     "edges": 3149,
+     "volume": 5645.016186039764,
+     "area": 15963.320872296506,
+     "bbox": [
+      383.12444773248717,
+      214.8198074354886,
+      85.999100137668
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -107.40990371774457,
+      -394.499100137668
+     ],
+     "bboxMax": [
+      415.00000000002234,
+      107.40990371774402,
+      -308.5
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "bottom_outer",
+     "type": "Solid",
+     "label": "bottom_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 901,
+     "edges": 2715,
+     "volume": 3063.922720310979,
+     "area": 11950.43640432584,
+     "bbox": [
+      329.56867338719746,
+      378.09717437095924,
+      186.27936740998172
+     ],
+     "bboxMin": [
+      400.85921243293103,
+      -189.04858718534894,
+      -336.19835559823304
+     ],
+     "bboxMax": [
+      730.4278858201285,
+      189.04858718561033,
+      -149.91898818825132
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "middle",
+     "type": "Solid",
+     "label": "middle",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1213,
+     "edges": 3647,
+     "volume": 4349.132178254455,
+     "area": 15276.11989842338,
+     "bbox": [
+      84.99562294971486,
+      408.67889568424476,
+      307.2
+     ],
+     "bboxMin": [
+      704.5113770502851,
+      -204.33944784212238,
+      -153.6
+     ],
+     "bboxMax": [
+      789.507,
+      204.33944784212238,
+      153.6
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_inner",
+     "type": "Solid",
+     "label": "top_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 899,
+     "edges": 2691,
+     "volume": 3561.740467040433,
+     "area": 11628.490635645261,
+     "bbox": [
+      383.12445554504285,
+      214.81980850534384,
+      65.2075063016
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -107.40990425276777,
+      329.34508649368
+     ],
+     "bboxMax": [
+      415.000007812578,
+      107.40990425257607,
+      394.55259279528
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_outer",
+     "type": "Solid",
+     "label": "top_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 897,
+     "edges": 2703,
+     "volume": 3085.32875527125,
+     "area": 11945.752663239247,
+     "bbox": [
+      329.56875612217925,
+      378.09717437095924,
+      186.27865320278977
+     ],
+     "bboxMin": [
+      400.8592102493924,
+      -189.04858718534894,
+      149.9197023954074
+     ],
+     "bboxMax": [
+      730.4279663715716,
+      189.04858718561033,
+      336.19835559819717
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 5,
+   "objectsWithGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "visibleGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "bottom_inner",
+   "totalVolume": 19705.14030691688,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 5645.016186039764,
+   "mainFaces": 1057,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 14520,
+    "points": 7236,
+    "seconds": 0.1
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_outer.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/middle.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_outer.step"
+   ],
+   "volume": 19705.14030691688,
+   "stepPartsVolume": 19705.140306918165,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [
+    "bottom_inner.step",
+    "bottom_inner.step",
+    "bottom_outer.step",
+    "bottom_outer.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "middle.step",
+    "middle.step",
+    "top_inner.step",
+    "top_inner.step",
+    "top_outer.step",
+    "top_outer.step"
+   ],
+   "status": "same"
+  },
+  "seconds": 7.0
+ },
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 right (pieces).FCStd",
+  "problems": [],
+  "warnings": [
+   "written by 1.1R45039 (Git), read by FreeCAD 1.1.4: FreeCAD rebuilds the shape's element map when the document is opened",
+   "sibling STEP not in the document: bottom_inner.step, bottom_inner.step, bottom_outer.step, bottom_outer.step, intake_tube_1.step, intake_tube_1.step, intake_tube_1.step, intake_tube_2.step, intake_tube_2.step, intake_tube_2.step, middle.step, middle.step, top_inner.step, top_inner.step, top_outer.step, top_outer.step"
+  ],
+  "facts": {
+   "zipEntries": 7,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "bottom_inner.Shape.brp",
+     "bytes": 3307421
+    },
+    {
+     "name": "bottom_outer.Shape.brp",
+     "bytes": 2834574
+    },
+    {
+     "name": "middle.Shape.brp",
+     "bytes": 3595104
+    },
+    {
+     "name": "top_inner.Shape.brp",
+     "bytes": 2328902
+    },
+    {
+     "name": "top_outer.Shape.brp",
+     "bytes": 2316643
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 4236296,
+   "bytesUncompressed": 14398872,
+   "brpBytesTotal": 14382644,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026 v0.2.1 right (pieces)",
+   "objectsInXml": 5,
+   "viewObjects": {
+    "bottom_inner": true,
+    "bottom_outer": true,
+    "middle": true,
+    "top_inner": true,
+    "top_outer": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.1,
+   "docName": "airship_pie_slice_1026_v0_2_1_right__pieces_",
+   "labelAfterOpen": "airship pie slice 1026 v0.2.1 right (pieces)",
+   "objects": [
+    {
+     "name": "bottom_inner",
+     "type": "Solid",
+     "label": "bottom_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1067,
+     "edges": 3203,
+     "volume": 17431.870104326536,
+     "area": 43305.261995767156,
+     "bbox": [
+      441.01122324897483,
+      255.577295586544,
+      126.85389598059999
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -148.1673918688,
+      -416.0331803008
+     ],
+     "bboxMax": [
+      472.88677551651,
+      107.40990371774402,
+      -289.1792843202
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "bottom_outer",
+     "type": "Solid",
+     "label": "bottom_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 900,
+     "edges": 2722,
+     "volume": 14508.820152221331,
+     "area": 38761.33583502096,
+     "bbox": [
+      363.65799386873005,
+      404.33014240491036,
+      240.86652718759998
+     ],
+     "bboxMin": [
+      368.88949057604,
+      -215.2815552193,
+      -363.1383305852
+     ],
+     "bboxMax": [
+      732.54748444477,
+      189.04858718561033,
+      -122.2718033976
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "middle",
+     "type": "Solid",
+     "label": "middle",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 1214,
+     "edges": 3666,
+     "volume": 10923.694735267058,
+     "area": 30419.604058834437,
+     "bbox": [
+      138.38240872846995,
+      432.35282102592237,
+      353.84683401259997
+     ],
+     "bboxMin": [
+      651.12459127153,
+      -228.0133731838,
+      -200.2468340126
+     ],
+     "bboxMax": [
+      789.507,
+      204.33944784212238,
+      153.6
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_inner",
+     "type": "Solid",
+     "label": "top_inner",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 899,
+     "edges": 2691,
+     "volume": 3561.740467040476,
+     "area": 11628.490635645263,
+     "bbox": [
+      383.12445554504285,
+      214.81980850534384,
+      65.2075063016
+     ],
+     "bboxMin": [
+      31.875552267535152,
+      -107.40990425276777,
+      329.34508649368
+     ],
+     "bboxMax": [
+      415.000007812578,
+      107.40990425257607,
+      394.55259279528
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "top_outer",
+     "type": "Solid",
+     "label": "top_outer",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 897,
+     "edges": 2703,
+     "volume": 3085.3287552716247,
+     "area": 11945.752663239262,
+     "bbox": [
+      329.56875612217925,
+      378.09717437095924,
+      186.27865320278977
+     ],
+     "bboxMin": [
+      400.8592102493924,
+      -189.04858718534894,
+      149.9197023954074
+     ],
+     "bboxMax": [
+      730.4279663715716,
+      189.04858718561033,
+      336.19835559819717
+     ],
+     "shellsClosed": [
+      true
+     ]
+    }
+   ],
+   "objectCount": 5,
+   "objectsWithGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "visibleGeometry": [
+    "bottom_inner",
+    "bottom_outer",
+    "middle",
+    "top_inner",
+    "top_outer"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "bottom_inner",
+   "totalVolume": 49511.45421412702,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 17431.870104326536,
+   "mainFaces": 1067,
+   "mainShellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 32172,
+    "points": 16062,
+    "seconds": 0.1
+   }
+  },
+  "cross": {
+   "parts": [
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_outer.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/middle.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_inner.step",
+    "CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_outer.step"
+   ],
+   "volume": 49511.45421412702,
+   "stepPartsVolume": 49511.45421412001,
+   "relDiff": 0.0,
+   "missing": [],
+   "extra": [
+    "bottom_inner.step",
+    "bottom_inner.step",
+    "bottom_outer.step",
+    "bottom_outer.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_1.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "intake_tube_2.step",
+    "middle.step",
+    "middle.step",
+    "top_inner.step",
+    "top_inner.step",
+    "top_outer.step",
+    "top_outer.step"
+   ],
+   "status": "same"
+  },
+  "seconds": 7.8
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/fan_hatch.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 469165,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 50,
+   "edges": 141,
+   "volume": 11247.406773532257,
+   "area": 23066.227346684245,
+   "bbox": [
+    93.60000000010689,
+    93.60000000010689,
+    14.200000000000003
+   ],
+   "bboxMin": [
+    -46.800000000053444,
+    -46.800000000053444,
+    -104.0
+   ],
+   "bboxMax": [
+    46.800000000053444,
+    46.800000000053444,
+    -89.8
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10252,
+    "points": 5118,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 39172,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/impeller.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2200152,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 476,
+   "edges": 1376,
+   "volume": 6160.766892617076,
+   "area": 16855.244097057646,
+   "bbox": [
+    86.71679253766932,
+    85.04402965460469,
+    17.69723029789551
+   ],
+   "bboxMin": [
+    -43.17370664366883,
+    -44.0,
+    -75.8
+   ],
+   "bboxMax": [
+    43.54308589400049,
+    41.044029654604685,
+    -58.10276970210449
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 5740,
+    "points": 2870,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 5740,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/servo_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2763312,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:11",
+   "readSeconds": 0.5,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 675,
+   "edges": 2010,
+   "volume": 4823.233691470871,
+   "area": 4380.963311127343,
+   "bbox": [
+    12.0,
+    45.993600796778,
+    45.993600796769286
+   ],
+   "bboxMin": [
+    201.0,
+    21.003199601611,
+    -22.996800398380287
+   ],
+   "bboxMax": [
+    213.0,
+    66.996800398389,
+    22.996800398389
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 7704,
+    "points": 3840,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 7704,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.8
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/servo_mount.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 73437,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 17,
+   "edges": 42,
+   "volume": 3879.906618618569,
+   "area": 3810.926026302501,
+   "bbox": [
+    14.933068988640002,
+    27.23169495564546,
+    42.30000000001654
+   ],
+   "bboxMin": [
+    189.5,
+    30.824690439453008,
+    -15.750000000016536
+   ],
+   "bboxMax": [
+    204.43306898864,
+    58.05638539509847,
+    26.55
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1104,
+    "points": 548,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2030,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/avionics_tray.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 381797,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:21",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 94,
+   "edges": 298,
+   "volume": 24061.15033905931,
+   "area": 37202.08689997833,
+   "bbox": [
+    222.44624785050127,
+    229.09361349616898,
+    20.0
+   ],
+   "bboxMin": [
+    -111.22312392521127,
+    -114.54680674807298,
+    -304.5
+   ],
+   "bboxMax": [
+    111.22312392529,
+    114.54680674809599,
+    -284.5
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1418,
+    "points": 693,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1462,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/fan_hatch.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 815778,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:19",
+   "readSeconds": 0.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 71,
+   "edges": 207,
+   "volume": 10521.81057011961,
+   "area": 21427.162428597076,
+   "bbox": [
+    93.60000000000265,
+    93.60000000000265,
+    8.69358046567703
+   ],
+   "bboxMin": [
+    -46.800000000001326,
+    -46.800000000001326,
+    -395.19358046567703
+   ],
+   "bboxMax": [
+    46.800000000001326,
+    46.800000000001326,
+    -386.5
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 13524,
+    "points": 6744,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 47716,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/impeller.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2202559,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:18",
+   "readSeconds": 0.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 476,
+   "edges": 1376,
+   "volume": 6160.766892590271,
+   "area": 16855.244097075396,
+   "bbox": [
+    86.71679253766932,
+    85.04402965460469,
+    17.697230297975523
+   ],
+   "bboxMin": [
+    -43.17370664366883,
+    -44.0,
+    -377.3
+   ],
+   "bboxMax": [
+    43.54308589400049,
+    41.044029654604685,
+    -359.6027697020245
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 5740,
+    "points": 2870,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 5740,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/servo_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2274254,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:20",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 555,
+   "edges": 1650,
+   "volume": 3846.905748849487,
+   "area": 3357.8547492407715,
+   "bbox": [
+    12.0,
+    37.992544851782,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    782.742,
+    17.003727574108996,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    794.742,
+    54.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 7224,
+    "points": 3600,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 7224,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/servo_mount.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 64847,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:19",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 17,
+   "edges": 42,
+   "volume": 5396.614089415982,
+   "area": 5313.224333074669,
+   "bbox": [
+    17.08348715789134,
+    24.36954643519034,
+    42.300000000081226
+   ],
+   "bboxMin": [
+    771.242,
+    23.83984254095174,
+    -15.75
+   ],
+   "bboxMax": [
+    788.3254871578913,
+    48.20938897614208,
+    26.55000000008123
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 902,
+    "points": 447,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1212,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/stem.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 24223,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:19",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 9,
+   "edges": 18,
+   "volume": 3560.8847642608653,
+   "area": 4974.111366651202,
+   "bbox": [
+    30.335000000000036,
+    28.0,
+    28.0
+   ],
+   "bboxMin": [
+    775.407,
+    -14.0,
+    -14.0
+   ],
+   "bboxMax": [
+    805.7420000000001,
+    14.0,
+    14.0
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1572,
+    "points": 786,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1572,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/stem_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2238621,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:19",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 544,
+   "edges": 1626,
+   "volume": 2063.3750440887916,
+   "area": 2240.587990814945,
+   "bbox": [
+    4.0,
+    37.992544851781005,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    790.742,
+    -18.996272425890005,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    794.742,
+    18.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2612,
+    "points": 1306,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2612,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/small/12s/x3.8/thruster_ring.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 184289,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-29T17:45:21",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 38,
+   "edges": 90,
+   "volume": 14339.522102052459,
+   "area": 30311.180409108172,
+   "bbox": [
+    76.0,
+    64.0,
+    37.4162236636464
+   ],
+   "bboxMin": [
+    -44.0,
+    -32.0,
+    -9.183764859699295e-13
+   ],
+   "bboxMax": [
+    32.00000000000001,
+    32.0,
+    37.41622366364548
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10108,
+    "points": 5050,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11490,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/stem.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 24170,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 9,
+   "edges": 18,
+   "volume": 4919.856675224737,
+   "area": 6860.604939966144,
+   "bbox": [
+    30.335000000000008,
+    37.0,
+    37.0
+   ],
+   "bboxMin": [
+    193.665,
+    -18.5,
+    -18.5
+   ],
+   "bboxMax": [
+    224.0,
+    18.5,
+    18.5
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1564,
+    "points": 782,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1564,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/stem_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2727962,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:10",
+   "readSeconds": 0.5,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 664,
+   "edges": 1986,
+   "volume": 2381.2700735609183,
+   "area": 2746.094914530967,
+   "bbox": [
+    4.0,
+    45.993600796769286,
+    45.993600796769286
+   ],
+   "bboxMin": [
+    209.0,
+    -22.996800398380287,
+    -22.996800398380287
+   ],
+   "bboxMax": [
+    213.0,
+    22.996800398389,
+    22.996800398389
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 3100,
+    "points": 1550,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 3100,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.7
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/thruster_ring.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 289824,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:12",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 37,
+   "edges": 90,
+   "volume": 18380.53502981911,
+   "area": 35692.774701303264,
+   "bbox": [
+    85.0,
+    69.0,
+    40.51751218889126
+   ],
+   "bboxMin": [
+    -50.5,
+    -34.50000000000001,
+    -1.801288525246
+   ],
+   "bboxMax": [
+    34.50000000000001,
+    34.5,
+    38.71622366364526
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10666,
+    "points": 5329,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13142,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/fan_hatch.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 463079,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 50,
+   "edges": 141,
+   "volume": 11537.699351559511,
+   "area": 23710.905949800712,
+   "bbox": [
+    93.60000000004528,
+    93.60000000004528,
+    14.200000000000017
+   ],
+   "bboxMin": [
+    -46.80000000002264,
+    -46.80000000002264,
+    -197.6
+   ],
+   "bboxMax": [
+    46.80000000002264,
+    46.80000000002264,
+    -183.39999999999998
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 9984,
+    "points": 4984,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 39518,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/impeller.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2202546,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:08",
+   "readSeconds": 0.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 476,
+   "edges": 1376,
+   "volume": 6160.766892590269,
+   "area": 16855.244097075396,
+   "bbox": [
+    86.71679253766932,
+    85.04402965460469,
+    17.697230297975523
+   ],
+   "bboxMin": [
+    -43.17370664366883,
+    -44.0,
+    -169.4
+   ],
+   "bboxMax": [
+    43.54308589400049,
+    41.044029654604685,
+    -151.70276970202448
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 5740,
+    "points": 2870,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 5740,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/servo_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2779412,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:10",
+   "readSeconds": 0.5,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 675,
+   "edges": 2010,
+   "volume": 4823.23369147087,
+   "area": 4380.963311127343,
+   "bbox": [
+    12.0,
+    45.993600796778,
+    45.993600796769286
+   ],
+   "bboxMin": [
+    387.9885,
+    21.003199601611,
+    -22.996800398380287
+   ],
+   "bboxMax": [
+    399.9885,
+    66.996800398389,
+    22.996800398389
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 7704,
+    "points": 3840,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 7704,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.8
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/servo_mount.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 65977,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 17,
+   "edges": 42,
+   "volume": 4800.562620420296,
+   "area": 4719.935129415841,
+   "bbox": [
+    16.195130246919746,
+    25.041912983182332,
+    42.30000000007566
+   ],
+   "bboxMin": [
+    376.4885,
+    31.575989221122217,
+    -15.75000000003552
+   ],
+   "bboxMax": [
+    392.68363024691973,
+    56.61790220430455,
+    26.550000000040143
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 948,
+    "points": 470,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1404,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/stem.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 24269,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 9,
+   "edges": 18,
+   "volume": 4919.856675224732,
+   "area": 6860.604939966139,
+   "bbox": [
+    30.335000000000036,
+    37.0,
+    37.0
+   ],
+   "bboxMin": [
+    380.6535,
+    -18.5,
+    -18.5
+   ],
+   "bboxMax": [
+    410.98850000000004,
+    18.5,
+    18.5
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1564,
+    "points": 782,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1564,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/stem_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2743868,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.5,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 664,
+   "edges": 1986,
+   "volume": 2381.2700735609174,
+   "area": 2746.094914530967,
+   "bbox": [
+    4.0,
+    45.993600796769286,
+    45.993600796769286
+   ],
+   "bboxMin": [
+    395.9885,
+    -22.996800398380287,
+    -22.996800398380287
+   ],
+   "bboxMax": [
+    399.9885,
+    22.996800398389,
+    22.996800398389
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 3100,
+    "points": 1550,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 3100,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.7
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/4T/x1.9/thruster_ring.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 289824,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:12",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 37,
+   "edges": 90,
+   "volume": 18380.53502981911,
+   "area": 35692.774701303264,
+   "bbox": [
+    85.0,
+    69.0,
+    40.51751218889126
+   ],
+   "bboxMin": [
+    -50.5,
+    -34.50000000000001,
+    -1.801288525246
+   ],
+   "bboxMax": [
+    34.50000000000001,
+    34.5,
+    38.71622366364526
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10666,
+    "points": 5329,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13142,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/fan_hatch.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 751824,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 55,
+   "edges": 156,
+   "volume": 10072.26576225288,
+   "area": 20394.372075841893,
+   "bbox": [
+    93.60000000010689,
+    93.60000000010689,
+    8.675603106121159
+   ],
+   "bboxMin": [
+    -46.800000000053444,
+    -46.800000000053444,
+    -103.97560310612116
+   ],
+   "bboxMax": [
+    46.800000000053444,
+    46.800000000053444,
+    -95.3
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 13374,
+    "points": 6669,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 44860,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/impeller.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2200844,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:08",
+   "readSeconds": 0.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 476,
+   "edges": 1376,
+   "volume": 6160.766892616933,
+   "area": 16855.244097057603,
+   "bbox": [
+    86.71679253766932,
+    85.04402965460469,
+    17.6972302978955
+   ],
+   "bboxMin": [
+    -43.17370664366883,
+    -44.0,
+    -86.1
+   ],
+   "bboxMax": [
+    43.54308589400049,
+    41.044029654604685,
+    -68.4027697021045
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 5740,
+    "points": 2870,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 5740,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/servo_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2264339,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:10",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 555,
+   "edges": 1650,
+   "volume": 3846.905748849486,
+   "area": 3357.8547492407715,
+   "bbox": [
+    12.0,
+    37.992544851782,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    201.0,
+    17.003727574108996,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    213.0,
+    54.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 7224,
+    "points": 3600,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 7224,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/servo_mount.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 73448,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 17,
+   "edges": 42,
+   "volume": 4280.74921412289,
+   "area": 4209.658652316729,
+   "bbox": [
+    16.024604927849992,
+    26.683331670636456,
+    42.30000000001654
+   ],
+   "bboxMin": [
+    189.5,
+    23.094068284875284,
+    -15.750000000016536
+   ],
+   "bboxMax": [
+    205.52460492785,
+    49.77739995551174,
+    26.55
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1082,
+    "points": 537,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1956,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/stem.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 24163,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 9,
+   "edges": 18,
+   "volume": 3560.8847642608825,
+   "area": 4974.111366651216,
+   "bbox": [
+    30.335000000000008,
+    28.0,
+    28.0
+   ],
+   "bboxMin": [
+    193.665,
+    -14.0,
+    -14.0
+   ],
+   "bboxMax": [
+    224.0,
+    14.0,
+    14.0
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1572,
+    "points": 786,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1572,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/stem_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2228855,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 544,
+   "edges": 1626,
+   "volume": 2063.3750440887907,
+   "area": 2240.587990814945,
+   "bbox": [
+    4.0,
+    37.992544851781005,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    209.0,
+    -18.996272425890005,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    213.0,
+    18.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2612,
+    "points": 1306,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2612,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/thruster_ring.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 185550,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:11",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 37,
+   "edges": 87,
+   "volume": 14404.995254001748,
+   "area": 30465.486635027584,
+   "bbox": [
+    76.0,
+    64.0,
+    37.8162236636464
+   ],
+   "bboxMin": [
+    -44.0,
+    -32.0,
+    -9.183764859699295e-13
+   ],
+   "bboxMax": [
+    32.00000000000001,
+    32.0,
+    37.81622366364548
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10108,
+    "points": 5050,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11480,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/fan_hatch.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 767973,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:08",
+   "readSeconds": 0.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 55,
+   "edges": 156,
+   "volume": 10362.566517979078,
+   "area": 21039.076439530636,
+   "bbox": [
+    93.60000000004528,
+    93.60000000004528,
+    8.687160618501991
+   ],
+   "bboxMin": [
+    -46.80000000002264,
+    -46.80000000002264,
+    -197.587160618502
+   ],
+   "bboxMax": [
+    46.80000000002264,
+    46.80000000002264,
+    -188.9
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 13260,
+    "points": 6612,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 43508,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/impeller.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2202615,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:07",
+   "readSeconds": 0.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 476,
+   "edges": 1376,
+   "volume": 6160.766892590138,
+   "area": 16855.24409707538,
+   "bbox": [
+    86.71679253766932,
+    85.04402965460469,
+    17.697230297975494
+   ],
+   "bboxMin": [
+    -43.17370664366883,
+    -44.0,
+    -179.7
+   ],
+   "bboxMax": [
+    43.54308589400049,
+    41.044029654604685,
+    -162.0027697020245
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 5740,
+    "points": 2870,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 5740,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/servo_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2277559,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 555,
+   "edges": 1650,
+   "volume": 3846.9057488494855,
+   "area": 3357.8547492407715,
+   "bbox": [
+    12.0,
+    37.992544851782,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    387.9885,
+    17.003727574108996,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    399.9885,
+    54.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 7224,
+    "points": 3600,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 7224,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/servo_mount.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 66008,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:08",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 17,
+   "edges": 42,
+   "volume": 5005.62496423072,
+   "area": 4924.4678770339815,
+   "bbox": [
+    16.763108260567208,
+    24.886800208123216,
+    42.30000000007566
+   ],
+   "bboxMin": [
+    376.4885,
+    23.657247849517855,
+    -15.75000000003552
+   ],
+   "bboxMax": [
+    393.2516082605672,
+    48.54404805764107,
+    26.550000000040143
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 948,
+    "points": 470,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1364,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/stem.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 24262,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 9,
+   "edges": 18,
+   "volume": 3560.8847642608775,
+   "area": 4974.111366651211,
+   "bbox": [
+    30.335000000000036,
+    28.0,
+    28.0
+   ],
+   "bboxMin": [
+    380.6535,
+    -14.0,
+    -14.0
+   ],
+   "bboxMax": [
+    410.98850000000004,
+    14.0,
+    14.0
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1572,
+    "points": 786,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1572,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/stem_gear.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 2241875,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:09",
+   "readSeconds": 0.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 544,
+   "edges": 1626,
+   "volume": 2063.3750440887916,
+   "area": 2240.587990814945,
+   "bbox": [
+    4.0,
+    37.992544851781005,
+    37.992544851781005
+   ],
+   "bboxMin": [
+    395.9885,
+    -18.996272425890005,
+    -18.99627242589
+   ],
+   "bboxMax": [
+    399.9885,
+    18.996272425891,
+    18.996272425891004
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2612,
+    "points": 1306,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2612,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/Propulsion/x1.9/thruster_ring.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 185550,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-09-28T22:40:10",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 37,
+   "edges": 87,
+   "volume": 14404.995254001748,
+   "area": 30465.486635027584,
+   "bbox": [
+    76.0,
+    64.0,
+    37.8162236636464
+   ],
+   "bboxMin": [
+    -44.0,
+    -32.0,
+    -9.183764859699295e-13
+   ],
+   "bboxMax": [
+    32.00000000000001,
+    32.0,
+    37.81622366364548
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10108,
+    "points": 5050,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11480,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left 12s small x3.8.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 32834302,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:13",
+   "readSeconds": 5.8,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4794,
+   "edges": 14402,
+   "volume": 49339.6724430688,
+   "area": 132947.83042558475,
+   "bbox": [
+    757.6307759166313,
+    432.3528210259924,
+    810.58577309608
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -204.33944784212238,
+    -416.0331803008
+   ],
+   "bboxMax": [
+    789.5063281841664,
+    228.01337318387,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 89998,
+    "points": 44861,
+    "seconds": 0.4
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 252030,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 14.2
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 31704824,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T10:43:52",
+   "readSeconds": 6.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4581,
+   "edges": 13741,
+   "volume": 43549.47750973763,
+   "area": 111085.06089160606,
+   "bbox": [
+    364.1863464557519,
+    333.6889481927822,
+    422.18630074442
+   ],
+   "bboxMin": [
+    30.488024572872,
+    -151.06562431814223,
+    -225.8944839418
+   ],
+   "bboxMax": [
+    394.6743710286239,
+    182.62332387464,
+    196.29181680262
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 61003,
+    "points": 30423,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 135986,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 12.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.step",
+  "problems": [],
+  "warnings": [
+   "meshing at the generator's first deflection 0.02 leaves 4 open edges (83662 facets); the retry at 0.015 is what made the print file watertight"
+  ],
+  "facts": {
+   "bytes": 30371887,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T09:22:27",
+   "readSeconds": 4.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4484,
+   "edges": 13447,
+   "volume": 22915.432723180053,
+   "area": 56740.78352744245,
+   "bbox": [
+    189.41648441116803,
+    190.42807849525803,
+    231.289446096503
+   ],
+   "bboxMin": [
+    30.48802457287197,
+    -79.50822332533802,
+    -129.8342674234
+   ],
+   "bboxMax": [
+    219.90450898404,
+    110.91985516992,
+    101.455178673103
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 53425,
+    "points": 26590,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 83662,
+      "solid": false,
+      "openEdges": 4
+     },
+     {
+      "deflection": 0.015,
+      "facets": 102080,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.015
+   }
+  },
+  "seconds": 11.2
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T plain 12s small x3.8.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 30948168,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:52:27",
+   "readSeconds": 4.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4780,
+   "edges": 14322,
+   "volume": 19694.14995741182,
+   "area": 64052.71226417451,
+   "bbox": [
+    757.6307759166313,
+    408.67889568424476,
+    789.0516929329481
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -204.33944784212238,
+    -394.499100137668
+   ],
+   "bboxMax": [
+    789.5063281841664,
+    204.33944784212238,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 45812,
+    "points": 22768,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 54756,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 10.1
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right 12s small x3.8.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 32914651,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:17",
+   "readSeconds": 5.9,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4793,
+   "edges": 14401,
+   "volume": 49494.0374573042,
+   "area": 133192.00470213033,
+   "bbox": [
+    757.6307759166313,
+    432.35282102592237,
+    810.58577309608
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -228.0133731838,
+    -416.0331803008
+   ],
+   "bboxMax": [
+    789.5063281841664,
+    204.33944784212238,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 91426,
+    "points": 45573,
+    "seconds": 0.4
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 252674,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 14.2
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 31624174,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T10:43:55",
+   "readSeconds": 6.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4577,
+   "edges": 13729,
+   "volume": 43616.485673600764,
+   "area": 111250.41286592334,
+   "bbox": [
+    364.1863464557519,
+    333.68894819274226,
+    422.18630074442
+   ],
+   "bboxMin": [
+    30.488024572872,
+    -182.6233238746,
+    -225.8944839418
+   ],
+   "bboxMax": [
+    394.6743710286239,
+    151.06562431814223,
+    196.29181680262
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 62453,
+    "points": 31144,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 139248,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 12.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.step",
+  "problems": [],
+  "warnings": [
+   "meshing at the generator's first deflection 0.02 leaves 4 open edges (85052 facets); the retry at 0.015 is what made the print file watertight"
+  ],
+  "facts": {
+   "bytes": 30584277,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T09:22:38",
+   "readSeconds": 4.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4477,
+   "edges": 13426,
+   "volume": 22992.50339017934,
+   "area": 56956.513546801885,
+   "bbox": [
+    189.416484411168,
+    190.42807849523803,
+    231.289446096503
+   ],
+   "bboxMin": [
+    30.488024572872,
+    -110.9198551699,
+    -129.8342674234
+   ],
+   "bboxMax": [
+    219.90450898404,
+    79.50822332533802,
+    101.455178673103
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 54539,
+    "points": 27145,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 85052,
+      "solid": false,
+      "openEdges": 4
+     },
+     {
+      "deflection": 0.015,
+      "facets": 103730,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.015
+   }
+  },
+  "seconds": 11.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 33582448,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T10:44:05",
+   "readSeconds": 4.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4597,
+   "edges": 13815,
+   "volume": 51820.54917613477,
+   "area": 130029.90212152718,
+   "bbox": [
+    364.1863464557519,
+    347.48084040868,
+    413.49398280241996
+   ],
+   "bboxMin": [
+    30.488024572872,
+    -173.7404202043,
+    -217.2021659998
+   ],
+   "bboxMax": [
+    394.6743710286239,
+    173.74042020438,
+    196.29181680262
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 92825,
+    "points": 46332,
+    "seconds": 0.5
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 230542,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 12.2
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026.step",
+  "problems": [],
+  "warnings": [
+   "meshing at the generator's first deflection 0.02 leaves 4 open edges (125922 facets); the retry at 0.015 is what made the print file watertight"
+  ],
+  "facts": {
+   "bytes": 31989547,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T09:22:41",
+   "readSeconds": 6.2,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4436,
+   "edges": 13346,
+   "volume": 26749.13604141402,
+   "area": 65398.93095679001,
+   "bbox": [
+    181.370028187698,
+    204.06909561005,
+    222.689139020703
+   ],
+   "bboxMin": [
+    30.48802457287197,
+    -102.034547805,
+    -121.2339603476
+   ],
+   "bboxMax": [
+    211.85805276057,
+    102.03454780505,
+    101.455178673103
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 71809,
+    "points": 35782,
+    "seconds": 0.3
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 125922,
+      "solid": false,
+      "openEdges": 4
+     },
+     {
+      "deflection": 0.015,
+      "facets": 152928,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.015
+   }
+  },
+  "seconds": 14.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 7466170,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:52",
+   "readSeconds": 0.8,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1067,
+   "edges": 3203,
+   "volume": 17431.857960803758,
+   "area": 43304.59264899856,
+   "bbox": [
+    441.01122324897483,
+    255.5772955869403,
+    126.85389598059999
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -107.4099037180603,
+    -416.0331803008
+   ],
+   "bboxMax": [
+    472.88677551651,
+    148.16739186888,
+    -289.1792843202
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 31548,
+    "points": 15750,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 97624,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 6519867,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:49",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 900,
+   "edges": 2722,
+   "volume": 14447.283828581929,
+   "area": 38769.917902247325,
+   "bbox": [
+    363.65799386873005,
+    404.33014240465894,
+    240.86652718759998
+   ],
+   "bboxMin": [
+    368.88949057604,
+    -189.04858718534894,
+    -363.1383305852
+   ],
+   "bboxMax": [
+    732.54748444477,
+    215.28155521931,
+    -122.2718033976
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 25854,
+    "points": 12901,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 87542,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.3
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/intake_tube_1.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 17722,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:53",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 8,
+   "edges": 12,
+   "volume": 65192.01046858018,
+   "area": 151405.13143366776,
+   "bbox": [
+    69.74,
+    69.74,
+    358.026296397642
+   ],
+   "bboxMin": [
+    -34.87,
+    -34.87,
+    -323.5
+   ],
+   "bboxMax": [
+    34.87,
+    34.87,
+    34.526296397642
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2016,
+    "points": 1008,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2080,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/intake_tube_2.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 9683,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:53",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4,
+   "edges": 6,
+   "volume": 61964.38027362153,
+   "area": 144464.49058054358,
+   "bbox": [
+    67.72,
+    67.72,
+    343.02629639764
+   ],
+   "bboxMin": [
+    -33.86,
+    -33.86,
+    19.526296397642
+   ],
+   "bboxMax": [
+    33.86,
+    33.86,
+    362.552592795282
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1008,
+    "points": 504,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1032,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/middle.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 8420836,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:43",
+   "readSeconds": 1.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1215,
+   "edges": 3666,
+   "volume": 10827.916555286305,
+   "area": 30167.496834659618,
+   "bbox": [
+    138.38240872846995,
+    432.3528210259924,
+    353.84683401259997
+   ],
+   "bboxMin": [
+    651.12459127153,
+    -204.33944784212238,
+    -200.2468340126
+   ],
+   "bboxMax": [
+    789.507,
+    228.01337318387,
+    153.6
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 25196,
+    "points": 12564,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 57024,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5746792,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:48",
+   "readSeconds": 0.6,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 899,
+   "edges": 2691,
+   "volume": 3561.7404670401984,
+   "area": 11628.490635645194,
+   "bbox": [
+    383.12445554504285,
+    214.81980850534404,
+    65.2075063016
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -107.40990425276777,
+    329.34508649368
+   ],
+   "bboxMax": [
+    415.000007812578,
+    107.40990425257625,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 9992,
+    "points": 4972,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13048,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.3
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5725572,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:46",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 897,
+   "edges": 2703,
+   "volume": 3085.328755267845,
+   "area": 11945.75266323954,
+   "bbox": [
+    329.56875612217925,
+    378.09717437095924,
+    186.27865320278966
+   ],
+   "bboxMin": [
+    400.8592102493924,
+    -189.04858718534894,
+    149.9197023954075
+   ],
+   "bboxMax": [
+    730.4279663715716,
+    189.04858718561033,
+    336.19835559819717
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 8898,
+    "points": 4423,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11004,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 6487944,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:16",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1057,
+   "edges": 3149,
+   "volume": 5645.01618603928,
+   "area": 15963.32087229646,
+   "bbox": [
+    383.12444773248717,
+    214.8198074354886,
+    85.999100137668
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -107.40990371774457,
+    -394.499100137668
+   ],
+   "bboxMax": [
+    415.00000000002234,
+    107.40990371774402,
+    -308.5
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 14520,
+    "points": 7236,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 17530,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5758487,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:13",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 901,
+   "edges": 2715,
+   "volume": 3063.9227203101714,
+   "area": 11950.436404325867,
+   "bbox": [
+    329.56867338719746,
+    378.09717437095924,
+    186.27936740998163
+   ],
+   "bboxMin": [
+    400.85921243293103,
+    -189.04858718534894,
+    -336.19835559823304
+   ],
+   "bboxMax": [
+    730.4278858201285,
+    189.04858718561033,
+    -149.9189881882514
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 8908,
+    "points": 4428,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11120,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/intake_tube_1.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 17722,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:16",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 8,
+   "edges": 12,
+   "volume": 65192.01046858018,
+   "area": 151405.13143366776,
+   "bbox": [
+    69.74,
+    69.74,
+    358.026296397642
+   ],
+   "bboxMin": [
+    -34.87,
+    -34.87,
+    -323.5
+   ],
+   "bboxMax": [
+    34.87,
+    34.87,
+    34.526296397642
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2016,
+    "points": 1008,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2080,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/intake_tube_2.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 9683,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:16",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4,
+   "edges": 6,
+   "volume": 61964.38027362153,
+   "area": 144464.49058054358,
+   "bbox": [
+    67.72,
+    67.72,
+    343.02629639764
+   ],
+   "bboxMin": [
+    -33.86,
+    -33.86,
+    19.526296397642
+   ],
+   "bboxMax": [
+    33.86,
+    33.86,
+    362.552592795282
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1008,
+    "points": 504,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1032,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/middle.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 7629861,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:07",
+   "readSeconds": 0.9,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1213,
+   "edges": 3647,
+   "volume": 4349.132178262648,
+   "area": 15276.119898423527,
+   "bbox": [
+    84.99562294971486,
+    408.67889568424476,
+    307.2
+   ],
+   "bboxMin": [
+    704.5113770502851,
+    -204.33944784212238,
+    -153.6
+   ],
+   "bboxMax": [
+    789.507,
+    204.33944784212238,
+    153.6
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 10862,
+    "points": 5397,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13760,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.9
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5746910,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:12",
+   "readSeconds": 0.6,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 899,
+   "edges": 2691,
+   "volume": 3561.7404670401984,
+   "area": 11628.490635645194,
+   "bbox": [
+    383.12445554504285,
+    214.81980850534404,
+    65.2075063016
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -107.40990425276777,
+    329.34508649368
+   ],
+   "bboxMax": [
+    415.000007812578,
+    107.40990425257625,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 9992,
+    "points": 4972,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13048,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.3
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5725809,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:10",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 897,
+   "edges": 2703,
+   "volume": 3085.3287552658658,
+   "area": 11945.752663239482,
+   "bbox": [
+    329.56875612217925,
+    378.09717437095924,
+    186.27865320278966
+   ],
+   "bboxMin": [
+    400.8592102493924,
+    -189.04858718534894,
+    149.9197023954075
+   ],
+   "bboxMax": [
+    730.4279663715716,
+    189.04858718561033,
+    336.19835559819717
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 8898,
+    "points": 4423,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11004,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.4
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 7479864,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:57",
+   "readSeconds": 0.8,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1067,
+   "edges": 3203,
+   "volume": 17431.87010432621,
+   "area": 43305.26199576708,
+   "bbox": [
+    441.01122324897483,
+    255.577295586544,
+    126.85389598059999
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -148.1673918688,
+    -416.0331803008
+   ],
+   "bboxMax": [
+    472.88677551651,
+    107.40990371774402,
+    -289.1792843202
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 32172,
+    "points": 16062,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 97376,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 6525273,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:55",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 900,
+   "edges": 2722,
+   "volume": 14508.820152217824,
+   "area": 38761.33583502097,
+   "bbox": [
+    363.65799386873005,
+    404.33014240491036,
+    240.86652718759998
+   ],
+   "bboxMin": [
+    368.88949057604,
+    -215.2815552193,
+    -363.1383305852
+   ],
+   "bboxMax": [
+    732.54748444477,
+    189.04858718561033,
+    -122.2718033976
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 25852,
+    "points": 12900,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 87298,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.3
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/intake_tube_1.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 17722,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:58",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 8,
+   "edges": 12,
+   "volume": 65192.01046858018,
+   "area": 151405.13143366776,
+   "bbox": [
+    69.74,
+    69.74,
+    358.026296397642
+   ],
+   "bboxMin": [
+    -34.87,
+    -34.87,
+    -323.5
+   ],
+   "bboxMax": [
+    34.87,
+    34.87,
+    34.526296397642
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 2016,
+    "points": 1008,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 2080,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/intake_tube_2.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 9683,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:58",
+   "readSeconds": 0.0,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4,
+   "edges": 6,
+   "volume": 61964.38027362153,
+   "area": 144464.49058054358,
+   "bbox": [
+    67.72,
+    67.72,
+    343.02629639764
+   ],
+   "bboxMin": [
+    -33.86,
+    -33.86,
+    19.526296397642
+   ],
+   "bboxMax": [
+    33.86,
+    33.86,
+    362.552592795282
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 1008,
+    "points": 504,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 1032,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 0.0
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/middle.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 8501764,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:48",
+   "readSeconds": 1.1,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 1214,
+   "edges": 3666,
+   "volume": 10923.694735268888,
+   "area": 30419.60405883448,
+   "bbox": [
+    138.38240872846995,
+    432.35282102592237,
+    353.84683401259997
+   ],
+   "bboxMin": [
+    651.12459127153,
+    -228.0133731838,
+    -200.2468340126
+   ],
+   "bboxMax": [
+    789.507,
+    204.33944784212238,
+    153.6
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 26466,
+    "points": 13197,
+    "seconds": 0.1
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 58566,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 2.6
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_inner.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5746778,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:52",
+   "readSeconds": 0.6,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 899,
+   "edges": 2691,
+   "volume": 3561.740467040203,
+   "area": 11628.490635645197,
+   "bbox": [
+    383.12445554504285,
+    214.81980850534404,
+    65.2075063016
+   ],
+   "bboxMin": [
+    31.875552267535152,
+    -107.40990425276777,
+    329.34508649368
+   ],
+   "bboxMax": [
+    415.000007812578,
+    107.40990425257625,
+    394.55259279528
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 9992,
+    "points": 4972,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 13048,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.3
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_outer.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 5725569,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-10-03T11:53:50",
+   "readSeconds": 0.7,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 897,
+   "edges": 2703,
+   "volume": 3085.328755266879,
+   "area": 11945.752663239486,
+   "bbox": [
+    329.56875612217925,
+    378.09717437095924,
+    186.27865320278966
+   ],
+   "bboxMin": [
+    400.8592102493924,
+    -189.04858718534894,
+    149.9197023954075
+   ],
+   "bboxMax": [
+    730.4279663715716,
+    189.04858718561033,
+    336.19835559819717
+   ],
+   "shellsClosed": [
+    true
+   ],
+   "tessellate": {
+    "triangles": 8898,
+    "points": 4423,
+    "seconds": 0.0
+   },
+   "meshLadder": {
+    "tries": [
+     {
+      "deflection": 0.02,
+      "facets": 11004,
+      "solid": true,
+      "openEdges": 0
+     }
+    ],
+    "firstSolid": 0.02
+   }
+  },
+  "seconds": 1.4
+ }
+]

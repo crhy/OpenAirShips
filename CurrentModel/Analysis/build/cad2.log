@@ -1,0 +1,125 @@
+PASS  CAD Files/Propulsion/4T/propulsion 1026 4T.FCStd  [FCStd] objects 7  visible 7  main thruster_ring  vol 18,381 mm3  gui True  brp 3,068,017 b  tess 10666 tris in 0.0 s  vs STEP parts same
+      note     sibling STEP not in the document: avionics_tray.step
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/propulsion 1026 4T small 12s x3.8.FCStd  [FCStd] objects 8  visible 8  main avionics_tray  vol 24,061 mm3  gui True  brp 3,051,251 b  tess 1418 tris in 0.0 s  vs STEP parts same
+PASS  CAD Files/Propulsion/4T/x1.9/propulsion 1026 4T x1.9.FCStd  [FCStd] objects 7  visible 7  main thruster_ring  vol 18,381 mm3  gui True  brp 3,062,259 b  tess 10666 tris in 0.0 s  vs STEP parts same
+PASS  CAD Files/Propulsion/propulsion 1026.FCStd  [FCStd] objects 7  visible 7  main thruster_ring  vol 14,405 mm3  gui True  brp 2,904,173 b  tess 10108 tris in 0.0 s  vs STEP parts same
+      note     sibling STEP not in the document: avionics_tray.step
+PASS  CAD Files/Propulsion/x1.9/propulsion 1026 x1.9.FCStd  [FCStd] objects 7  visible 7  main thruster_ring  vol 14,405 mm3  gui True  brp 2,914,184 b  tess 10108 tris in 0.0 s  vs STEP parts same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 43,549 mm3  gui True  brp 13,039,910 b  tess 61003 tris in 0.5 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 22,915 mm3  gui True  brp 12,337,944 b  tess 53425 tris in 0.5 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 43,616 mm3  gui True  brp 12,984,915 b  tess 62453 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 22,993 mm3  gui True  brp 12,472,067 b  tess 54539 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 51,821 mm3  gui True  brp 14,178,363 b  tess 92825 tris in 0.4 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 26,749 mm3  gui True  brp 13,456,695 b  tess 71809 tris in 0.4 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 left (pieces).FCStd  [FCStd] objects 5  visible 5  main bottom_inner  vol 17,432 mm3  gui True  brp 14,295,278 b  tess 31548 tris in 0.1 s  vs STEP parts same
+      note     sibling STEP not in the document: intake_tube_1.step, intake_tube_2.step
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 plain (pieces).FCStd  [FCStd] objects 5  visible 5  main bottom_inner  vol 5,645 mm3  gui True  brp 12,726,890 b  tess 14520 tris in 0.1 s  vs STEP parts same
+      note     sibling STEP not in the document: intake_tube_1.step, intake_tube_2.step
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 v0.2.1 right (pieces).FCStd  [FCStd] objects 5  visible 5  main bottom_inner  vol 17,432 mm3  gui True  brp 14,382,644 b  tess 32172 tris in 0.1 s  vs STEP parts same
+      note     sibling STEP not in the document: intake_tube_1.step, intake_tube_2.step
+PASS  CAD Files/Propulsion/4T/fan_hatch.step  [STEP] solids 1  faces 50  valid True  vol 11,247 mm3  tess 10252 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/impeller.step  [STEP] solids 1  faces 476  valid True  vol 6,161 mm3  tess 5740 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/servo_gear.step  [STEP] solids 1  faces 675  valid True  vol 4,823 mm3  tess 7704 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/servo_mount.step  [STEP] solids 1  faces 17  valid True  vol 3,880 mm3  tess 1104 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/avionics_tray.step  [STEP] solids 1  faces 94  valid True  vol 24,061 mm3  tess 1418 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/fan_hatch.step  [STEP] solids 1  faces 71  valid True  vol 10,522 mm3  tess 13524 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/impeller.step  [STEP] solids 1  faces 476  valid True  vol 6,161 mm3  tess 5740 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/servo_gear.step  [STEP] solids 1  faces 555  valid True  vol 3,847 mm3  tess 7224 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/servo_mount.step  [STEP] solids 1  faces 17  valid True  vol 5,397 mm3  tess 902 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/stem.step  [STEP] solids 1  faces 9  valid True  vol 3,561 mm3  tess 1572 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/stem_gear.step  [STEP] solids 1  faces 544  valid True  vol 2,063 mm3  tess 2612 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/small/12s/x3.8/thruster_ring.step  [STEP] solids 1  faces 38  valid True  vol 14,340 mm3  tess 10108 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/stem.step  [STEP] solids 1  faces 9  valid True  vol 4,920 mm3  tess 1564 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/stem_gear.step  [STEP] solids 1  faces 664  valid True  vol 2,381 mm3  tess 3100 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/thruster_ring.step  [STEP] solids 1  faces 37  valid True  vol 18,381 mm3  tess 10666 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/fan_hatch.step  [STEP] solids 1  faces 50  valid True  vol 11,538 mm3  tess 9984 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/impeller.step  [STEP] solids 1  faces 476  valid True  vol 6,161 mm3  tess 5740 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/servo_gear.step  [STEP] solids 1  faces 675  valid True  vol 4,823 mm3  tess 7704 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/servo_mount.step  [STEP] solids 1  faces 17  valid True  vol 4,801 mm3  tess 948 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/stem.step  [STEP] solids 1  faces 9  valid True  vol 4,920 mm3  tess 1564 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/stem_gear.step  [STEP] solids 1  faces 664  valid True  vol 2,381 mm3  tess 3100 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/4T/x1.9/thruster_ring.step  [STEP] solids 1  faces 37  valid True  vol 18,381 mm3  tess 10666 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/fan_hatch.step  [STEP] solids 1  faces 55  valid True  vol 10,072 mm3  tess 13374 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/impeller.step  [STEP] solids 1  faces 476  valid True  vol 6,161 mm3  tess 5740 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/servo_gear.step  [STEP] solids 1  faces 555  valid True  vol 3,847 mm3  tess 7224 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/servo_mount.step  [STEP] solids 1  faces 17  valid True  vol 4,281 mm3  tess 1082 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/stem.step  [STEP] solids 1  faces 9  valid True  vol 3,561 mm3  tess 1572 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/stem_gear.step  [STEP] solids 1  faces 544  valid True  vol 2,063 mm3  tess 2612 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/thruster_ring.step  [STEP] solids 1  faces 37  valid True  vol 14,405 mm3  tess 10108 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/fan_hatch.step  [STEP] solids 1  faces 55  valid True  vol 10,363 mm3  tess 13260 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/impeller.step  [STEP] solids 1  faces 476  valid True  vol 6,161 mm3  tess 5740 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/servo_gear.step  [STEP] solids 1  faces 555  valid True  vol 3,847 mm3  tess 7224 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/servo_mount.step  [STEP] solids 1  faces 17  valid True  vol 5,006 mm3  tess 948 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/stem.step  [STEP] solids 1  faces 9  valid True  vol 3,561 mm3  tess 1572 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/stem_gear.step  [STEP] solids 1  faces 544  valid True  vol 2,063 mm3  tess 2612 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/Propulsion/x1.9/thruster_ring.step  [STEP] solids 1  faces 37  valid True  vol 14,405 mm3  tess 10108 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left 12s small x3.8.step  [STEP] solids 1  faces 4,794  valid True  vol 49,340 mm3  tess 89998 tris in 0.4 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.step  [STEP] solids 1  faces 4,581  valid True  vol 43,549 mm3  tess 61003 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.step  [STEP] solids 1  faces 4,484  valid True  vol 22,915 mm3  tess 53425 tris in 0.3 s  mesh@0.02 open 4  firstSolid 0.015
+      note     meshing at the generator's first deflection 0.02 leaves 4 open edges (83662 facets); the retry at 0.015 is what made the print file watertight
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T plain 12s small x3.8.step  [STEP] solids 1  faces 4,780  valid True  vol 19,694 mm3  tess 45812 tris in 0.2 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right 12s small x3.8.step  [STEP] solids 1  faces 4,793  valid True  vol 49,494 mm3  tess 91426 tris in 0.4 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.step  [STEP] solids 1  faces 4,577  valid True  vol 43,616 mm3  tess 62453 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.step  [STEP] solids 1  faces 4,477  valid True  vol 22,993 mm3  tess 54539 tris in 0.3 s  mesh@0.02 open 4  firstSolid 0.015
+      note     meshing at the generator's first deflection 0.02 leaves 4 open edges (85052 facets); the retry at 0.015 is what made the print file watertight
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.step  [STEP] solids 1  faces 4,597  valid True  vol 51,821 mm3  tess 92825 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026.step  [STEP] solids 1  faces 4,436  valid True  vol 26,749 mm3  tess 71809 tris in 0.3 s  mesh@0.02 open 4  firstSolid 0.015
+      note     meshing at the generator's first deflection 0.02 leaves 4 open edges (125922 facets); the retry at 0.015 is what made the print file watertight
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_inner.step  [STEP] solids 1  faces 1,067  valid True  vol 17,432 mm3  tess 31548 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/bottom_outer.step  [STEP] solids 1  faces 900  valid True  vol 14,447 mm3  tess 25854 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/intake_tube_1.step  [STEP] solids 1  faces 8  valid True  vol 65,192 mm3  tess 2016 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/intake_tube_2.step  [STEP] solids 1  faces 4  valid True  vol 61,964 mm3  tess 1008 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/middle.step  [STEP] solids 1  faces 1,215  valid True  vol 10,828 mm3  tess 25196 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_inner.step  [STEP] solids 1  faces 899  valid True  vol 3,562 mm3  tess 9992 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T left 12s small x3.8/top_outer.step  [STEP] solids 1  faces 897  valid True  vol 3,085 mm3  tess 8898 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_inner.step  [STEP] solids 1  faces 1,057  valid True  vol 5,645 mm3  tess 14520 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/bottom_outer.step  [STEP] solids 1  faces 901  valid True  vol 3,064 mm3  tess 8908 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/intake_tube_1.step  [STEP] solids 1  faces 8  valid True  vol 65,192 mm3  tess 2016 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/intake_tube_2.step  [STEP] solids 1  faces 4  valid True  vol 61,964 mm3  tess 1008 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/middle.step  [STEP] solids 1  faces 1,213  valid True  vol 4,349 mm3  tess 10862 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_inner.step  [STEP] solids 1  faces 899  valid True  vol 3,562 mm3  tess 9992 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T plain 12s small x3.8/top_outer.step  [STEP] solids 1  faces 897  valid True  vol 3,085 mm3  tess 8898 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_inner.step  [STEP] solids 1  faces 1,067  valid True  vol 17,432 mm3  tess 32172 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/bottom_outer.step  [STEP] solids 1  faces 900  valid True  vol 14,509 mm3  tess 25852 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/intake_tube_1.step  [STEP] solids 1  faces 8  valid True  vol 65,192 mm3  tess 2016 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/intake_tube_2.step  [STEP] solids 1  faces 4  valid True  vol 61,964 mm3  tess 1008 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/middle.step  [STEP] solids 1  faces 1,214  valid True  vol 10,924 mm3  tess 26466 tris in 0.1 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_inner.step  [STEP] solids 1  faces 899  valid True  vol 3,562 mm3  tess 9992 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/pieces/airship pie slice 1026 4T right 12s small x3.8/top_outer.step  [STEP] solids 1  faces 897  valid True  vol 3,085 mm3  tess 8898 tris in 0.0 s  mesh@0.02 open 0  firstSolid 0.02
+
+wrote CurrentModel/Analysis/build/cad2.json (80 records)
+
+80 files checked, 80 pass, 0 fail
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Importing project files......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(12 %)							(25 %)							(37 %)							(50 %)							(62 %)							(75 %)							(87 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(14 %)							(28 %)							(42 %)							(57 %)							(71 %)							(85 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(20 %)							(40 %)							(60 %)							(80 %)							(100 %)									Postprocessing......
+						(100 %)									
