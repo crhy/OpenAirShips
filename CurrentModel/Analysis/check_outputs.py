@@ -17,10 +17,12 @@ all of this script's own arguments inside one quoted string after `--pass`.
 What it checks
   .FCStd   opens it, lists the objects, and for every shape: isNull/isValid,
            solid/shell/face count, volume, bbox; whether the document has any
-           visible geometry at all; the zip layout (Document.xml, GuiDocument.xml,
-           the .brp parts and their sizes), the program that wrote it, and the
-           stored document label vs the file name; how long the shape takes
-           to tessellate, which is what a viewer pays before it shows anything.
+           visible geometry at all, and whether GuiDocument.xml switches each
+           of those parts on (that file is what makes the GUI show the parts on
+           open); the zip layout (Document.xml, GuiDocument.xml, the .brp parts
+           and their sizes), the program that wrote it, and the stored document
+           label vs the file name; how long the shape takes to tessellate, which
+           is what a viewer pays before it shows anything.
   .step    loads it and reports the same shape numbers, plus shell closedness
            and the STEP dialect, and re-runs the generator's meshing ladder
            (0.02, 0.015, 0.03, 0.01, 0.05) to show whether the first pass is
@@ -43,6 +45,8 @@ Options (inside the `--pass` string)
   --cad-root PATH    root scanned for .FCStd/.step (default CurrentModel/CAD Files)
   --stl-root PATH    root scanned for .stl      (default CurrentModel/Print Files)
   --filter SUBSTR    only files whose path contains SUBSTR
+  --only cad|print   cad = the .FCStd and .step files only, print = the .stl
+                     files only (default: both)
   --no-tess          skip tessellating shapes (faster, display cost not measured)
   --no-thin          skip the STL wall-thickness scan
 """
@@ -57,6 +61,7 @@ import struct
 import sys
 import time
 import zipfile
+import xml.etree.ElementTree as ET
 
 import FreeCAD as App
 import MeshPart
@@ -245,6 +250,36 @@ def mesh_ladder(shape):
 
 
 # --------------------------------------------------------------------- FCStd
+def version_pair(text):
+    """(major, minor) of a FreeCAD version string: '1.1R45039 (Git)' -> (1, 1)."""
+    nums = re.findall(r"\d+", text)
+    return tuple(int(x) for x in nums[:2])
+
+
+def gui_view_objects(xml):
+    """(object name -> visible) for the ViewProvider entries in GuiDocument.xml.
+
+    This is the file the GUI reads back on open: no entry, or an entry with
+    Visibility off, and the part is not drawn.
+    """
+    try:
+        root = ET.fromstring(xml)
+    except Exception as exc:
+        return {}, "not parseable: %s" % exc
+    out = {}
+    for vp in root.iter("ViewProvider"):
+        name, visible = vp.get("name"), False
+        for prop in vp.iter("Property"):
+            if prop.get("name") != "Visibility":
+                continue
+            node = prop.find("Bool")
+            if node is not None:
+                visible = node.get("value", "true").strip().lower() not in ("false", "0")
+        if name:
+            out[name] = visible
+    return out, ""
+
+
 def check_fcstd(path):
     rec = {"kind": "FCStd", "path": path, "problems": [], "warnings": [], "facts": {}}
     facts = rec["facts"]
@@ -274,6 +309,11 @@ def check_fcstd(path):
         facts["storedLabel"] = m.group(1) if m else ""
         m = re.search(r'<Objects Count="(\d+)"', xml)
         facts["objectsInXml"] = int(m.group(1)) if m else 0
+    if "GuiDocument.xml" in names:
+        views, err = gui_view_objects(
+            zf.read("GuiDocument.xml").decode("utf-8", "replace"))
+        facts["viewObjects"] = views
+        facts["guiParseError"] = err
     zf.close()
 
     # open it the way FreeCAD does
@@ -330,9 +370,19 @@ def check_fcstd(path):
     if not facts["hasDocumentXml"]:
         rec["problems"].append("Document.xml missing from the zip")
     if not facts["hasGuiDocumentXml"]:
-        rec["warnings"].append(
-            "GuiDocument.xml missing: the GUI restores no saved view (camera, "
-            "per-object visibility, display mode) and falls back to defaults")
+        rec["problems"].append(
+            "GuiDocument.xml missing: the GUI restores no camera, no per-object "
+            "visibility and no display mode, so the parts are not switched on "
+            "for the viewer")
+    elif facts.get("guiParseError"):
+        rec["problems"].append("GuiDocument.xml: %s" % facts["guiParseError"])
+    else:
+        views = facts.get("viewObjects", {})
+        hidden = [o["name"] for o in geo if not views.get(o["name"], False)]
+        if hidden:
+            rec["problems"].append(
+                "GuiDocument.xml has no visible ViewObject for: %s"
+                % ", ".join(hidden))
     if facts["emptyBrpFiles"]:
         real = [n for n in facts["emptyBrpFiles"] if "Suppressed" not in n]
         if real:
@@ -352,7 +402,7 @@ def check_fcstd(path):
     if stored and stored.lower() not in stem.lower():
         rec["problems"].append(
             "stored document label '%s' does not match the file name '%s'" % (stored, stem))
-    if facts.get("programVersion", "").split("R")[0] != version_string().split()[1]:
+    if version_pair(facts.get("programVersion", "")) != version_pair(version_string()):
         rec["warnings"].append(
             "written by %s, read by %s: FreeCAD rebuilds the shape's element map "
             "when the document is opened"
@@ -583,33 +633,71 @@ def compare_volume(rec, step_path):
                                               rel * 100))
 
 
+def name_tokens(text):
+    return set(re.findall(r"[a-z0-9.]+", text.lower()))
+
+
+def pick_step(path, candidates):
+    """The candidate STEP in the sibling folder whose name best matches this
+    document. A pieces document and the other slice types share part names
+    (middle, top_outer, ...), so the folder name is what tells them apart.
+    """
+    tok = name_tokens(os.path.basename(path))
+    return max(candidates, key=lambda sp: (len(tok & name_tokens(
+        os.path.basename(os.path.dirname(sp)))),
+        -len(os.path.relpath(sp, os.path.dirname(path)))))
+
+
 def compare_assembly(rec, path):
-    """A Propulsion .FCStd is an assembly of separate parts, and the parts are
-    the .step files sitting next to it, so compare the sums."""
+    """A Propulsion or pieces .FCStd is an assembly of separate parts, and the
+    parts are the .step files in the folders next to it, so match them by name
+    and compare the sums."""
     here = os.path.dirname(path)
-    parts = sorted(walk(here, (".step",)))
-    if not parts:
+    steps = walk(here, (".step",))
+    if not steps:
         rec["cross"] = {"step": "no sibling STEP parts", "status": "not compared"}
         return
-    total, missing = 0.0, []
-    for sp in parts:
+    by_name = {}
+    for sp in steps:
+        by_name.setdefault(os.path.splitext(os.path.basename(sp))[0], []).append(sp)
+    own = {o["name"]: o["volume"] for o in rec["facts"].get("objects", [])
+           if "volume" in o}
+    matched, missing, total = [], [], 0.0
+    for name in sorted(own):
+        cand = by_name.get(name)
+        if not cand:
+            missing.append(name)
+            continue
+        sp = pick_step(path, cand)
+        matched.append(sp)
         v, err = step_volume(sp)
         if v is None:
-            missing.append(os.path.basename(sp))
+            missing.append("%s (%s)" % (name, err))
         else:
             total += v
-    own = sum(o.get("volume", 0.0) for o in rec["facts"].get("objects", []))
-    rel = abs(own - total) / max(abs(total), 1.0)
-    rec["cross"] = {"parts": [os.path.relpath(sp, CURRENT) for sp in parts],
-                    "volume": own, "stepPartsVolume": total,
+    own_names = set(own)
+    extra = sorted({os.path.basename(sp) for sp in steps
+                    if os.path.splitext(os.path.basename(sp))[0] not in own_names})
+    own_total = sum(own.values())
+    rel = abs(own_total - total) / max(abs(total), 1.0)
+    rec["cross"] = {"parts": [os.path.relpath(sp, CURRENT) for sp in matched],
+                    "volume": own_total, "stepPartsVolume": total,
                     "relDiff": round(rel, 5),
-                    "unreadable": missing,
-                    "status": "same" if rel <= VOL_TOL else "DIFFERENT"}
+                    "missing": missing, "extra": extra,
+                    "status": "same" if rel <= VOL_TOL and not missing else "DIFFERENT"}
+    if missing:
+        rec["problems"].append(
+            "parts with no readable sibling STEP: %s" % ", ".join(missing))
     if rel > VOL_TOL:
         rec["problems"].append(
-            "assembly volume %s mm3 vs the %d sibling STEP parts' %s mm3 "
+            "assembly volume %s mm3 vs the %d matched sibling STEP parts' %s mm3 "
             "(%.1f %% apart): the document is not the parts on disk"
-            % ("{:,.0f}".format(own), len(parts), "{:,.0f}".format(total), rel * 100))
+            % ("{:,.0f}".format(own_total), len(matched), "{:,.0f}".format(total),
+               rel * 100))
+    if extra:
+        rec["warnings"].append(
+            "sibling STEP not in the document: %s"
+            % ", ".join(os.path.basename(e) for e in extra))
 
 
 # ------------------------------------------------------------------- driver
@@ -640,6 +728,8 @@ def main(argv):
     ap.add_argument("--cad-root", dest="cad_roots", action="append")
     ap.add_argument("--stl-root", dest="stl_roots", action="append")
     ap.add_argument("--filter", dest="filter", default="")
+    ap.add_argument("--only", dest="only", default="all",
+                    choices=("cad", "print", "all"))
     ap.add_argument("--no-tess", dest="no_tess", action="store_true")
     ap.add_argument("--no-thin", dest="no_thin", action="store_true")
     ns = ap.parse_args(shlex.split(" ".join(a for a in argv if a != "--pass")))
@@ -649,11 +739,13 @@ def main(argv):
     cad_roots = ns.cad_roots or [os.path.join(CURRENT, "CAD Files")]
     stl_roots = ns.stl_roots or [os.path.join(CURRENT, "Print Files")]
 
+    cad_exts = (".fcstd", ".step") if ns.only in ("cad", "all") else ()
+    stl_exts = (".stl",) if ns.only in ("print", "all") else ()
     files = []
     for r in cad_roots:
-        files += walk(r, (".fcstd", ".step"))
+        files += walk(r, cad_exts)
     for r in stl_roots:
-        files += walk(r, (".stl",))
+        files += walk(r, stl_exts)
     files = [f for f in files if ns.filter in f]
     order = {".fcstd": 0, ".step": 1, ".stl": 2}
     files.sort(key=lambda p: (order[os.path.splitext(p)[1].lower()], p))
@@ -737,6 +829,10 @@ def main(argv):
 
     n = len(recs)
     print("\n{} files checked, {} pass, {} fail".format(n, n - fails, fails))
+    # freecadcmd's exit path does not flush Python's stdout, so without this
+    # the summary lines never reach the log
+    sys.stdout.flush()
+    sys.stderr.flush()
     return 1 if fails else 0
 
 

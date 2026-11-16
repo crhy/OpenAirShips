@@ -52,6 +52,17 @@ Print from the version's `print/*.stl`. Each file is already posed for printing:
 - **Total printed propulsion:** about 233 cm³ (≈ 290 g of PLA) for 8 thrusters, or 154 cm³ (≈ 190 g) for 4, plus the PETG impeller (≈ 8 g). Lightweight PLA for the rings and servo mounts saves about a third of theirs; see [FLOAT.md](../../Analysis/FLOAT.md).
 - **Motor:** 2207 1750 KV on 4S (≈ 32 g, ≈ 25 A at full throttle). It must spin **counter-clockwise seen from above**; swap any two motor wires if it doesn't.
 - **Parametric source:** `propulsion.py`. All dimensions are at the top.
+- **FreeCAD documents:** one per version (`propulsion 1026[ 4T][ small][ 12s][ x1.9].FCStd`), each holding every part of that version as a `Part::Feature` solid, with a saved view (`GuiDocument.xml`) so the parts show as soon as the file opens in the FreeCAD GUI. Written through `../fcstd_doc.py`.
+- **To regenerate** the parts and the document of one version, from this folder:
+  ```
+  python3 propulsion.py && freecadcmd make_fcstd.py                        # 8 thrusters, bench
+  OAS_SCALE=1.9 python3 propulsion.py && OAS_SCALE=1.9 freecadcmd make_fcstd.py
+  OAS_VARIANT=4T OAS_THRUSTER=L python3 propulsion.py && OAS_VARIANT=4T OAS_THRUSTER=L freecadcmd make_fcstd.py
+  OAS_VARIANT=4T OAS_SLICES=12 OAS_THRUSTER=S python3 propulsion.py && OAS_VARIANT=4T OAS_SLICES=12 OAS_THRUSTER=S freecadcmd make_fcstd.py   # v0.2 double Kobra
+  ```
+  Add `OAS_FCSTD_ONLY=1` to `make_fcstd.py` to rewrite only the `.FCStd` from the
+  `.step` files already on disk: it writes no STL, reads no `print/*.step` and
+  removes nothing.
 - **Fit checks:** `check_fit.py` runs 35 checks against the assembled hull, and they all pass for all four versions. They cover:
   - the impeller under the shroud (≥ 1.2 mm clearance) and its path up through the hatch opening
   - the hatch at its insert angle, at 5–15 mm below seated, and locked
