@@ -86,6 +86,13 @@ for s in L R P; do OAS_SIDE=$s python3 airship_slice.py; done
 freecadcmd make_pieces.py
 ```
 
+To rebuild only the three `pieces/*.FCStd` documents from the piece STEP files
+already on disk, and leave the print files alone:
+```
+OAS_FCSTD_ONLY=1 OAS_VARIANT=4T OAS_SLICES=12 OAS_THRUSTER=S OAS_PIECES=1 \
+    OAS_SCALE=3.8 OAS_RIB=1.2 freecadcmd make_pieces.py
+```
+
 ## Checked (every version)
 - Each part is a single valid solid, and only the 5 pegs stick out of the hull.
 - Neighbouring slices overlap by 0 mm³ (for 4 thrusters: left against right, on both seams).
@@ -126,7 +133,7 @@ It saves about a third of the hull's weight; see the table above.
 - **What to print in it:** the hull slices, thruster rings and servo mounts. Keep the stems, gears and fan hatch in standard PLA (accurate teeth, bearing surfaces and bayonet tabs). Keep the impeller in PETG, and never foam it: its tip runs at 72 m/s, and uneven foam would throw it out of balance.
 
 ## Files
-- **FreeCAD documents:** `airship pie slice 1026[ 4T left| 4T right][ x1.9].FCStd`. Each holds the part as the base feature of a PartDesign Body, plus a parameter spreadsheet.
+- **FreeCAD documents:** `airship pie slice 1026[ 4T left| 4T right][ x1.9].FCStd`. Each holds the part as one `Part::Feature` solid plus a parameter spreadsheet, and a saved view (`GuiDocument.xml`: the part switched on, in colour, with a camera framed on it) so the parts appear as soon as the file is opened in the FreeCAD GUI. They are written through `../fcstd_doc.py`, which also refuses to store a shape that is not a valid closed solid.
 - **STEP:** the same parts, in the matching `.step` files.
 - **`airship_slice.py`:** the parametric source (CadQuery). Everything is set at the top of the file. The version is chosen with environment variables:
   - `OAS_VARIANT=8T|4T`
@@ -135,6 +142,7 @@ It saves about a third of the hull's weight; see the table above.
   - v0.2 only: `OAS_SLICES=12`, `OAS_SIDE=P` (plain slice), `OAS_THRUSTER=S` (8-thruster-size ducts on 4 thrusters), `OAS_PIECES=1` (cut into pieces, with intake tubes), `OAS_RIB=1.2` (web width)
 - **`make_pieces.py`:** builds the v0.2 piece STLs and FCStd documents.
 - **`make_fcstd.py`:** builds the FCStd and the print STL for the same settings.
+- **`../fcstd_doc.py`:** the shared document writer (one `Part::Feature` per part, document label = file name, `GuiDocument.xml` with every part visible). `OAS_FCSTD_ONLY=1` on any of these scripts rewrites only the `.FCStd`, from the STEP files on disk.
 
 To regenerate, for example the right-hand 4-thruster Kobra Max slice:
 ```
@@ -142,3 +150,15 @@ pip install cadquery
 OAS_VARIANT=4T OAS_SIDE=R OAS_SCALE=1.9 python3 airship_slice.py
 OAS_VARIANT=4T OAS_SIDE=R OAS_SCALE=1.9 freecadcmd make_fcstd.py
 ```
+
+All six whole-slice documents, from the `.step` files already in this folder:
+```
+freecadcmd make_fcstd.py                                        # 8 thrusters, bench
+OAS_SCALE=1.9 freecadcmd make_fcstd.py                           # 8 thrusters, Kobra Max
+OAS_VARIANT=4T OAS_SIDE=L freecadcmd make_fcstd.py              # 4 thrusters, left
+OAS_VARIANT=4T OAS_SIDE=R freecadcmd make_fcstd.py              # 4 thrusters, right
+OAS_VARIANT=4T OAS_SIDE=L OAS_SCALE=1.9 freecadcmd make_fcstd.py # 4 thrusters, left, Kobra Max
+OAS_VARIANT=4T OAS_SIDE=R OAS_SCALE=1.9 freecadcmd make_fcstd.py # 4 thrusters, right, Kobra Max
+```
+Add `OAS_FCSTD_ONLY=1` to any of those lines to rewrite the `.FCStd` only and
+leave `Print Files/` untouched.

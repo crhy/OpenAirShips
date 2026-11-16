@@ -8,6 +8,10 @@ Checker: `CurrentModel/Analysis/check_outputs.py`. Raw logs:
 
 **Result: 33 of 103 files fail. 0 STEP files fail.**
 
+Re-measured after f073 fixed the FCStd writer (`Analysis/check_outputs.py --only
+cad`): **all 14 `.FCStd` and all 66 `.step` files pass**. The 19 thin-walled STLs
+still fail — that is f074's fix, not this one.
+
 ## The three real defects, ranked by how badly they break the thing
 
 ### 1. The CAD files cannot be regenerated — the generator's dependency is missing
@@ -31,6 +35,9 @@ So nobody can rebuild a `.step`, and the `.FCStd` / `.stl` files drift from the
 source silently. This is the root cause of #2 and #3.
 
 ### 2. Every `.FCStd` file is the *previous* release's document, renamed
+
+(fixed by f073 — see “What f073 changed” near the end of this file; the numbers
+below are what the audit measured, kept as the evidence)
 
 All 14 store a document label from the 926 / v0.2 run while the file names say
 1026 / v0.2.1:
@@ -136,6 +143,45 @@ a time and *retries* any cut that had no effect, printing
   mesh it falls back to 0.02 plus `removeDuplicatedPoints()` to "close the few
   tessellation gaps" — a hand-closed mesh, not a watertight one.
 
+## What f073 changed: the FCStd files now open and show the parts
+
+The writer, not the model, was the problem. `make_fcstd.py` (both folders) and
+`make_pieces.py` now go through one helper, `CAD Files/fcstd_doc.py`, which
+
+* stores one `Part::Feature` per part and refuses to save a shape that is null,
+  invalid, has no solid or has an open shell (`add_part()` raises instead of
+  writing a document that shows nothing);
+* drops the `PartDesign::Body` + base-feature wrapper, which stored the same
+  brep three times (`SimplifiedSlice` documents went from 36-42 MB of brep in
+  4 shape files to 12-14 MB in 1, and the viewer no longer loads three
+  identical solids that z-fight);
+* sets the document `Label` to the file name, so the tree matches the file
+  (all 14 used to carry a 926 / v0.2 label);
+* writes `GuiDocument.xml` itself — `freecadcmd` has no GUI, so FreeCAD never
+  writes that file: one ViewProvider per part with `Visibility` on, its own
+  colour and shaded display, plus a camera framed on the parts. Without it the
+  GUI restores no camera, no per-object visibility and no display mode;
+* saves with the running FreeCAD (1.1.4), so the stored element map version
+  matches and the `Recomputation required … geo element version change 0.4 ->
+  15.70200.5` message on open is gone.
+
+All 14 files under `CurrentModel/CAD Files` were regenerated from the `.step`
+files already on disk with `OAS_FCSTD_ONLY=1` (no `.step` or `.stl` touched —
+that is f074's job). Command: `CurrentModel/Analysis/build/regen_fcstd.sh` in
+the ignored build dir; log `build/regen_fcstd.log`.
+
+Re-check (`build/cad2.log`, `build/cad2.json`): 80 CAD files checked, 80 pass,
+0 fail. Every `.FCStd` line now reads `gui True`, and the only notes left on
+them are the honest ones: the intake tubes and the `avionics_tray` are printed
+parts that are not members of the documents they sit next to.
+
+The checker got three changes with it: `--only cad` (`.FCStd` + `.step` only),
+a GuiDocument.xml check (missing file, unparseable file, or a part with no
+visible ViewObject is now a FAIL, not a note), and `compare_assembly()` matches
+the document's objects to the sibling STEP files **by name** — it used to sum
+every STEP under the folder, which for `pieces/` mixed the three slice types
+and the intake tubes into one number.
+
 ## How to run the checker
 
 ```
@@ -145,10 +191,22 @@ flatpak run --command=freecadcmd org.freecad.FreeCAD \
     --pass "--json /home/rhy/strata-fleet/tasks/logs-f072/final.json"
 ```
 
-`freecadcmd` swallows bare arguments and tries to open them as files, so this
-script's own flags must be one quoted string after `--pass`. Useful flags:
-`--filter .stl` (STLs only, ~3 min), `--cad-root`, `--print-root`,
-`--no-slicer-compare`, `--thickness-samples N`. Full run: ~12 min, 103 files.
+CAD only (`.FCStd` + `.step`, ~7 min):
+
+```
+flatpak run --command=freecadcmd org.freecad.FreeCAD \
+    CurrentModel/Analysis/check_outputs.py --pass "--only cad"
+```
+
+`freecadcmd` swallows anything that looks like an option unless it follows
+`--pass`, and it tries to open every other bare argument as a file, so keep
+all of this script's own arguments inside one quoted string after `--pass`.
+This is not a quirk of this script: `freecadcmd … check_outputs.py --only cad`
+fails in FreeCAD's own argument parser (`unrecognised option '--only'`, exit 1)
+before the script starts, so the `--pass "…"` form is the only one that runs.
+Useful flags: `--filter .stl` (STLs only, ~3 min), `--only cad|print`,
+`--cad-root`, `--print-root`, `--no-slicer-compare`, `--thickness-samples N`,
+`--no-tess`, `--no-thin`. Full run: ~12 min, 103 files.
 
 ## Fix list, in the order that unblocks the rest
 
@@ -157,7 +215,9 @@ script's own flags must be one quoted string after `--pass`. Useful flags:
    (`cadquery`, `shapely`) — without this nothing else can be re-verified.
 2. Re-run `airship_slice.py` for all 6 variants, then `make_fcstd.py` and
    `make_pieces.py`, so the `.FCStd` documents stop carrying 926 / v0.2 labels
-   and stop storing the same brep 3-4 times.
+   and stop storing the same brep 3-4 times. **Done by f073** — the documents
+   were rebuilt from the STEP files on disk (`OAS_FCSTD_ONLY=1`), and the
+   writer now also supplies `GuiDocument.xml`.
 3. In `junction()` (`airship_slice.py:557`) / `windows()` (`:616`), drop the
    `.buffer(-0.6).buffer(0.6)` tip rounding (`:605`) or filter its result: reject
    any cut face whose area is < 1 mm² or whose distance to the skin is < 0.2 mm.
