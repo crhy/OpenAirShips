@@ -88,6 +88,17 @@ SKIN_MARGIN = 0.02         # how far past the skin band's inner face a window cu
                          # pierces the band (T) and never reaches a surface behind it - the duct
                          # bore is 1.32 mm under the skin, and the housing wall and the keel skin
                          # sit inside the band's inner face.
+CREST_BAND = 7.4           # half-width, mm along the skin, of the SOLID band that runs along the
+                         # crest of each duct: the skin over a duct and its outlet carries NO
+                         # lattice window. The duct's crest line IS the seam plane (each duct is
+                         # split in half by it), so the band is a strip CREST_BAND either side of
+                         # every seam that carries a duct, over the duct's whole run.
+                         # Chosen from f085's measurements on the 8T bench slice (7 facets under the
+                         # 0.40 mm nozzle, min 0.186 mm): 6 of them sit on the rim of the Ø25.4 stem
+                         # hole, 1.4-6.9 mm either side of the seam and |z| <= 12.7 mm, and the 7th
+                         # is a 0.004 mm2 sliver face 1.0 mm inside the seam strip at r 180 z -37 -
+                         # all inside CREST_BAND + MIN_WEB. It is the normal T wall with no windows
+                         # cut in it, so it is NOT in EXCEPTIONS.
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
@@ -171,6 +182,19 @@ STEM_HOLE = 34.4 if LARGE else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (s
 BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
 DUCT_BULB = 44.0 if LARGE else 32.0   # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
+STEM_FLARE = math.degrees(math.asin(min(1.0, (STEM_HOLE / 2) / B)))
+                         # the tilt of the skin's own normal at the stem hole's rim. The rim sits
+                         # at ellipse angle asin((STEM_HOLE / 2) / B) - 7.0 deg at the bench 8T slice -
+                         # and the hole is bored along the radial line, which at that angle is
+                         # STEM_FLARE off the skin's normal there. Bore the hole straight and the
+                         # wall map's ray (the skin's normal) runs into the hole's own wall at a
+                         # 7 deg graze: 0.19-0.38 mm of skin between the outside and the hole's air
+                         # at 1.4-6.9 mm either side of the seam - 6 of the 7 facets f085 measured,
+                         # and all 7 again after the crest band (see Analysis/OUTPUT-CHECK.md).
+                         # Flaring the hole by STEM_FLARE + 1.5 deg over the skin band makes the
+                         # hole's wall parallel to that ray, so the ray never crosses it and the
+                         # rim keeps its clearance; the hole's narrowest point is still STEM_HOLE,
+                         # so the stem (Ø25, Ø34 on 4T) and its bearing sleeve fit unchanged.
 SERVO_T = 44.0 if LARGE else 36.0     # servo spline: this far (tangentially) from the seam
                                      # (= the 1:1 gear pitch diameter: 44T or 36T, module 1)
 SERVO_HOLE = 8.0
@@ -714,7 +738,28 @@ def skin_shell():
 def skin_cutter(pts):
     """Window cutter from an outline on the skin (points and normals): the
     outline projected onto the plane at its centre, pushed straight through
-    the skin along that plane's normal, and trimmed to the skin shell."""
+    the skin along that plane's normal, and trimmed to the skin shell.
+
+    Tried and rejected, all measured on the 8T bench slice: making the wall
+    LEAN. The checker fires a ray normal to the skin from every facet and reads
+    the distance to the first face it meets, so a wall parallel to that ray
+    reads d / sin(swing) - the swing being the skin normal's turn from the
+    window's centre to its edge, up to 9 deg for a 30 mm cell at this radius.
+    That is 110 facets under the nozzle at 0.02 to 0.36 mm (225 before this
+    branch), and the three ways of beating it that were tried:
+      - loft the cutter so the floor leans 12 deg off the normal (an undercut
+        mouth): the kernel returns a bad loft, the slice came out as 12 solids
+        and 1,341 facets under the nozzle;
+      - loft the outline along its own normal field: makeLoft returns invalid
+        solids, and five of the 56 cutters came out 70 litres wide;
+      - cut in 6 mm patches, each a straight prism along the normal at its own
+        part of the outline: the patch compounds fragment against the shell
+        (81 solids on one oval) and a cut lands with no effect at all.
+    The straight prism is what builds. The thin reading is a graze along a
+    near-parallel cut wall, not a thin wall of material: the band there is T
+    thick and the ray reaches the window floor at T + SKIN_MARGIN as soon as
+    it clears the wall.
+    """
     c = sum((p for p, _ in pts), cq.Vector()) * (1 / len(pts))
     nrm = sum((nv for _, nv in pts), cq.Vector()).normalized()
     xd = (pts[0][0] - c)
@@ -852,6 +897,19 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     v_band = sorted((sgn * (psi_lo - psi) * ds, sgn * (psi_hi - psi) * ds))
     keep = box(u_seam[0] + mu, v_band[0] + mv, u_seam[1] - mu, v_band[1] - mv)
     poly = poly.intersection(keep)
+    # The solid crest band along each duct (CREST_BAND either side of the crest line, which
+    # is the seam plane: the duct is split in half by it). No window is cut inside it, and none
+    # is left within MIN_WEB of its edge: a cut boundary that close is what left the 0.186-0.382
+    # mm crest walls and the 0.004 mm2 sliver face f085 measured, all within 6.9 mm of a seam.
+    # In this uv frame the band is a straight u-strip (u = (azimuth - theta) * x0 is the
+    # perpendicular distance from the seam plane), so the clip is exact and the lattice simply
+    # stops at the band's edge - the cells keep their rib lines, they are re-flowed around it.
+    for s_ in duct_seams():
+        u_c = (math.radians(s_) - theta) * x0
+        poly = poly.difference(box(u_c - CREST_BAND - MIN_WEB, v_band[0],
+                                   u_c + CREST_BAND + MIN_WEB, v_band[1]))
+        if poly.is_empty:
+            return None
     if others:
         poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
     # Close the boundary: erode then dilate by POLY_CLOSE. A notch or a spike
@@ -981,6 +1039,7 @@ def windows():
                     inset_wedge(RIB / 2 + MIN_WEB, min_radius(c_))))
     keep = outlet_keepout()
     air = duct_air_keepout()
+    crest = crest_keepout()
     out = []
     for c in cut:
         if air is not None:
@@ -993,6 +1052,15 @@ def windows():
             if clear.Volume() < 0.35 * v0:
                 continue
             c = clear
+        if crest is not None:
+            # no cutter may reach the solid crest band along a duct at all (clip_window
+            # already stopped it MIN_WEB clear of the band's edge; this is the looser guard)
+            try:
+                c = c.cut(crest)
+            except ValueError:
+                continue
+            if c.Volume() < 1.0:
+                continue
         if keep is None:
             out.append(c)
             continue
@@ -1145,6 +1213,48 @@ def duct_solids():
     return walls, bore
 
 
+_CREST = None
+
+
+def crest_psi_range():
+    """The ellipse angles the crest band runs between: from the lattice band's lowest rib
+    (the duct's mouth is below it, inside the fan housing) to STEM_HOLE / 2 + 1.5 past the
+    equator, where the duct's bulb ends and the stem hole's rim is. The band stops with the
+    duct: above it the lattice runs to the bellmouth as before."""
+    lo = lattice_band()[0]
+    hi = max(0.0, math.asin(min(1.0, (STEM_HOLE / 2 + 1.5) / B)))
+    return lo, hi
+
+
+def crest_keepout():
+    """The crest band as a solid: the skin CREST_BAND mm either side of each seam that carries
+    a duct, over the duct's whole run (crest_psi_range). A slab about the seam plane, not a
+    wedge about the axis - the duct's crest line IS the seam plane, and u = (azimuth - theta) *
+    x0, the measure clip_window uses, is the perpendicular distance from that plane.
+
+    windows() cuts every cutter with this as belt and braces after clip_window's uv clip, and
+    strictly looser: CREST_BAND here against CREST_BAND + MIN_WEB there. When the two seam
+    clips were at the SAME distance (f085) the cutter had two coincident walls and the boolean
+    left 0.002-0.04 mm plates behind, so the guard must never bite where the uv clip has
+    already done the job."""
+    global _CREST
+    if _CREST is None:
+        lo, hi = crest_psi_range()
+        reach = math.hypot(A, B) + 20.0
+        # the band in the outlet frame (x radial, y out of the seam plane, z up), then
+        # rotated onto every seam that carries a duct, as at_seams() does
+        psi_wedge = wedge([(0.0, lo), (reach, lo), (reach, hi), (0.0, hi)], half=HALF + 2)
+        slab = cq.Solid.makeBox(reach, 2 * CREST_BAND, 2 * B + 40,
+                                cq.Vector(0.0, -CREST_BAND, -B - 20))
+        band0 = slab.intersect(psi_wedge)
+        out = None
+        for a_ in duct_seams():
+            b = band0.rotate((0, 0, 0), (0, 0, 1), a_)
+            out = b if out is None else out.fuse(b)
+        _CREST = out
+    return _CREST
+
+
 def duct_air_keepout():
     """The duct's air path grown MIN_WEB, on every seam that carries a duct.
 
@@ -1157,10 +1267,21 @@ def duct_air_keepout():
 
 
 def stem_and_servo_holes():
-    """Stem hole on the seam; servo spline hole SERVO_T along +tangent (outlet frame)."""
+    """Stem hole on the seam; servo spline hole SERVO_T along +tangent (outlet frame).
+
+    The stem hole is a cylinder about the radial line that flares into a cone over the
+    skin band - see STEM_FLARE. The flare is what makes the hole's rim printable: bored
+    straight, the hole's wall grazes the skin's normal at 7 deg and leaves a 0.19-0.38 mm
+    wall between the hole's air and the outside all round the rim.
+    """
     ax = cq.Vector(1, 0, 0)
     x0 = hull_r(OUT_Z) - BOSS_LEN - 2.0             # stop inside the bore: don't pierce its back wall
     stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 30, cq.Vector(x0, 0, OUT_Z), ax)
+    x_in = hull_r(OUT_Z) - 3.0                      # inside the skin band's inner face at the rim
+    x_out = hull_r(OUT_Z) + 1.5                     # past the skin's outer face at the rim
+    r_out = STEM_HOLE / 2 + (x_out - x_in) * math.tan(math.radians(STEM_FLARE + 1.5))
+    stem = stem.fuse(cq.Solid.makeCone(STEM_HOLE / 2, r_out, x_out - x_in,
+                                       cq.Vector(x_in, 0, OUT_Z), ax))
     servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(A - 17.765, SERVO_T, OUT_Z), ax)
     return stem, servo
 
