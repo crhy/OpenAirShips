@@ -83,21 +83,25 @@ POLY_CLOSE = MIN_WEB / 2   # every window polygon is closed by this radius (erod
                          # Such a notch leaves a tongue of skin that thin standing in the hole
                          # - the 0.011-0.3 mm walls and the sub-millimetre facets issue #36
                          # counts, on ovals as well as on junctions.
-SKIN_MARGIN = 0.02         # how far past the skin band's inner face a window cutter may reach:
-                         # the cutter's shell stops T + SKIN_MARGIN under the outer skin, so it
-                         # pierces the band (T) and never reaches a surface behind it - the duct
-                         # bore is 1.32 mm under the skin, and the housing wall and the keel skin
-                         # sit inside the band's inner face.
-CREST_BAND = 7.4           # half-width, mm along the skin, of the SOLID band that runs along the
-                         # crest of each duct: the skin over a duct and its outlet carries NO
-                         # lattice window. The duct's crest line IS the seam plane (each duct is
-                         # split in half by it), so the band is a strip CREST_BAND either side of
-                         # every seam that carries a duct, over the duct's whole run.
-                         # Chosen from f085's measurements on the 8T bench slice (7 facets under the
-                         # 0.40 mm nozzle, min 0.186 mm): 6 of them sit on the rim of the Ø25.4 stem
-                         # hole, 1.4-6.9 mm either side of the seam and |z| <= 12.7 mm, and the 7th
-                         # is a 0.004 mm2 sliver face 1.0 mm inside the seam strip at r 180 z -37 -
-                         # all inside CREST_BAND + MIN_WEB. It is the normal T wall with no windows
+SKIN_MARGIN = 0.30         # how far past the skin band's inner face a window cutter may reach:
+                         # the cutter's floor stops T + SKIN_MARGIN under the outer skin, so it
+                         # pierces the band (T) and stays clear of a surface behind it. It must
+                         # clear the band's own inner face by more than a hair: at 0.02 the floor
+                         # sat 0.02 mm off that face and the boolean left 0.005-0.1 mm membranes
+                         # behind it (the 8T thin-wall report, 507 facets under the layer). Nothing
+                         # but air sits behind the band where the lattice cuts - the duct is kept
+                         # out of the lattice by CREST_BAND - so reaching 0.3 mm past is safe.
+CUT_OUT = 0.5              # how far outside the outer skin a window cutter starts (the old
+                         # skin_shell()'s outer boundary was here too): enough to clear the
+                         # skin's own tessellation, not enough to reach anything else.
+CUT_IN = T + SKIN_MARGIN   # the depth of a window cutter's floor: T + SKIN_MARGIN under the
+                         # outer face, so the lattice leaves the full T band everywhere it
+                         # cuts. The duct's air ends AT the band's inner face (SKIN_BITE inside
+                         # it), and no lattice window is cut within CREST_BAND of a duct crest,
+                         # so a cutter's floor never reaches the air path.
+CREST_BAND_SEE_DUCTS = True  # the solid band along each duct's crest is defined with the
+                         # ducts below (CREST_BAND), because its width is the duct's own
+                         # air path: see the definition next to DUCT_BULB.
                          # cut in it, so it is NOT in EXCEPTIONS.
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
@@ -151,17 +155,17 @@ JOINT_CLEAR = 1.0          # mm every joint keeps from the fan housing and the
 # side to a closed end at the equator, where the thruster's stem enters
 # through a round hole with a bearing boss behind it.
 DUCT_BORE = 34.0 if LARGE else 24.0   # bore diameter; 4T: twice the area for twice the flow
-DUCT_W = T                 # duct wall
-DUCT_FUSE = 0.25          # how far the duct's outer wall overlaps the skin band:
-                           # enough for a watertight boolean, and the only place
-                           # two T walls lie on each other (see EXCEPTIONS). It also
-                           # sets the floor of a lattice window cut over a duct: the
-                           # cutter reaches T + SKIN_MARGIN (0.88 mm) under the outer
-                           # face, so the wall left under that floor is
-                           # T - DUCT_FUSE + DUCT_W - (T + SKIN_MARGIN) = 0.69 mm.
-                           # At 0.4 that was 0.44 mm - over MIN_WEB by luck, and the
-                           # bench slice measured 0.108-0.314 mm on the crest there
-                           # (issue #36); at 0.25 the worst facet was 0.186 mm.
+DUCT_W = T                 # duct wall - and it exists on the duct's INNER side only. rhY f087
+                         # item 1: "one uniform thickness across the entire design", so the duct
+                         # uses the hull skin AS its outer wall: one shared wall of thickness T,
+                         # not a duct wall stacked on the skin.
+SKIN_BITE = 0.02           # how far the duct bore bites into the skin band: the bore's outer
+                         # surface sits SKIN_BITE inside the band instead of exactly on its inner
+                         # face, so the boolean is clean and the wall on the duct's outer side
+                         # measures T - SKIN_BITE = 0.84 mm at every point along the duct.
+SKIN_BURY = 0.04           # how far under the outer skin the duct walls' own outer boundary
+                         # sits: buried in the band (flush with neither face), so the fuse adds
+                         # no material on the duct's outer side and leaves no coincident face.
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
 
@@ -182,6 +186,17 @@ STEM_HOLE = 34.4 if LARGE else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (s
 BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
 DUCT_BULB = 44.0 if LARGE else 32.0   # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
+CREST_BAND = DUCT_BULB / 2 + MIN_WEB
+                         # half-width, mm along the skin, of the SOLID band that runs along the
+                         # crest of each duct: the skin over a duct and its outlet carries NO
+                         # lattice window, because with the skin as the duct's outer wall (rhY f087
+                         # item 1) a window there would be a hole in the air path. The duct's crest
+                         # line IS the seam plane (each duct is split in half by it), so the band is
+                         # a strip CREST_BAND either side of every seam that carries a duct, over the
+                         # duct's whole run. It must clear the widest part of the air path, which is
+                         # the bulb (Ø32 bench, Ø44 on 4T), hence DUCT_BULB / 2 + MIN_WEB = 16.4 mm
+                         # on the bench slice (was 7.4 in f086, which only had to keep window floors
+                         # off a separate duct wall and left the double wall rhY objected to).
 STEM_FLARE = math.degrees(math.asin(min(1.0, (STEM_HOLE / 2) / B)))
                          # the tilt of the skin's own normal at the stem hole's rim. The rim sits
                          # at ellipse angle asin((STEM_HOLE / 2) / B) - 7.0 deg at the bench 8T slice -
@@ -224,11 +239,11 @@ EXCEPTIONS = [
     ("keel hatch bayonet lug and stop post (LUG_R, LUG_Z, POST)",
      "hatch_ring(): the tab the fan hatch locks under - 2.9 mm of engagement set "
      "in a T-thick ring wall. The fan comes out through here."),
-    ("wall-to-wall fusion (DUCT_FUSE)",
-     "duct_path()/duct_solids(): where the duct's outer wall runs into the skin "
-     "band the two T walls overlap by DUCT_FUSE so the boolean is watertight. Two "
-     "walls touching are not one thick wall; the checker sees a band of T + "
-     "DUCT_FUSE along the duct, not a block."),
+    ("solid crest band along each duct (CREST_BAND)",
+     "clip_window()/crest_keepout(): the skin over a duct carries no lattice window, because "
+     "the skin IS the duct's outer wall - a window there would be a hole in the air path. It "
+     "is the normal T wall with nothing added, so it is thick only in the sense that it is "
+     "solid where the rest of the skin is windowed; the wall map reads T across it."),
 ]
 
 
@@ -396,21 +411,25 @@ OUT_Z = 0.0
 OUT_THRUST_RIB = skin_ribs().index(0.0)
 
 
-def joint(name, r, z, walls, why):
+def joint(name, r, z, walls, why, sleeve=None):
     """One peg/hole pair on the seam plane: where it is, the wall faces its boss
-    is fused into, and why it is there. joints() returns these; joint_parts()
-    builds them, and joint_map() writes them for the checker."""
-    return dict(name=name, r=r, z=z, walls=walls, why=why)
+    is fused into, why it is there, and the sleeve its hole stands in (if any), as
+    (s, near, far): the point s along the duct, the signed offset from the duct's
+    centreline of the air-side face of the material the hole sits in (+ toward the
+    skin), and how far past that face the sleeve reaches. joints() returns these;
+    joint_parts() builds them, and joint_map() writes them for the checker."""
+    return dict(name=name, r=r, z=z, walls=walls, why=why, sleeve=sleeve)
 
 
 # Where the two duct joints sit along the duct, as an arc fraction (0 = the mouth
-# in the fan housing, 1 = the bulb behind the stem hole). Both are on the duct's
-# interior-side wall: a Ø3.3 hole needs AIR_KEEP + HOLE_D/2 of material between
-# itself and the bore, and on the skin side the wall ends at the skin 0.46 mm past
-# its own face, so there is nowhere near the bore to put a hole that does not
-# breach it. The groove one sits where the duct's wall meets the bulb's dome,
-# which is where the design owner's "in that little groove there" is.
-S_DUCT_TOP = 0.72            # the one peg on the seam face, on top of the duct
+# in the fan housing, 1 = the bulb behind the stem hole). The duct-top one is on the
+# duct's CREST - the seam plane itself - which since f087 is the one wall of T the
+# hull skin and the duct's outer wall have become; the groove one is on the duct's
+# interior-side wall where that wall meets the bulb's dome, which is where the
+# design owner's "in that little groove there" is. Both holes stand in a sleeve
+# joint_parts() grows: a Ø3.3 hole needs AIR_KEEP + HOLE_D/2 of material between
+# itself and the bore, and the wall it sits in is only T thick.
+S_DUCT_TOP = 0.72            # the ONE peg on top of the duct, on the seam face
 S_BULB_GROOVE = 0.87         # the groove where the duct wall meets the bulb: the
                              # point where the tube's wall face crosses the bulb's
                              # dome (duct_bulb_centre, DUCT_BULB/2 + DUCT_W)
@@ -418,9 +437,10 @@ S_BULB_GROOVE = 0.87         # the groove where the duct wall meets the bulb: th
 
 def duct_at(s):
     """Point s along the duct's centreline (duct_path), and the outward normal
-    in the seam plane. The two walls' mid-surfaces sit DUCT_BORE/2 + DUCT_W/2
-    either side of the centreline; the crease where the duct's outer wall meets
-    the skin is DUCT_BORE/2 + DUCT_W - DUCT_FUSE/2 out toward the skin."""
+    in the seam plane. The air's outer boundary is DUCT_BORE / 2 out toward the
+    skin, and it ends AT the skin band's inner face - the skin IS the duct's outer
+    wall (rhY f087 item 1) - while the duct's own wall on the other side runs from
+    DUCT_BORE / 2 out to DUCT_BORE / 2 + DUCT_W."""
     pts = duct_path()
     seg = [(pts[i + 1] - pts[i]).Length for i in range(len(pts) - 1)]
     cum, acc = [0.0], 0.0
@@ -496,26 +516,108 @@ def joints():
                       skin_point(-math.acos(53.0 / A), edge)[1], ["keel skin"],
                       "keel, outside the hatch ring")]
     out = []
-    for s, name, side, walls, why in (
-        (S_DUCT_TOP, "duct_top", "mid_in",
-         ["duct inner wall"],
-         "the ONE peg on this seam face: on top of the duct, fused directly into "
-         "the duct wall. It replaces the two joints that used to float in the open "
-         "lattice cells above and beside the duct, and their holes in the "
-         "neighbouring slice."),
-        (S_BULB_GROOVE, "bulb_groove", "groove_in",
-         ["duct inner wall", "duct bulb wall"],
-         "one more peg for strength, on the other side of the duct from the duct-"
-         "top peg, seated in the groove where the duct wall meets the bulb: the "
-         "boss fuses into the duct wall and the bulb's wall, and the hole keeps "
-         "AIR_KEEP of wall to the air path.")):
-        c, n = duct_at(s)
-        # both sit the same distance out from the bore: the hole's near side keeps
-        # AIR_KEEP of wall to the air path, so its centre is AIR_KEEP + HOLE_D/2
-        # past the wall's face, and joint_parts() grows the wall there into a
-        # sleeve (see EXCEPTIONS: peg/hole bosses).
-        p = c - n * (DUCT_BORE / 2 + AIR_KEEP + HOLE_D / 2)
-        out.append(joint(name, p.x, p.z, walls, why))
+    # rhY f087 item 3: the duct pegs are ONLY these two, and the duct-top one is ON
+    # the duct's crest, not on the duct's interior wall. The duct's crest line IS the
+    # seam plane (each duct is split in half by it), so "on top of the duct, at the
+    # seam face" is the one wall of T that the hull skin and the duct's outer wall
+    # have become (item 1); the hole is set SKIN_BITE inside the band's inner face
+    # and keeps AIR_KEEP of wall to the air, in the sleeve joint_parts() grows.
+    c, n = duct_at(S_DUCT_TOP)
+    p = c + n * (DUCT_BORE / 2 - SKIN_BITE - AIR_KEEP - HOLE_D / 2)
+    out.append(joint("duct_top", p.x, p.z,
+                     ["hull skin", "duct outer wall (the shared wall)"],
+                     "the ONE peg on top of the duct, on the seam face: the duct's crest "
+                     "line IS the seam plane, so this is the single wall of T the hull "
+                     "skin and the duct's outer wall have become (rhY f087 item 1). It "
+                     "replaces the peg that used to stand on the duct's interior wall "
+                     "beside the bulb - the one rhY marked with an X - and the two that "
+                     "used to float in the open lattice cells there.",
+                     (S_DUCT_TOP, DUCT_BORE / 2 - SKIN_BITE, AIR_KEEP + HOLE_D)))
+    c, n = duct_at(S_BULB_GROOVE)
+    p = c - n * (DUCT_BORE / 2 + AIR_KEEP + HOLE_D / 2)
+    out.append(joint("bulb_groove", p.x, p.z,
+                     ["duct inner wall", "duct bulb wall"],
+                     "one more peg for strength, on the other side of the duct from the "
+                     "duct-top peg, seated in the groove where the duct's wall meets the "
+                     "bulb's dome: the boss fuses into the duct wall and the bulb's wall, "
+                     "and the hole keeps AIR_KEEP of wall to the air path.",
+                     (S_BULB_GROOVE, -DUCT_BORE / 2, AIR_KEEP + HOLE_D)))
+    for name, p, walls, why, sl in corner_joints():
+        out.append(joint(name, p.x, p.z, walls, why, sl))
+    return out
+
+
+def corner_joints():
+    """The three corners rhY marked in red, and the midway joint on the seam wall.
+
+    Returns (name, point in the seam plane, the walls the boss fuses into, why,
+    sleeve or None) for each. A corner joint sits where two walls meet, so its
+    cylinder is fused into BOTH walls (the two-wall rule); the joint between the
+    two corner ones on the seam wall's face sits exactly midway between them on
+    that same wall. Every one keeps >= JOINT_CLEAR from the fan housing, the
+    plenum air and the impeller's swept volume, and >= AIR_KEEP of wall to any
+    air side - Analysis/check_outputs.py --joints measures both against the map
+    this build writes - and all four are on the seam wall's face, where clip_window
+    keeps every lattice window MIN_WEB clear, so the peg and the matching hole
+    print as solid pegs rather than a peg standing over an open window.
+    """
+    e = BOSS_D / 2 + 0.5       # hole/boss centre depth under the outer skin. The boss is
+                         #   BOSS_D (7.0) across, so its outer face sits 0.5 mm under the skin's
+                         #   own outer face: deep enough that the fuse cannot leave a membrane of
+                         #   itself under the skin (at T + HOLE_D/2 + 1.0 = 3.51 that face sat
+                         #   0.01 mm under the skin and the 8T slice came out with 0.004-0.05 mm2
+                         #   sliver faces at every corner joint, which is what the mesh then
+                         #   self-intersected on), and still 0.36 mm into the T band that holds it.
+    #   stays 1.0 mm inside the skin, and the boss (BOSS_D across, BOSS_L deep)
+    #   is fused into the corner's two walls.
+    out = []
+    # (a) the TOP-LEFT corner of the slice: the left end of the top edge, where the
+    # top wall - the solid skin band the lattice stops under, below the intake
+    # bellmouth - meets the left seam and the skin.
+    r, z = skin_point(lattice_band()[1], e)
+    top = cq.Vector(r, 0, z)
+    out.append(("corner_top", top, ["hull skin", "seam edge strip"],
+                "the top-left corner of the slice: the top wall (the solid skin under the "
+                "intake bellmouth) meets the seam and the skin. Peg on one slice, hole in "
+                "the neighbour, fused into both walls of the corner.", None))
+    # (b) the TOP-RIGHT corner: the right end of that same wall, where it meets the
+    # duct's outer end - the top of the duct's run, where the solid skin over the
+    # duct (the crest band) ends and the lattice resumes, on the seam.
+    r, z = skin_point(crest_psi_range()[1], e)
+    dend = cq.Vector(r, 0, z)
+    out.append(("corner_duct_top", dend, ["hull skin", "duct end wall"],
+                "the top-right corner of the slice: the top wall meets the duct's outer "
+                "end, where the solid skin over the duct ends and the lattice resumes. Peg "
+                "on one slice, hole in the neighbour, fused into both walls of the corner.",
+                None))
+    # (c) the corner just left of the bulb, low on the slice: where the skin meets
+    # the bulb's dome / the duct's root. Found as the crossing of the dome's outer
+    # face (the sphere DUCT_W thick over the bulb's bore) with the skin band's inner
+    # face, on the mouth side of the bulb.
+    cb = duct_bulb_centre()
+    r_out = DUCT_BULB / 2 + DUCT_W
+    lo, hi = -0.6, 0.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if (cq.Vector(*skin_point(mid, T), 0) - cb).Length < r_out:
+            hi = mid
+        else:
+            lo = mid
+    r, z = skin_point(lo, e)
+    root = cq.Vector(r, 0, z)
+    out.append(("corner_bulb_root", root, ["hull skin", "duct bulb wall"],
+                "the corner just left of the bulb, low on the slice: the skin meets the "
+                "bulb's dome and the duct's root. Peg on one slice, hole in the neighbour, "
+                "fused into both walls of the corner; the hole keeps AIR_KEEP of wall to "
+                "the bulb's air.", None))
+    # (d) the joint between the two corner ones on the same wall - the seam wall's
+    # face runs from the top corner to the bulb-root corner - sits exactly midway
+    # between them on that wall.
+    mid = (top + root) * 0.5
+    out.append(("seam_mid", mid, ["hull skin", "seam edge strip"],
+                "the joint between the two corner ones, exactly midway between them on "
+                "the same wall (the seam wall's face, top corner to bulb-root corner), "
+                "as the design owner's rule asks.", None))
     return out
 
 
@@ -700,82 +802,160 @@ def oval_on_skin(p0, p1, side, n=96):
     return out
 
 
-_SHELL = None
 _BAND = None
 
 
-def skin_shell():
-    """A thin shell round the skin: window cutters are trimmed to it, so they
-    cut the skin band and nothing inside it.
+def ear_clip(poly):
+    """Triangulate a simple polygon: index triples of `poly` = [(u, v), ...].
 
-    Both boundaries are the skin's own parallel curves (skin_point), not axis-offset
-    ellipses: 0.5 mm outside the outer face, and only SKIN_MARGIN (0.02 mm) past the
-    band's inner face at T. Measured, and kept: reaching deeper - a through-cut of the
-    band, floor at T + 1.5 mm, below the inner face of the duct wall fused under the
-    skin - makes the cutter's side walls cross that wall's surfaces at a shallow
-    angle, and the fuse leaves 0.061 mm fins behind (12 facets under the nozzle, worse
-    than the 7 at T + SKIN_MARGIN). Stopping short of the wall's outside face is no
-    better: the floor and the face coincide, 0.049 mm plates. The old shell was an axis offset 0.5 mm past BOTH faces,
-    which put its inner boundary 1.36 mm under the skin - past the duct's bore surface,
-    DUCT_BORE/2 + DUCT_W + T - DUCT_FUSE = 1.47 mm under the skin wherever a duct runs
-    under the lattice, and level with the fan housing's wall and the keel skin where the
-    lattice meets them (measured: skin_shell() and the duct bore overlap by 38 mm3). A
-    cutter reaching that far cuts a face that thin off a surface that is already there.
+    The window cutter is a closed solid whose two caps cannot be flat faces - the
+    outline's points lie on a curved skin - so each cap is triangulated and every
+    face of the cutter is a triangle (measured: a shell of ruled surfaces between
+    the outline's two rings gives faces BRepCheck calls invalid, and Face.makeFromWires
+    refuses a non-planar wire outright; an all-triangle shell gives a valid solid).
+    Plain O(n^2) ear clipping on a 96-point outline is nothing next to the booleans.
+    Repeated points and hair-of-collinearity are what make a strict ear search stall,
+    so they are dropped first and the largest convex corner is taken when no strict
+    ear exists - the polygon comes out of shapely buffer/clip, so it is simple.
     """
-    global _SHELL
-    if _SHELL is None:
-        # A fine polygon rather than exact ellipse arcs: the kernel sometimes
-        # returns an empty intersection against the exact-arc shell (seen at
-        # the equator on the 1.58 m hull). 400 facets sag < 0.01 mm here.
-        top, n = math.pi / 2 - 0.02, 400
-        ts = [-math.pi / 2 + (top + math.pi / 2) * i / n for i in range(n + 1)]
-        outer = [skin_point(t, -0.5) for t in ts]
-        inner = [skin_point(t, T + SKIN_MARGIN) for t in reversed(ts)]
-        _SHELL = wedge(outer + inner, half=HALF + 3)
-    return _SHELL
+    def area(a, b, c):
+        return ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]))
+
+    def inside(p, a, b, c):
+        return (area(a, b, p) >= -1e-9 and area(b, c, p) >= -1e-9 and
+                area(c, a, p) >= -1e-9)
+    clean = []
+    for p in poly:
+        if clean and abs(p[0] - clean[-1][0]) < 1e-9 and abs(p[1] - clean[-1][1]) < 1e-9:
+            continue
+        clean.append(p)
+    if len(clean) > 2 and abs(clean[0][0] - clean[-1][0]) < 1e-9 \
+            and abs(clean[0][1] - clean[-1][1]) < 1e-9:
+        clean.pop()
+    if len(clean) < 3:
+        return []
+    idx = list(range(len(clean)))
+    if area(clean[idx[0]], clean[idx[1]], clean[idx[2]]) < 0:
+        idx.reverse()
+    out = []
+    while len(idx) > 3:
+        best = None
+        for k in range(len(idx)):
+            a, b, c = idx[k - 1], idx[k], idx[(k + 1) % len(idx)]
+            ar = area(clean[a], clean[b], clean[c])
+            if ar <= 1e-9:
+                continue
+            if any(inside(clean[m], clean[a], clean[b], clean[c])
+                   for m in idx if m not in (a, b, c)):
+                continue
+            if best is None or ar > best[1]:
+                best = (k, ar, (a, b, c))
+        if best is None:                     # no strict ear left: take the widest corner
+            for k in range(len(idx)):
+                a, b, c = idx[k - 1], idx[k], idx[(k + 1) % len(idx)]
+                ar = area(clean[a], clean[b], clean[c])
+                if best is None or ar > best[1]:
+                    best = (k, ar, (a, b, c))
+        if best is None:
+            return []
+        out.append(best[2])
+        idx.pop(best[0])
+    if len(idx) == 3:
+        out.append((idx[0], idx[1], idx[2]))
+    return out
 
 
 def skin_cutter(pts):
-    """Window cutter from an outline on the skin (points and normals): the
-    outline projected onto the plane at its centre, pushed straight through
-    the skin along that plane's normal, and trimmed to the skin shell.
+    """Window cutter from an outline on the skin (points and normals): a RADIAL
+    prism - the outline's side walls run along the skin's own normal AT each point
+    of the outline, from CUT_OUT (0.5 mm) outside the outer face to CUT_IN (T +
+    SKIN_MARGIN) under it - closed into a solid by triangulated caps.
 
-    Tried and rejected, all measured on the 8T bench slice: making the wall
-    LEAN. The checker fires a ray normal to the skin from every facet and reads
-    the distance to the first face it meets, so a wall parallel to that ray
-    reads d / sin(swing) - the swing being the skin normal's turn from the
-    window's centre to its edge, up to 9 deg for a 30 mm cell at this radius.
-    That is 110 facets under the nozzle at 0.02 to 0.36 mm (225 before this
-    branch), and the three ways of beating it that were tried:
-      - loft the cutter so the floor leans 12 deg off the normal (an undercut
-        mouth): the kernel returns a bad loft, the slice came out as 12 solids
-        and 1,341 facets under the nozzle;
-      - loft the outline along its own normal field: makeLoft returns invalid
-        solids, and five of the 56 cutters came out 70 litres wide;
-      - cut in 6 mm patches, each a straight prism along the normal at its own
-        part of the outline: the patch compounds fragment against the shell
-        (81 solids on one oval) and a cut lands with no effect at all.
-    The straight prism is what builds. The thin reading is a graze along a
-    near-parallel cut wall, not a thin wall of material: the band there is T
-    thick and the ray reaches the window floor at T + SKIN_MARGIN as soon as
-    it clears the wall.
+    Why radial, measured on the 8T bench slice: the checker fires a ray along each
+    facet's normal and reads the distance to the first surface it meets. A wall
+    built as a straight prism along the normal at the window's CENTRE is up to 16
+    deg off the skin's normal at that wall's own edge (the ellipse's curvature radius
+    at the equator is B^2 / A = 52 mm and a cell is 30 mm across), so a ray along
+    the skin's normal crosses the wall at a graze and reads d / sin(swing): f086
+    measured 40 facets under the 0.40 mm nozzle, 0.042-0.399 mm, every one of them
+    a facet within 0.4 * sin(swing) mm of a cut wall - a graze along a near-parallel
+    wall, not a thin wall of material. Along the LOCAL normal the swing is the
+    normal's turn over one outline segment (0.3 deg for a 96-point outline here),
+    so the ray never crosses the wall and the reading is the band itself.
+
+    Kept from the attempts before this one (all measured on the 8T bench slice):
+      - a through-cut of the band, floor at T + 1.5 mm below the band's inner face,
+        crosses the duct's surfaces at a shallow angle and the fuse leaves 0.061 mm
+        fins behind (12 facets under the nozzle, worse than 7);
+      - stopping the cutter short of the duct wall's outside face: the floor and that
+        face coincide, 0.049 mm plates;
+      - an axis-offset shell (0.5 mm past BOTH faces) puts the inner boundary 1.36 mm
+        under the skin, past the duct's air and level with the housing wall and the
+        keel skin where the lattice meets them - it cuts a face that thin off a
+        surface that is already there;
+      - lofting the cutter so the floor leans 12 deg off the normal: the kernel returns
+        a bad loft, the slice came out as 12 solids and 1,341 facets under the nozzle;
+      - lofting the outline along its own normal field: makeLoft returns invalid solids,
+        five of the 56 cutters came out 70 litres wide;
+      - cutting in 6 mm patches, each a straight prism along the normal at its own part
+        of the outline: the patch compounds fragment against the shell (81 solids on
+        one oval) and a cut lands with no effect at all.
+    The radial prism builds: no loft, no patch, no shell to trim against - the caps
+    are at the two depths the old shell's boundaries were at, so nothing inside the
+    band's inner face is ever touched.
     """
+    if len(pts) > 48:                       # ~1 mm of outline is plenty, and the
+        pts = pts[::2]                    # face count is what costs the boolean
     c = sum((p for p, _ in pts), cq.Vector()) * (1 / len(pts))
     nrm = sum((nv for _, nv in pts), cq.Vector()).normalized()
     xd = (pts[0][0] - c)
     xd = (xd - nrm * xd.dot(nrm)).normalized()
     yd = nrm.cross(xd)
     uv = [((p - c).dot(xd), (p - c).dot(yd)) for p, _ in pts]
-    # reach: the outline's own spread plus the skin's bulge between its edges
-    # (up to about span^2 / 8R), so the middle of a big window is cut too
-    span = max((p - q).Length for p, _ in pts[::4] for q, _ in pts[::4])
-    dev = max(abs((p - c).dot(nrm)) for p, _ in pts) + 0.25 * span + T + 3.0
-    prism = (cq.Workplane(cq.Plane(origin=c, xDir=xd, normal=nrm)).polyline(uv).close()
-             .extrude(dev, both=True).val())
-    out = prism.intersect(skin_shell())
-    if out.Volume() < 1.0:
+    tris = ear_clip(uv)
+    if not tris:
+        print(f"warning: window outline would not triangulate at {c.x:.0f}, {c.y:.0f}, "
+              f"{c.z:.0f}")
+        return None
+    ri = T / 2                                    # the outline is on the band's mid-surface
+    #   surface()/duct_at() normals point OUT of the hull, away from the axis, so
+    #   +n goes out past the outer face and -n goes in past the band's inner face.
+    out_ring = [p + nv * (ri + CUT_OUT) for p, nv in pts]
+    in_ring = [p - nv * (CUT_IN - ri) for p, nv in pts]
+
+    def build(ring_a, ring_b):
+        """Close the two rings into a solid: every face a triangle. The caps are the
+        ear-clipped outline; each side quad is split along a diagonal - the four
+        points are not quite coplanar (the skin normal turns 0.3 deg over one
+        outline segment), and a non-planar face is what the kernel refuses: measured
+        here, Face.makeFromWires raises "wires not planar" and a shell of ruled
+        surfaces between the rings gives faces BRepCheck calls invalid, while an
+        all-triangle shell gives a valid solid."""
+        def tri(a, b, c):
+            return cq.Face.makeFromWires(cq.Wire.makePolygon([a, b, c, a]))
+        faces = []
+        for a, b, k in tris:
+            faces.append(tri(ring_a[a], ring_a[b], ring_a[k]))
+            faces.append(tri(ring_b[a], ring_b[k], ring_b[b]))
+        n = len(ring_a)
+        for i in range(n):
+            j = (i + 1) % n
+            faces.append(tri(ring_a[i], ring_a[j], ring_b[j]))
+            faces.append(tri(ring_a[i], ring_b[j], ring_b[i]))
+        try:
+            sol = cq.Solid.makeSolid(cq.Shell.makeShell(faces))
+        except Exception:
+            return None
+        return sol if (sol.isValid() and sol.Volume() > 0) else None
+
+    sol = build(out_ring, in_ring) or build(in_ring, out_ring)
+    if sol is None:
+        print(f"warning: radial cutter would not build at {c.x:.0f}, {c.y:.0f}, "
+              f"{c.z:.0f}")
+        return None
+    if sol.Volume() < 1.0:
         print(f"warning: empty window cutter at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}")
-    return out
+    return sol
 
 
 def skin_frame(psi, theta):
@@ -906,12 +1086,24 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     # stops at the band's edge - the cells keep their rib lines, they are re-flowed around it.
     for s_ in duct_seams():
         u_c = (math.radians(s_) - theta) * x0
+        before = poly.area
         poly = poly.difference(box(u_c - CREST_BAND - MIN_WEB, v_band[0],
                                    u_c + CREST_BAND + MIN_WEB, v_band[1]))
         if poly.is_empty:
             return None
+        if poly.area < 0.6 * before:
+            # the crest band cutting a window down to a chip leaves a slot a few tenths of a
+            # mm wide, and such a slot severs the web beside it: the 8T skin came off the slice
+            # in 16 islands, 1.2-2.8 mm adrift of the rest. A window either survives or is not
+            # cut at all.
+            return None
     if others:
+        before = poly.area
         poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
+        if poly.is_empty:
+            return None
+        if poly.area < 0.6 * before:
+            return None
     # Close the boundary: erode then dilate by POLY_CLOSE. A notch or a spike
     # narrower than 2*POLY_CLOSE = MIN_WEB mm is removed, so no cut can leave a
     # tongue of skin under MIN_WEB wide behind it. Ribs (RIB = 2.0 mm) and the
@@ -1017,7 +1209,9 @@ def windows():
         for o in ovals[k]:
             pts = oval_pts(k, o)
             if pts is not None:
-                cut.append(skin_cutter(pts))
+                c_ = skin_cutter(pts)
+                if c_ is not None:
+                    cut.append(c_)
     for j, psi in enumerate(rows):                  # junctions on every rib
         near = ovals.get(j - 1, []) + ovals.get(j, [])
         keep = 0 if 0 < j < nrows else (1 if j == 0 else -1)
@@ -1032,6 +1226,8 @@ def windows():
                 if pts is None:
                     continue
                 c_ = skin_cutter(pts)
+                if c_ is None:
+                    continue
                 # a junction on a seam stops MIN_WEB inside this slice, so the cut
                 # never lies in the slice's own side face; each slice keeps a
                 # continuous edge strip there and the two strips glue into one rib
@@ -1127,26 +1323,32 @@ def joint_parts():
         tip = [e for e in peg.Edges()
                if e.geomType() == "CIRCLE" and (e.Center() - p1).dot(tp) > PEG_L - 0.1]
         pegs.append(peg.chamfer(CHAMFER, None, tip))
-        if j["name"] in ("duct_top", "bulb_groove"):
-            # the sleeve the hole is set in: from the duct wall's own face out past
-            # the hole's far side, BOSS_D - 2*AIR_KEEP across, so the hole keeps
-            # AIR_KEEP of wall to the bore and HOLE_D/2 of material around it.
-            # duct_at() works in the outlet frame (the seam plane), so the sleeve
-            # goes on every seam that carries a duct, as at_seams() does.
-            c, n = duct_at(S_DUCT_TOP if j["name"] == "duct_top" else S_BULB_GROOVE)
-            wall_face = DUCT_BORE / 2 + DUCT_W        # the duct wall's face, air side
-            far_side = DUCT_BORE / 2 + AIR_KEEP + HOLE_D
-            sleeve = cq.Solid.makeCylinder(BOSS_D / 2 - 2 * AIR_KEEP,
-                                           far_side - wall_face,
-                                           c - n * wall_face, -n)
+        if j["sleeve"]:
+            # the sleeve the hole is set in: a rod from the air-side face of the
+            # material the hole stands in, out past the hole's far side, so the hole
+            # keeps AIR_KEEP of wall to the air path and HOLE_D/2 of material around
+            # it. f086 started it at DUCT_BORE / 2 + DUCT_W - the OUTER wall's face -
+            # which left the Ø3.3 hole punched clean through the T-thick wall it sat
+            # in (the air path open to the seam gap) and stood the rod in the duct's
+            # outer wall, 2.2 mm inside the bore: the bump rhY circled on the duct.
+            s_at, s_near, s_far = j["sleeve"]
+            c, n = duct_at(s_at)
+            side = 1.0 if s_near > 0 else -1.0        # which side of the centreline
+            sleeve = cq.Solid.makeCylinder(BOSS_D / 2 - 2 * AIR_KEEP, s_far,
+                                           c + n * s_near, n * side)
             for a_ in duct_seams():
                 sleeves.append(sleeve.rotate((0, 0, 0), (0, 0, 1), a_))
     return bosses, holes, pegs, sleeves
 
 
 def duct_path():
-    """Duct centreline in the seam plane (x = radius, y = 0), mouth to end."""
-    depth = T + DUCT_BORE / 2 + DUCT_W - DUCT_FUSE   # duct wall merges into the skin
+    """Duct centreline in the seam plane (x = radius, y = 0), mouth to end.
+
+    The centreline sits T + DUCT_BORE / 2 - SKIN_BITE under the outer skin, so the
+    bore's outer surface is SKIN_BITE inside the skin band: the skin IS the duct's
+    outer wall (rhY f087 item 1), one wall of T, and the duct adds no wall there.
+    """
+    depth = T + DUCT_BORE / 2 - SKIN_BITE
     p0 = math.asin(DUCT_Z_IN / B)
     p1 = math.asin(OUT_Z / B)
     pts = [skin_point(p0 + (p1 - p0) * i / 16, depth) for i in range(17)]
@@ -1193,12 +1395,20 @@ def duct_envelope(off, extra=3.0, bulb=None):
 
 
 def duct_solids():
-    """(walls, bore) of one full duct, seam plane = XZ, in the outlet frame."""
+    """(walls, bore) of one full duct, seam plane = XZ, in the outlet frame.
+
+    The walls exist only where the air is not already against the skin: the outer
+    boundary of the walls solid is DUCT_BORE / 2 + DUCT_W - SKIN_BITE - SKIN_BURY from
+    the centreline, i.e. SKIN_BURY under the outer skin, so it is buried in the band
+    and adds no material on the duct's outer side - the skin is that wall. The bore
+    is DUCT_BORE / 2 from the centreline, which lands SKIN_BITE inside the band, so
+    the wall on the duct's outer side measures T - SKIN_BITE = 0.84 mm all along it.
+    """
     # the end swells into a bulb (bore DUCT_BULB) so the wide stem and its
     # flange fit; the bulb's centre moves inward so it stays inside the skin
     inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
-    outer = duct_envelope(DUCT_BORE / 2 + DUCT_W, extra=8.0,
-                          bulb=DUCT_BULB / 2 + DUCT_W)
+    outer = duct_envelope(DUCT_BORE / 2 + DUCT_W - SKIN_BITE - SKIN_BURY, extra=8.0,
+                          bulb=DUCT_BULB / 2 + DUCT_W - SKIN_BITE - SKIN_BURY)
     bore = duct_envelope(DUCT_BORE / 2, extra=3.0, bulb=DUCT_BULB / 2)
     # stem bearing boss behind the hole, filled up to the skin
     x_s = hull_r(OUT_Z)
@@ -1218,11 +1428,12 @@ _CREST = None
 
 def crest_psi_range():
     """The ellipse angles the crest band runs between: from the lattice band's lowest rib
-    (the duct's mouth is below it, inside the fan housing) to STEM_HOLE / 2 + 1.5 past the
+    (the duct's mouth is below it, inside the fan housing) to DUCT_BULB / 2 + 1.5 past the
     equator, where the duct's bulb ends and the stem hole's rim is. The band stops with the
-    duct: above it the lattice runs to the bellmouth as before."""
+    duct: above it the lattice runs to the bellmouth as before. It has to cover the bulb's
+    dome, which is the widest part of the air path and now ends at the skin itself."""
     lo = lattice_band()[0]
-    hi = max(0.0, math.asin(min(1.0, (STEM_HOLE / 2 + 1.5) / B)))
+    hi = max(0.0, math.asin(min(1.0, (DUCT_BULB / 2 + 1.5) / B)))
     return lo, hi
 
 
@@ -1476,10 +1687,11 @@ def build():
     bosses, holes, pegs, sleeves = joint_parts()
 
     body = frame()
-    for w in windows():                     # one at a time: a compound cut
-        v = body.Volume()
-        body = body.cut(w)
-        if v - body.Volume() < 0.5:         # a window cut that does nothing means
+    tools = windows()
+    for w in tools:                        # one cut at a time: a compound of cutters
+        v = body.Volume()                  # whose boxes overlap would let the kernel
+        body = body.cut(w)                 # cut one against another and leave slivers
+        if v - body.Volume() < 0.5:        # a window cut that does nothing means
             c = w.Center()                # the tool never reached the skin: a lattice
             raise ValueError(f"window cut had no effect at {c.x:.1f}, {c.y:.1f}, "
                              f"{c.z:.1f} mm - the build stops here rather than "
