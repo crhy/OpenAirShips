@@ -54,6 +54,11 @@ Options (inside the `--pass` string)
                      files only (default: both)
   --no-tess          skip tessellating shapes (faster, display cost not measured)
   --no-thin          skip the STL wall-thickness scan
+  --thin-report      print every facet the wall map found under the nozzle, with
+                     its coordinates, clustered within 2 mm: the numbers a fix
+                     has to be pointed at (see the thin cluster lines below)
+  --samples N        how many facets the wall map samples (default 6000; raise
+                     it to check a whole mesh, the scan costs about as much time)
   --joints PATH      check the joint map the generator writes (<slice>.joints.json):
                      every peg/hole boss against the fan-housing wall, the plenum
                      air and the impeller's swept volume, and every hole against
@@ -94,6 +99,8 @@ BEDS = [(400.0, 400.0, 450.0, "Anycubic Kobra Max"),
 
 TESS_OFF = False
 THIN_OFF = False
+THIN_REPORT = False
+WALL_SAMPLES = 6000
 
 
 def version_string():
@@ -215,7 +222,7 @@ def group_blobs(items, cen, fac_area, link=BLOB_LINK):
     return blobs
 
 
-def wall_map(m, max_depth=4.0, cell=1.0, samples=6000):
+def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
     """Cast each facet's inward normal and find the surface behind it.
 
     Two ends of one measurement. A wall thinner than the nozzle cannot be printed
@@ -329,12 +336,92 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000):
 
     # the thin end, grouped the same way: a wall under the nozzle is not printable
     # as drawn, and knowing WHERE it is is what makes the failure fixable.
+    if report:
+        # every facet under the nozzle, with its coordinates: the blobs say how
+        # much and where, this says which facets, so the generator code that
+        # made the sliver can be found from the point
+        under = []
+        for i, t in hits:
+            if t < NOZZLE:
+                c, n = cen[i], nor[i]
+                under.append({"facet": i, "at": [round(v, 3) for v in c],
+                              "wall": round(t, 4), "area": round(fac_area[i], 4),
+                              "normal": [round(v, 4) for v in n]})
+        under.sort(key=lambda d_: d_["wall"])
+        out["underFacets"] = under
     slim = [(i, t) for i, t in hits if t < NOZZLE]
     slim_blobs = group_blobs(slim, cen, fac_area)
     out["underArea"] = round(sum(b_["area"] for b_ in slim_blobs), 1)
     out["underBlobs"] = slim_blobs[:14]
     out["underBlobCount"] = len(slim_blobs)
     return out
+
+
+def cluster3d(items, link=2.0):
+    """Group thin facets whose centres are within `link` of each other.
+
+    2 mm, not BLOB_LINK: a sliver is a handful of facets, and at the mesh's
+    ~0.5 mm facet size that is the size of one defect, so each cluster is one
+    thing the generator did once.
+    """
+    parent = list(range(len(items)))
+
+    def find(k):
+        while parent[k] != k:
+            parent[k] = parent[parent[k]]
+            k = parent[k]
+        return k
+
+    cell = {}
+    for k, it in enumerate(items):
+        a = it["at"]
+        key = tuple(int(v // link) for v in a)
+        for gx in range(key[0] - 1, key[0] + 2):
+            for gy in range(key[1] - 1, key[1] + 2):
+                for gz in range(key[2] - 1, key[2] + 2):
+                    for j in cell.get((gx, gy, gz), ()):
+                        b = items[j]["at"]
+                        if math.sqrt(sum((a[d] - b[d]) ** 2 for d in range(3))) <= link:
+                            ra, rb = find(j), find(k)
+                            if ra != rb:
+                                parent[rb] = ra
+        cell.setdefault(key, []).append(k)
+    groups = {}
+    for k in range(len(items)):
+        groups.setdefault(find(k), []).append(items[k])
+    out = list(groups.values())
+    out.sort(key=lambda g_: (min(x["wall"] for x in g_), -len(g_)))
+    return out
+
+
+def thin_report_lines(th):
+    """The under-nozzle facets, one line each, grouped into 2 mm clusters.
+
+    Coordinates are in the frame the wall scan ran in (model frame for the
+    PieSlice STLs, whose print pose the scan undoes), so they can be compared
+    with the generator's own numbers: r = hull radius, z, azimuth.
+    """
+    items = th.get("underFacets", [])
+    if not items:
+        return ["thin report: no sampled facet under %.2f mm" % NOZZLE]
+    lines = ["thin report: %d sampled facets under the %.2f mm nozzle, min %.3f mm"
+             % (len(items), NOZZLE, items[0]["wall"])]
+    for n, g in enumerate(cluster3d(items), 1):
+        cs = [x["at"] for x in g]
+        cx = sum(c[0] for c in cs) / len(cs)
+        cy = sum(c[1] for c in cs) / len(cs)
+        cz = sum(c[2] for c in cs) / len(cs)
+        lines.append(
+            "thin cluster %d: %d facets, wall %.3f-%.3f mm, centre (%.1f, %.1f, %.1f) "
+            "r=%.1f z=%.1f az=%.1f deg" %
+            (n, len(g), min(x["wall"] for x in g), max(x["wall"] for x in g),
+             cx, cy, cz, math.hypot(cx, cy), cz,
+             math.degrees(math.atan2(cy, cx))))
+        for x in sorted(g, key=lambda q_: q_["at"]):
+            lines.append("      facet (%8.2f, %8.2f, %8.2f) wall %6.3f mm "
+                         "area %6.3f mm2 n=(%5.2f,%5.2f,%5.2f)" %
+                         (*x["at"], x["wall"], x["area"], *x["normal"]))
+    return lines
 
 
 def blob_text(b):
@@ -801,7 +888,7 @@ def check_stl(path):
             scan.transformGeometry(App.Rotation(App.Vector(1, 0, 0), -90).toMatrix())
             scan.transformGeometry(App.Rotation(App.Vector(0, 0, 1), -22.5).toMatrix())
             facts["wallScanFrame"] = "model frame (the print pose is undone)"
-        facts["thickness"] = wall_map(scan)
+        facts["thickness"] = wall_map(scan, samples=WALL_SAMPLES, report=THIN_REPORT)
         th = facts["thickness"]
         if th.get("sampled"):
             if th["min"] < LAYER:
@@ -992,7 +1079,7 @@ def script_argv():
 
 
 def main(argv):
-    global TESS_OFF, THIN_OFF
+    global TESS_OFF, THIN_OFF, THIN_REPORT, WALL_SAMPLES
     ap = argparse.ArgumentParser(prog="check_outputs.py", add_help=False)
     ap.add_argument("--json", dest="json")
     ap.add_argument("--cad-root", dest="cad_roots", action="append")
@@ -1003,9 +1090,13 @@ def main(argv):
     ap.add_argument("--no-tess", dest="no_tess", action="store_true")
     ap.add_argument("--no-thin", dest="no_thin", action="store_true")
     ap.add_argument("--joints", dest="joints", action="append")
+    ap.add_argument("--thin-report", dest="thin_report", action="store_true")
+    ap.add_argument("--samples", dest="samples", type=int, default=6000)
     ns = ap.parse_args(shlex.split(" ".join(a for a in argv if a != "--pass")))
     TESS_OFF = ns.no_tess
     THIN_OFF = ns.no_thin
+    THIN_REPORT = ns.thin_report
+    WALL_SAMPLES = max(100, ns.samples)
 
     cad_roots = ns.cad_roots or [os.path.join(CURRENT, "CAD Files")]
     stl_roots = ns.stl_roots or [os.path.join(CURRENT, "Print Files")]
@@ -1094,7 +1185,10 @@ def main(argv):
             print("      PROBLEM  {}".format(w))
         for w in warns:
             print("      note     {}".format(w))
-        sys.stdout.flush()
+        if THIN_REPORT and rec["kind"] == "STL":
+            for line in thin_report_lines(f.get("thickness", {})):
+                print(line)
+            sys.stdout.flush()
 
     for jp in ns.joints or []:
         rec = check_joints(jp)

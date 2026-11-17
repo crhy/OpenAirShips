@@ -77,6 +77,9 @@ MIN_WEB = 0.4              # the least skin a window cut must leave itself: it s
                          # its neighbouring windows. Closer than this and the boolean leaves a
                          # sliver face (0.009-0.05 mm walls on the prints, issue #36), not a
                          # thin web: see Analysis/OUTPUT-CHECK.md.
+SKIN_MARGIN = 0.02         # how far past the skin's inner face a window cutter may reach:
+                         # the skin band is T thick, so the cutter clears it by this and stops
+                         # MIN_WEB + SKIN_MARGIN short of the duct's bore (see skin_shell()).
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
@@ -663,8 +666,22 @@ _BAND = None
 
 
 def skin_shell():
-    """A thin shell round the skin (0.5 mm beyond both faces): window cutters
-    are trimmed to it, so they cut the skin and nothing inside it."""
+    """A thin shell round the skin: window cutters are trimmed to it, so they
+    cut the skin and nothing inside it.
+
+    0.5 mm beyond the outer face, but only SKIN_MARGIN (0.02 mm) past the inner
+    one, and both boundaries are the skin's own parallel curves (skin_point),
+    not axis-offset ellipses. The old shell reached half a millimetre past both
+    faces on an axis offset, which put it 1.29-1.36 mm under the outer skin -
+    level with the duct's bore, which is DUCT_BORE/2 + DUCT_W - DUCT_FUSE =
+    1.32 mm under the skin wherever a duct runs under the lattice (over a duct
+    the skin IS the duct's own wall). So every window cutter wore a skirt down
+    the inside of the duct's air path, and the fin of duct wall left between
+    the window and the air measured 0.019-0.304 mm (Analysis/build/f084/tool_pairs.log:
+    windows()[N] <-> duct_solids() bore) - the walls under the 0.40 mm nozzle
+    issue #36 counts. With the parallel-curve shell at T + SKIN_MARGIN the
+    closest any lattice cut comes to the air is 0.44 mm, over MIN_WEB.
+    """
     global _SHELL
     if _SHELL is None:
         # A fine polygon rather than exact ellipse arcs: the kernel sometimes
@@ -672,8 +689,8 @@ def skin_shell():
         # the equator on the 1.58 m hull). 400 facets sag < 0.01 mm here.
         top, n = math.pi / 2 - 0.02, 400
         ts = [-math.pi / 2 + (top + math.pi / 2) * i / n for i in range(n + 1)]
-        outer = [((A + 0.5) * math.cos(t), (B + 0.5) * math.sin(t)) for t in ts]
-        inner = [((A - T - 0.5) * math.cos(t), (B - T - 0.5) * math.sin(t)) for t in reversed(ts)]
+        outer = [skin_point(t, -0.5) for t in ts]
+        inner = [skin_point(t, T + SKIN_MARGIN) for t in reversed(ts)]
         _SHELL = wedge(outer + inner, half=HALF + 3)
     return _SHELL
 
@@ -847,7 +864,10 @@ def windows():
     intake bellmouth. Everything is laid out on the curved skin, and every web
     left between windows is RIB wide: nothing heavier than needed. The shaft,
     the housing ceiling and the keel under it stay solid: they are the intake
-    and the plenum.
+    and the plenum. No cutter comes within MIN_WEB of a surface it must not
+    pierce (outlet_keepout() for the stem/servo collars, skin_shell() for the
+    duct's air path under the lattice); a window that cannot keep that web is
+    dropped.
     """
     whole = column(0)
     rows = skin_ribs()
@@ -1010,28 +1030,38 @@ def circle_profile(c, r, n=48):
              c.z + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
 
 
+def duct_envelope(off, extra=3.0, bulb=None):
+    """The duct's swept envelope at `off` mm from its centreline (duct_path),
+    plus the bulb's dome at the same offset when `bulb` names it.
+
+    off = DUCT_BORE/2 is the air path itself, DUCT_BORE/2 + DUCT_W the wall's
+    outside face; anything larger is a keep-clear volume for the cuts that must
+    not breach the air (the lattice, the joints). Built the same way every time,
+    so a keep-clear cannot drift from the part it protects.
+    """
+    pts = duct_path()
+    spline = cq.Edge.makeSpline(pts)
+    t0 = (pts[1] - pts[0]).normalized()
+    start = pts[0] - t0 * extra
+    prof = cq.Wire.makeCircle(off, start, t0)
+    spine = ([cq.Edge.makeLine(start, pts[0]), spline] if extra else [spline])
+    body = cq.Solid.sweep(prof, [], cq.Wire.assembleEdges(spine), True, False)
+    body = body.fuse(cq.Solid.makeSphere(off, pts[-1],
+                                         angleDegrees1=-90, angleDegrees2=90))
+    if bulb:
+        body = body.fuse(cq.Solid.makeSphere(bulb, duct_bulb_centre(),
+                                             angleDegrees1=-90, angleDegrees2=90))
+    return body
+
+
 def duct_solids():
     """(walls, bore) of one full duct, seam plane = XZ, in the outlet frame."""
-    pts = duct_path()
-    path = cq.Wire.assembleEdges([cq.Edge.makeSpline(pts)])
-    t0 = (pts[1] - pts[0]).normalized()
-
-    def tube(r, extra=0.0):
-        start = pts[0] - t0 * extra
-        prof = cq.Wire.makeCircle(r, start, t0)
-        body = cq.Solid.sweep(prof, [], path if not extra else cq.Wire.assembleEdges(
-            [cq.Edge.makeLine(start, pts[0]), cq.Edge.makeSpline(pts)]), True, False)
-        return body.fuse(cq.Solid.makeSphere(r, pts[-1], angleDegrees1=-90, angleDegrees2=90))
-
     # the end swells into a bulb (bore DUCT_BULB) so the wide stem and its
     # flange fit; the bulb's centre moves inward so it stays inside the skin
-    centre = duct_bulb_centre()
-    # (the tube's rounded end sits inside the bulb, so a plain sphere joins them)
     inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
-    outer = tube(DUCT_BORE / 2 + DUCT_W, extra=8.0).fuse(   # reaches back into the housing wall (trimmed below)
-        cq.Solid.makeSphere(DUCT_BULB / 2 + DUCT_W, centre, angleDegrees1=-90, angleDegrees2=90))
-    bore = tube(DUCT_BORE / 2, extra=3.0).fuse(
-        cq.Solid.makeSphere(DUCT_BULB / 2, centre, angleDegrees1=-90, angleDegrees2=90))
+    outer = duct_envelope(DUCT_BORE / 2 + DUCT_W, extra=8.0,
+                          bulb=DUCT_BULB / 2 + DUCT_W)
+    bore = duct_envelope(DUCT_BORE / 2, extra=3.0, bulb=DUCT_BULB / 2)
     # stem bearing boss behind the hole, filled up to the skin
     x_s = hull_r(OUT_Z)
     boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
