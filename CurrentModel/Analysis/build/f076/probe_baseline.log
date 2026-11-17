@@ -1,0 +1,47 @@
+Exception while processing file: CurrentModel/Analysis/build/f076/probe_slivers.py ['Part.Face' object has no attribute 'sharedEdges']
+shape CurrentModel/Analysis/build/f076/baseline.step
+  solids 1 shells 1 faces 4436 valid True volume 26749.1
+
+15 smallest faces (area mm2, centre, nearest-face distance):
+  area     0.000  at (   51.7,   20.3,   99.8)  nearest face 0.000000 mm  edges 4
+  area     0.002  at (  169.7,  -69.2,   48.4)  nearest face 0.000000 mm  edges 4
+  area     0.003  at (  123.7,   50.2,  -79.4)  nearest face 0.000000 mm  edges 4
+  area     0.008  at (   79.4,   31.8,  -94.5)  nearest face 0.000000 mm  edges 4
+  area     0.015  at (  190.2,   77.5,   15.5)  nearest face 0.000000 mm  edges 3
+  area     0.015  at (  190.2,  -77.5,   15.5)  nearest face 0.000000 mm  edges 3
+  area     0.027  at (  178.6,   72.9,  -38.2)  nearest face 0.000000 mm  edges 4
+  area     0.029  at (  172.7,   70.4,  -45.5)  nearest face 0.000000 mm  edges 4
+  area     0.031  at (  149.8,   60.9,  -65.0)  nearest face 0.000000 mm  edges 4
+  area     0.043  at (   66.5,   26.5,  -97.4)  nearest face 0.000000 mm  edges 4
+  area     0.046  at (  123.7,  -50.1,  -79.4)  nearest face 0.000000 mm  edges 4
+  area     0.046  at (   66.5,  -26.4,  -97.4)  nearest face 0.000000 mm  edges 4
+  area     0.064  at (  188.6,  -77.0,  -19.9)  nearest face 0.000000 mm  edges 4
+  area     0.098  at (   96.5,   38.9,   89.6)  nearest face 0.000000 mm  edges 4
+  area     0.106  at (   59.7,  -23.5,  -98.7)  nearest face 0.000000 mm  edges 4
+
+face pairs under 0.40 mm apart (bbox prefilter, no shared edge):
+shape CurrentModel/Analysis/build/f076/baseline.step
+  solids 1 shells 1 faces 4436 valid True volume 26749.1
+
+15 smallest faces (area mm2, centre, nearest-face distance):
+  area     0.000  at (   51.7,   20.3,   99.8)  nearest face 0.000000 mm  edges 4
+  area     0.002  at (  169.7,  -69.2,   48.4)  nearest face 0.000000 mm  edges 4
+  area     0.003  at (  123.7,   50.2,  -79.4)  nearest face 0.000000 mm  edges 4
+  area     0.008  at (   79.4,   31.8,  -94.5)  nearest face 0.000000 mm  edges 4
+  area     0.015  at (  190.2,   77.5,   15.5)  nearest face 0.000000 mm  edges 3
+  area     0.015  at (  190.2,  -77.5,   15.5)  nearest face 0.000000 mm  edges 3
+  area     0.027  at (  178.6,   72.9,  -38.2)  nearest face 0.000000 mm  edges 4
+  area     0.029  at (  172.7,   70.4,  -45.5)  nearest face 0.000000 mm  edges 4
+  area     0.031  at (  149.8,   60.9,  -65.0)  nearest face 0.000000 mm  edges 4
+  area     0.043  at (   66.5,   26.5,  -97.4)  nearest face 0.000000 mm  edges 4
+  area     0.046  at (  123.7,  -50.1,  -79.4)  nearest face 0.000000 mm  edges 4
+  area     0.046  at (   66.5,  -26.4,  -97.4)  nearest face 0.000000 mm  edges 4
+  area     0.064  at (  188.6,  -77.0,  -19.9)  nearest face 0.000000 mm  edges 4
+  area     0.098  at (   96.5,   38.9,   89.6)  nearest face 0.000000 mm  edges 4
+  area     0.106  at (   59.7,  -23.5,  -98.7)  nearest face 0.000000 mm  edges 4
+
+face pairs under 0.40 mm apart (bbox prefilter, no shared edge):
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+

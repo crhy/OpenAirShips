@@ -1,0 +1,16 @@
+loaded: 4212 faces, 61 window cutters
+face 1670  geom PLANE        area   0.1308 mm2 centre ( 188.82,  67.11,  27.36) bbox x[188.7,189.0] y[66.2,67.7] z[27.1,27.8]
+      to hull outer 0.0000  to hull inner 0.7178  to duct wall 13.5319  to duct bore 14.3919  to stem hole 16.0763  to servo hole 105.5111
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm
+face 1671  geom PLANE        area   0.0444 mm2 centre ( 188.87,  66.70,  27.56) bbox x[188.8,189.0] y[66.2,67.0] z[27.4,27.8]
+      to hull outer 0.0000  to hull inner 0.7391  to duct wall 13.9819  to duct bore 14.8419  to stem hole 16.6121  to servo hole 105.5111
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm
+face 1672  geom PLANE        area   0.1211 mm2 centre ( 188.76,  67.47,  27.21) bbox x[188.6,188.9] y[67.0,67.9] z[27.0,27.5]
+      to hull outer 0.0000  to hull inner 0.6593  to duct wall 13.3486  to duct bore 14.2086  to stem hole 15.8772  to servo hole 106.1869
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm
+face 3176  geom PLANE        area   0.3389 mm2 centre ( 189.91, -66.07, -25.97) bbox x[189.7,190.1] y[-66.9,-65.2] z[-26.3,-25.6]
+      to hull outer 0.0000  to hull inner 0.6414  to duct wall 3.9553  to duct bore 4.8152  to stem hole 15.1123  to servo hole 31.2923
+      nearest cutters: #10 0.0000 mm, #40 0.0000 mm
+face 3453  geom PLANE        area   0.1771 mm2 centre ( 189.83, -66.57, -25.81) bbox x[189.7,190.0] y[-67.0,-66.1] z[-26.0,-25.6]
+      to hull outer 0.0000  to hull inner 0.6436  to duct wall 3.8799  to duct bore 4.7398  to stem hole 15.0282  to servo hole 31.6180
+      nearest cutters: #40 0.0000 mm, #10 0.0000 mm

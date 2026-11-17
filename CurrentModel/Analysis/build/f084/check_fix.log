@@ -1,0 +1,7 @@
+note: window at 194, -71, 0 dropped: it cannot keep MIN_WEB away from the stem/servo collars
+note: window at 194, 71, 0 dropped: it cannot keep MIN_WEB away from the stem/servo collars
+windows(): 61 cutters in 35 s
+air keep-out volume 96728 mm3
+closest cutter -> duct air keep-out: ['#0 0.000 mm', '#1 0.000 mm', '#2 0.000 mm', '#3 0.000 mm', '#4 0.000 mm', '#5 0.000 mm']
+closest cutter -> duct BORE: ['#25 0.400 mm', '#26 0.400 mm', '#0 0.400 mm', '#1 0.400 mm', '#29 0.400 mm', '#28 0.400 mm']
+duct walls 102669.7 mm3 bore 90581.7 mm3 (unchanged check)

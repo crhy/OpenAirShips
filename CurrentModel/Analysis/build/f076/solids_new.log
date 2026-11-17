@@ -1,0 +1,4 @@
+total volume 27546.4 mm3  solids 2  faces 4252  valid True
+  solid 0  vol    27546.4 mm3  faces  4248  shells 1  bbox 176.8 x 158.7 x 202.8 at (30,-79,-101)
+  solid 1  vol        0.0 mm3  faces     4  shells 1  bbox 0.1 x 1.1 x 0.5 at (189,64,28)
+windows: 61 cutters, union volume 63915.9 mm3, union solids 43

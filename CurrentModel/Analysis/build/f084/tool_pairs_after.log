@@ -1,0 +1,169 @@
+79 tools
+  0/79 tools in 6 s, 1 close pairs so far
+  1/79 tools in 11 s, 2 close pairs so far
+  2/79 tools in 18 s, 4 close pairs so far
+  3/79 tools in 25 s, 6 close pairs so far
+  4/79 tools in 34 s, 8 close pairs so far
+  5/79 tools in 42 s, 10 close pairs so far
+  6/79 tools in 52 s, 12 close pairs so far
+  7/79 tools in 61 s, 14 close pairs so far
+  8/79 tools in 68 s, 16 close pairs so far
+  9/79 tools in 75 s, 18 close pairs so far
+  10/79 tools in 79 s, 21 close pairs so far
+  11/79 tools in 84 s, 24 close pairs so far
+  12/79 tools in 85 s, 26 close pairs so far
+  13/79 tools in 86 s, 28 close pairs so far
+  14/79 tools in 88 s, 29 close pairs so far
+  15/79 tools in 89 s, 30 close pairs so far
+  16/79 tools in 91 s, 31 close pairs so far
+  17/79 tools in 93 s, 32 close pairs so far
+  18/79 tools in 95 s, 33 close pairs so far
+  19/79 tools in 97 s, 34 close pairs so far
+  20/79 tools in 99 s, 34 close pairs so far
+  21/79 tools in 102 s, 34 close pairs so far
+  22/79 tools in 103 s, 34 close pairs so far
+  23/79 tools in 104 s, 34 close pairs so far
+  24/79 tools in 107 s, 34 close pairs so far
+  25/79 tools in 109 s, 35 close pairs so far
+  26/79 tools in 110 s, 36 close pairs so far
+  27/79 tools in 115 s, 36 close pairs so far
+  28/79 tools in 119 s, 37 close pairs so far
+  29/79 tools in 122 s, 38 close pairs so far
+  30/79 tools in 133 s, 38 close pairs so far
+  31/79 tools in 137 s, 39 close pairs so far
+  32/79 tools in 141 s, 40 close pairs so far
+  33/79 tools in 158 s, 40 close pairs so far
+  34/79 tools in 163 s, 41 close pairs so far
+  35/79 tools in 169 s, 42 close pairs so far
+  36/79 tools in 188 s, 42 close pairs so far
+  37/79 tools in 193 s, 43 close pairs so far
+  38/79 tools in 199 s, 44 close pairs so far
+  39/79 tools in 219 s, 44 close pairs so far
+  40/79 tools in 224 s, 45 close pairs so far
+  41/79 tools in 229 s, 46 close pairs so far
+  42/79 tools in 229 s, 46 close pairs so far
+  43/79 tools in 229 s, 46 close pairs so far
+  44/79 tools in 229 s, 46 close pairs so far
+  45/79 tools in 229 s, 46 close pairs so far
+  46/79 tools in 229 s, 46 close pairs so far
+  47/79 tools in 229 s, 46 close pairs so far
+  48/79 tools in 229 s, 46 close pairs so far
+  49/79 tools in 229 s, 46 close pairs so far
+  50/79 tools in 229 s, 46 close pairs so far
+  51/79 tools in 229 s, 46 close pairs so far
+  52/79 tools in 229 s, 46 close pairs so far
+  53/79 tools in 229 s, 46 close pairs so far
+  54/79 tools in 229 s, 46 close pairs so far
+  55/79 tools in 229 s, 46 close pairs so far
+  56/79 tools in 229 s, 46 close pairs so far
+  57/79 tools in 229 s, 46 close pairs so far
+  58/79 tools in 229 s, 46 close pairs so far
+  59/79 tools in 229 s, 46 close pairs so far
+  60/79 tools in 229 s, 46 close pairs so far
+  61/79 tools in 233 s, 61 close pairs so far
+  62/79 tools in 236 s, 69 close pairs so far
+  63/79 tools in 236 s, 69 close pairs so far
+  64/79 tools in 236 s, 69 close pairs so far
+  65/79 tools in 236 s, 75 close pairs so far
+  66/79 tools in 236 s, 77 close pairs so far
+  67/79 tools in 236 s, 79 close pairs so far
+  68/79 tools in 236 s, 80 close pairs so far
+  69/79 tools in 236 s, 82 close pairs so far
+  70/79 tools in 236 s, 83 close pairs so far
+  71/79 tools in 236 s, 85 close pairs so far
+  72/79 tools in 236 s, 86 close pairs so far
+  73/79 tools in 236 s, 86 close pairs so far
+  74/79 tools in 236 s, 87 close pairs so far
+  75/79 tools in 236 s, 87 close pairs so far
+  76/79 tools in 236 s, 87 close pairs so far
+  77/79 tools in 236 s, 87 close pairs so far
+  78/79 tools in 236 s, 87 close pairs so far
+
+87 pairs closer than MIN_WEB 0.40 mm
+  0.000 mm  duct_solids() bore                 <-> joint_parts() boss[2]
+  0.000 mm  duct_solids() bore                 <-> joint_parts() boss[3]
+  0.000 mm  duct_solids() bore                 <-> stem_and_servo_holes() stem
+  0.000 mm  duct_solids() walls                <-> duct_solids() bore
+  0.000 mm  duct_solids() walls                <-> joint_parts() boss[0]
+  0.000 mm  duct_solids() walls                <-> joint_parts() boss[1]
+  0.000 mm  duct_solids() walls                <-> joint_parts() boss[2]
+  0.000 mm  duct_solids() walls                <-> joint_parts() boss[3]
+  0.000 mm  duct_solids() walls                <-> outlet_keepout()
+  0.000 mm  duct_solids() walls                <-> stem_and_servo_holes() stem
+  0.000 mm  joint_parts() boss[0]              <-> joint_parts() sleeve[1]
+  0.000 mm  joint_parts() boss[1]              <-> joint_parts() peg[0]
+  0.000 mm  joint_parts() boss[1]              <-> joint_parts() sleeve[0]
+  0.000 mm  joint_parts() boss[2]              <-> joint_parts() sleeve[3]
+  0.000 mm  joint_parts() boss[3]              <-> joint_parts() peg[1]
+  0.000 mm  joint_parts() boss[3]              <-> joint_parts() sleeve[2]
+  0.000 mm  joint_parts() hole[0]              <-> joint_parts() boss[0]
+  0.000 mm  joint_parts() hole[0]              <-> joint_parts() sleeve[1]
+  0.000 mm  joint_parts() hole[1]              <-> joint_parts() boss[2]
+  0.000 mm  joint_parts() hole[1]              <-> joint_parts() sleeve[3]
+  0.000 mm  joint_parts() sleeve[0]            <-> joint_parts() peg[0]
+  0.000 mm  joint_parts() sleeve[2]            <-> joint_parts() peg[1]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() boss[2]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() boss[3]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() hole[1]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() peg[1]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() sleeve[2]
+  0.000 mm  outlet_keepout()                   <-> joint_parts() sleeve[3]
+  0.000 mm  windows()[0]                       <-> duct_solids() walls
+  0.000 mm  windows()[10]                      <-> outlet_keepout()
+  0.000 mm  windows()[10]                      <-> windows()[40]
+  0.000 mm  windows()[11]                      <-> outlet_keepout()
+  0.000 mm  windows()[11]                      <-> windows()[41]
+  0.000 mm  windows()[12]                      <-> outlet_keepout()
+  0.000 mm  windows()[12]                      <-> windows()[44]
+  0.000 mm  windows()[13]                      <-> outlet_keepout()
+  0.000 mm  windows()[13]                      <-> windows()[45]
+  0.000 mm  windows()[14]                      <-> windows()[47]
+  0.000 mm  windows()[15]                      <-> windows()[48]
+  0.000 mm  windows()[16]                      <-> windows()[50]
+  0.000 mm  windows()[17]                      <-> windows()[51]
+  0.000 mm  windows()[18]                      <-> windows()[53]
+  0.000 mm  windows()[19]                      <-> windows()[54]
+  0.000 mm  windows()[1]                       <-> duct_solids() walls
+  0.000 mm  windows()[25]                      <-> duct_solids() walls
+  0.000 mm  windows()[26]                      <-> duct_solids() walls
+  0.000 mm  windows()[28]                      <-> duct_solids() walls
+  0.000 mm  windows()[29]                      <-> duct_solids() walls
+  0.000 mm  windows()[2]                       <-> duct_solids() walls
+  0.000 mm  windows()[2]                       <-> windows()[28]
+  0.000 mm  windows()[31]                      <-> duct_solids() walls
+  0.000 mm  windows()[32]                      <-> duct_solids() walls
+  0.000 mm  windows()[34]                      <-> duct_solids() walls
+  0.000 mm  windows()[35]                      <-> duct_solids() walls
+  0.000 mm  windows()[37]                      <-> duct_solids() walls
+  0.000 mm  windows()[38]                      <-> duct_solids() walls
+  0.000 mm  windows()[3]                       <-> windows()[29]
+  0.000 mm  windows()[40]                      <-> duct_solids() walls
+  0.000 mm  windows()[41]                      <-> duct_solids() walls
+  0.000 mm  windows()[4]                       <-> duct_solids() walls
+  0.000 mm  windows()[4]                       <-> windows()[31]
+  0.000 mm  windows()[5]                       <-> duct_solids() walls
+  0.000 mm  windows()[5]                       <-> windows()[32]
+  0.000 mm  windows()[6]                       <-> windows()[34]
+  0.000 mm  windows()[7]                       <-> duct_solids() walls
+  0.000 mm  windows()[7]                       <-> windows()[35]
+  0.000 mm  windows()[8]                       <-> windows()[37]
+  0.000 mm  windows()[9]                       <-> windows()[38]
+  0.000 mm  duct_solids() bore                 <-> outlet_keepout()
+  0.000 mm  windows()[10]                      <-> duct_solids() walls
+  0.000 mm  duct_solids() walls                <-> joint_parts() hole[0]
+  0.000 mm  windows()[6]                       <-> duct_solids() walls
+  0.000 mm  windows()[8]                       <-> duct_solids() walls
+  0.000 mm  windows()[9]                       <-> duct_solids() walls
+  0.000 mm  duct_solids() bore                 <-> joint_parts() boss[0]
+  0.000 mm  duct_solids() bore                 <-> joint_parts() boss[1]
+  0.000 mm  windows()[3]                       <-> duct_solids() walls
+  0.000 mm  windows()[11]                      <-> duct_solids() walls
+  0.000 mm  duct_solids() walls                <-> joint_parts() hole[1]
+  0.003 mm  duct_solids() walls                <-> joint_parts() peg[0]
+  0.008 mm  duct_solids() walls                <-> joint_parts() peg[1]
+  0.013 mm  duct_solids() walls                <-> joint_parts() sleeve[2]
+  0.013 mm  duct_solids() walls                <-> joint_parts() sleeve[3]
+  0.069 mm  duct_solids() walls                <-> joint_parts() sleeve[0]
+  0.069 mm  duct_solids() walls                <-> joint_parts() sleeve[1]
+  0.303 mm  duct_solids() bore                 <-> joint_parts() hole[0]
+  0.308 mm  duct_solids() bore                 <-> joint_parts() hole[1]

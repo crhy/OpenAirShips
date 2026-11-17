@@ -1,0 +1,43 @@
+loaded: 4212 faces, 61 window cutters
+face 1722  geom PLANE        area   0.1470 mm2 centre ( 189.27,  62.66,  29.11) bbox x[189.2,189.4] y[62.2,63.2] z[28.9,29.3]
+      to hull outer 0.0000  to hull inner 0.6221  to duct wall 16.3743  to duct bore 17.2343  to stem hole 19.4241  to servo hole 102.0441
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm
+face 1723  geom PLANE        area   0.0676 mm2 centre ( 189.20,  63.57,  28.80) bbox x[189.1,189.3] y[63.2,64.2] z[28.6,29.0]
+      to hull outer 0.0000  to hull inner 0.7263  to duct wall 15.8172  to duct bore 16.6772  to stem hole 18.7538  to servo hole 102.9146
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm
+face 1725  geom PLANE     face 812   geom REVOLUTION   area 8114.4884 mm2 centre ( 154.67,  -0.17,  -0.34) bbox x[42.8,207.3] y[-78.8,78.8] z[-99.4,101.4]
+      to hull outer 0.0000  to hull inner 0.8107  to duct wall 0.0000  to duct bore 1.3219  to stem hole 1.3000  to servo hole 0.0000
+      nearest cutters: #0 0.0000 mm, #1 0.0000 mm, #2 0.0000 mm
+face 1725  geom PLANE        area   0.1373 mm2 centre ( 189.23,  63.28,  28.89) bbox x[189.1,189.3] y[62.7,64.3] z[28.5,29.1]
+      to hull outer 0.0000  to hull inner 0.7048  to duct wall 15.7180  to duct bore 16.5780  to stem hole 18.6308  to servo hole 102.4723
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm, #15 13.1424 mm
+face 1723  geom PLANE        area   0.0676 mm2 centre ( 189.20,  63.57,  28.80) bbox x[189.1,189.3] y[63.2,64.2] z[28.6,29.0]
+      to hull outer 0.0000  to hull inner 0.7263  to duct wall 15.8172  to duct bore 16.6772  to stem hole 18.7538  to servo hole 102.9146
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm, #15 13.5262 mm
+face 1722  geom PLANE        area   0.1470 mm2 centre ( 189.27,  62.66,  29.11) bbox x[189.2,189.4] y[62.2,63.2] z[28.9,29.3]
+      to hull outer 0.0000  to hull inner 0.6221  to duct wall 16.3743  to duct bore 17.2343  to stem hole 19.4241  to servo hole 102.0441
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm, #15 12.7934 mm
+face 1726  geom PLANE        area   0.4717 mm2 centre ( 189.35,  61.70,  29.37) bbox x[189.2,189.6] y[60.9,62.7] z[29.1,29.6]
+      to hull outer 0.0000  to hull inner 0.4703  to duct wall 16.6869  to duct bore 17.5469  to stem hole 19.7883  to servo hole 100.9322
+      nearest cutters: #13 0.0000 mm, #45 0.0000 mm, #15 11.8975 mm
+face 3455  geom PLANE        area   0.2827 mm2 centre ( 189.54, -68.36, -25.04) bbox x[189.3,189.7] y[-68.8,-67.9] z[-25.3,-24.7]
+      to hull outer 0.0000  to hull inner 0.4658  to duct wall 2.7406  to duct bore 3.6005  to stem hole 13.6228  to servo hole 32.3153
+      nearest cutters: #40 0.0000 mm, #10 0.0000 mm, #8 16.2895 mm
+face 3174  geom PLANE        area   0.8650 mm2 centre ( 189.35, -69.38, -24.47) bbox x[188.9,189.7] y[-70.1,-68.5] z[-25.0,-24.0]
+      to hull outer 0.0000  to hull inner 0.2172  to duct wall 1.8333  to duct bore 2.6932  to stem hole 12.4701  to servo hole 32.5736
+      nearest cutters: #10 0.0000 mm, #40 0.0000 mm, #8 16.8152 mm
+face 3927  geom PLANE        area   0.0029 mm2 centre (  90.59, -25.85, -92.65) bbox x[90.6,90.6] y[-25.9,-25.8] z[-92.7,-92.6]
+      to hull outer 0.0000  to hull inner 0.7073  to duct wall 4.0669  to duct bore 4.9268  to stem hole 128.53face 812   geom REVOLUTION   area 8114.4884 mm2 centre ( 154.67,  -0.17,  -0.34) bbox x[42.8,207.3] y[-78.8,78.8] z[-99.4,101.4]
+      to hull outer 0.0000  to hull inner 0.8107  to duct wall 0.0000  to duct bore 1.3219  to stem hole 1.3000  to servo hole 0.0000
+      nearest cutters: #0 0.0000 mm, #1 0.0000 mm, #2 0.0000 mm, #3 0.0000 mm
+vo hole 133.0128
+      nearest cutters: #2 0.0000 mm, #28 0.0000 mm, #0 3.7857 mm
+face 3926  geom PLANE        area   0.4417 mm2 centre (  90.42, -25.45, -92.37) bbox x[90.3,90.6] y[-25.8,-25.1] z[-92.8,-91.9]
+      to hull outer 0.0000  to hull inner 0.0000  to duct wall 3.6652  to duct bore 4.5251  to stem hole 128.4054  to servo hole 133.0128
+      nearest cutters: #28 0.0000 mm, #2 0.0000 mm, #0 3.6766 mm
+face 212   geom PLANE        area   0.4208 mm2 centre (  90.43,  25.45, -92.37) bbox x[90.3,90.6] y[25.2,25.9] z[-92.8,-91.9]
+      to hull outer 0.0000  to hull inner 0.0000  to duct wall 3.6698  to duct bore 4.5297  to stem hole 128.4104  to servo hole 147.3167
+      nearest cutters: #29 0.0000 mm, #3 0.0000 mm, #1 3.6867 mm
+face 214   geom PLANE        area   0.4889 mm2 centre (  90.46,  25.40, -92.37) bbox x[90.3,90.6] y[25.1,25.9] z[-92.8,-91.9]
+      to hull outer 0.0000  to hull inner 0.0000  to duct wall 3.6698  to duct bore 4.5297  to stem hole 128.4104  to servo hole 147.2501
+      nearest cutters: #29 0.0000 mm, #3 0.0000 mm, #1 3.6803 mm

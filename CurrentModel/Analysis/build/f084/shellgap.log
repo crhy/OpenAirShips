@@ -1,0 +1,12 @@
+psi(deg)  depth of skin_shell inner boundary below the outer skin
+    -90  1.360 mm   (skin_point depth T+0.5 = 1.360)
+    -60  1.320 mm   (skin_point depth T+0.5 = 1.360)
+    -45  1.290 mm   (skin_point depth T+0.5 = 1.360)
+    -30  1.285 mm   (skin_point depth T+0.5 = 1.360)
+    -15  1.324 mm   (skin_point depth T+0.5 = 1.360)
+      0  1.360 mm   (skin_point depth T+0.5 = 1.360)
+     15  1.324 mm   (skin_point depth T+0.5 = 1.360)
+     30  1.285 mm   (skin_point depth T+0.5 = 1.360)
+     45  1.290 mm   (skin_point depth T+0.5 = 1.360)
+     60  1.320 mm   (skin_point depth T+0.5 = 1.360)
+     84  1.358 mm   (skin_point depth T+0.5 = 1.360)

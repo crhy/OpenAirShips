@@ -1,0 +1,5 @@
+path edges: 1 length 172.54310177082945
+max deviation of the spline centreline from the skin's 13.32 mm parallel: 0.003 mm
+n=32: max deviation 0.0002 mm, length 172.5
+n=64: max deviation 0.0000 mm, length 172.5
+n=128: max deviation 0.0000 mm, length 172.5

@@ -1,0 +1,35 @@
+windows()[2] <-> duct bore: 0.0890 mm
+   cutter bbox x[90.1,119.6] y[-39.4,-1.0] z[-93.5,-83.3]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 1584.9 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[10] <-> duct bore: 0.2958 mm
+   cutter bbox x[188.1,207.5] y[-75.4,-0.9] z[-30.2,-2.2]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 2951.5 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[11] <-> duct bore: 0.3044 mm
+   cutter bbox x[188.1,207.5] y[0.9,75.5] z[-30.2,-2.2]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 3034.4 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[12] <-> duct bore: 4.7829 mm
+   cutter bbox x[187.4,207.4] y[-75.2,-0.9] z[2.4,32.7]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 3233.4 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[13] <-> duct bore: 4.7829 mm
+   cutter bbox x[187.4,207.4] y[0.9,75.3] z[2.4,32.7]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 3310.9 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[40] <-> duct bore: 0.0227 mm
+   cutter bbox x[177.8,192.0] y[-77.3,-53.0] z[-38.6,-19.3]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 353.7 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]
+windows()[41] <-> duct bore: 0.0227 mm
+   cutter bbox x[177.8,192.0] y[52.9,77.3] z[-38.6,-19.3]
+   bore bbox     x[49.0,191.9] y[-79.0,79.0] z[-98.7,16.0]
+   cutter vol 353.7 bore vol 90581.7
+   stem hole bbox x[179.0,211.6] y[-85.6,85.6] z[-12.7,12.7]

@@ -1,0 +1,10 @@
+import Mesh, MeshPart, FreeCAD as App, Part
+m = MeshPart.meshFromShape(Shape=Part.makeBox(10,20,30), LinearDeflection=0.1, AngularDeflection=0.1, Relative=False)
+print("facets", m.CountFacets, m.BoundBox)
+m.rotate(App.Vector(), App.Vector(1,0,0), -90)
+m.rotate(App.Vector(), App.Vector(0,0,1), -22.5)
+print("after", m.BoundBox)
+c = Part.makeCylinder(2,5,App.Vector(),App.Vector(0,0,1))
+c.rotate(App.Vector(), App.Vector(0,1,0), 90)
+c.translate(App.Vector(50,0,0))
+print("cyl bb", c.BoundBox, round(c.Volume,2))

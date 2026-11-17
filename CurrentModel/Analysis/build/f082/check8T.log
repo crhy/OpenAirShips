@@ -1,0 +1,39 @@
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 43,549 mm3  gui True  brp 13,039,910 b  tess 61003 tris in 0.4 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 22,915 mm3  gui True  brp 12,337,944 b  tess 53425 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 43,616 mm3  gui True  brp 12,984,915 b  tess 62453 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 22,993 mm3  gui True  brp 12,472,067 b  tess 54539 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 51,821 mm3  gui True  brp 14,178,363 b  tess 92825 tris in 0.4 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026.FCStd  [FCStd] objects 2  visible 1  main SimplifiedSlice  vol 26,458 mm3  gui True  brp 12,626,343 b  tess 61686 tris in 0.3 s  vs STEP same
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left 12s small x3.8.step  [STEP] solids 1  faces 4,794  valid True  vol 49,340 mm3  tess 89998 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left x1.9.step  [STEP] solids 1  faces 4,581  valid True  vol 43,549 mm3  tess 61003 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T left.step  [STEP] solids 1  faces 4,484  valid True  vol 22,915 mm3  tess 53425 tris in 0.3 s  mesh@0.02 open 4  firstSolid 0.015
+      note     meshing at the generator's first deflection 0.02 leaves 4 open edges (83662 facets); the retry at 0.015 is what made the print file watertight
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T plain 12s small x3.8.step  [STEP] solids 1  faces 4,780  valid True  vol 19,694 mm3  tess 45812 tris in 0.2 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right 12s small x3.8.step  [STEP] solids 1  faces 4,793  valid True  vol 49,494 mm3  tess 91426 tris in 0.4 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right x1.9.step  [STEP] solids 1  faces 4,577  valid True  vol 43,616 mm3  tess 62453 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 4T right.step  [STEP] solids 1  faces 4,477  valid True  vol 22,993 mm3  tess 54539 tris in 0.3 s  mesh@0.02 open 4  firstSolid 0.015
+      note     meshing at the generator's first deflection 0.02 leaves 4 open edges (85052 facets); the retry at 0.015 is what made the print file watertight
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026 x1.9.step  [STEP] solids 1  faces 4,597  valid True  vol 51,821 mm3  tess 92825 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026.step  [STEP] solids 1  faces 4,212  valid True  vol 26,458 mm3  tess 61686 tris in 0.3 s  mesh@0.02 open 0  firstSolid 0.02
+PASS  CAD Files/SimplifiedSlice/airship pie slice 1026.joints.json  [joints] 2 joints, clear of: fan housing wall, plenum air, impeller swept volume, shaft bore, duct bore, bulb bore
+      duct_top                 r=  162.6 z=  -30.4  fused to duct inner wall  from fan/housing: boss/bulb bore 21.76 mm boss/fan housing wall 107.88 mm boss/impeller swept volume 125.27 mm hole/bulb bore 23.61 mm hole/fan housing wall 109.73 mm hole/impeller swept volume 127.11 mm peg/bulb bore 23.76 mm peg/fan housing wall 109.88 mm peg/impeller swept volume 127.27 mm  wall to air: boss/bulb bore 21.76 mm boss/duct bore 0.00 mm boss/plenum air 108.74 mm boss/shaft bore 126.08 mm hole/bulb bore 23.61 mm hole/duct bore 0.61 mm hole/plenum air 110.59 mm hole/shaft bore 127.93 mm peg/bulb bore 23.76 mm peg/duct bore 0.76 mm peg/plenum air 110.74 mm peg/shaft bore 128.08 mm
+      bulb_groove              r=  176.1 z=  -14.2  fused to duct inner wall+duct bulb wall  from fan/housing: boss/bulb bore 0.74 mm boss/fan housing wall 127.12 mm boss/impeller swept volume 143.71 mm hole/bulb bore 2.59 mm hole/fan housing wall 128.97 mm hole/impeller swept volume 145.56 mm peg/bulb bore 2.74 mm peg/fan housing wall 129.12 mm peg/impeller swept volume 145.71 mm  wall to air: boss/bulb bore 0.74 mm boss/duct bore 0.00 mm boss/plenum air 127.98 mm boss/shaft bore 139.56 mm hole/bulb bore 2.59 mm hole/duct bore 0.62 mm hole/plenum air 129.83 mm hole/shaft bore 141.41 mm peg/bulb bore 2.74 mm peg/duct bore 0.78 mm peg/plenum air 129.98 mm peg/shaft bore 141.56 mm
+
+16 files checked, 16 pass, 0 fail
+FreeCAD 1.1.4, Libs: 1.1.4R45039 (Git)
+(C) 2001-2011 FreeCAD contributors
+FreeCAD is free and open-source software licensed under the terms of LGPL2+ license.
+
+Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									Importing project files......
+						(100 %)									Postprocessing......
+						(100 %)									

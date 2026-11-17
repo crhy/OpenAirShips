@@ -1,0 +1,263 @@
+read STEP in 8.6 s: 4212 faces, volume 26458.2
+61 window cutters in 25.8 s
+79 tools
+79 tools
+point (  90.59, -25.85, -92.65) wall 0.007 mm: faces ; face 3927 area 0.0029 mm2 centre (90.59,-25.85,-92.65) d=0.000 | face 3928 area 0.3574 mm2 centre (90.47,-25.50,-92.37) d=0.002 | face 3926 area 0.4417 mm2 centre (90.42,-25.45,-92.37) d=0.014 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.043
+      on tool windows()[28]                            (0.000 mm)
+      on tool windows()[2]                             (0.002 mm)
+point ( 193.67,  72.30, -10.38) wall 0.011 mm: faces ; face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.000 | face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.002
+      on tool stem hole at_seams                       (0.000 mm)
+      on tool duct_solids() walls at_seams             (0.002 mm)
+point ( 188.70,  67.81,  27.03) wall 0.022 mm: faces ; face 1672 area 0.1211 mm2 centre (188.76,67.47,27.21) d=0.005 | face 1669 area 0.5569 mm2 centre (188.59,68.59,26.59) d=0.012 | face 1673 area 0.2855 mm2 centre (188.60,68.39,26.74) d=0.083 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.098
+      on tool windows()[45]                            (0.005 mm)
+      on tool windows()[13]                            (0.012 mm)
+point ( 189.22,  63.73,  28.75) wall 0.030 mm: faces ; face 1725 area 0.1373 mm2 centre (189.23,63.28,28.89) d=0.003 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.004 | face 1723 area 0.0676 mm2 centre (189.20,63.57,28.80) d=0.013
+      on tool windows()[13]                            (0.003 mm)
+      on tool windows()[45]                            (0.013 mm)
+point ( 189.27,  62.37,  29.18) wall 0.025 mm: faces ; face 1722 area 0.1470 mm2 centre (189.27,62.66,29.11) d=0.003 | face 1726 area 0.4717 mm2 centre (189.35,61.70,29.37) d=0.015 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.119 | face 1721 area 0.2806 mm2 centre (189.33,61.70,29.40) d=0.160
+      on tool windows()[45]                            (0.003 mm)
+      on tool windows()[13]                            (0.015 mm)
+point ( 189.35,  59.58,  29.94) wall 0.068 mm: faces ; face 1719 area 0.6178 mm2 centre (189.41,59.74,29.95) d=0.000 | face 1727 area 0.9804 mm2 centre (189.44,60.03,29.81) d=0.062 | face 1718 area 0.8074 mm2 centre (189.44,58.75,30.20) d=0.346 | face 1728 area 1.4738 mm2 centre (189.56,58.36,30.20) d=0.354
+      on tool windows()[45]                            (0.000 mm)
+point ( 189.38,  61.97,  29.31) wall 0.055 mm: faces ; face 1726 area 0.4717 mm2 centre (189.35,61.70,29.37) d=0.001 | face 1721 area 0.2806 mm2 centre (189.33,61.70,29.40) d=0.050 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.071 | face 1722 area 0.1470 mm2 centre (189.27,62.66,29.11) d=0.275
+      on tool windows()[13]                            (0.001 mm)
+      on tool windows()[45]                            (0.050 mm)
+point ( 189.48,  61.52,  29.52) wall 0.228 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.002 | face 1721 area 0.2806 mm2 centre (189.33,61.70,29.40) d=0.036 | face 1726 area 0.4717 mm2 centre (189.35,61.70,29.37) d=0.047 | face 1720 area 0.4297 mm2 centre (189.37,60.71,29.69) d=0.249
+      on tool windows()[45]                            (0.036 mm)
+      on tool windows()[13]                            (0.047 mm)
+point ( 189.98,  65.78, -26.09) wall 0.044 mm: faces ; face 693 area 0.3875 mm2 centre (189.97,65.61,-26.14) d=0.003 | face 677 area 0.2155 mm2 centre (189.96,65.55,-26.18) d=0.035 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.067 | face 678 area 0.1868 mm2 centre (189.84,66.48,-25.84) d=0.258
+      on tool windows()[11]                            (0.003 mm)
+      on tool windows()[41]                            (0.035 mm)
+point ( 189.99,  65.01, -26.35) wall 0.027 mm: faces ; face 676 area 0.2556 mm2 centre (190.07,64.63,-26.50) d=0.004 | face 693 area 0.3875 mm2 centre (189.97,65.61,-26.14) d=0.018 | face 677 area 0.2155 mm2 centre (189.96,65.55,-26.18) d=0.095 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.160
+      on tool windows()[41]                            (0.004 mm)
+      on tool windows()[11]                            (0.018 mm)
+point ( 188.69, -67.82,  27.02) wall 0.029 mm: faces ; face 2755 area 0.1655 mm2 centre (188.71,-67.76,27.06) d=0.004 | face 2759 area 0.3730 mm2 centre (188.67,-68.10,26.86) d=0.019 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.108 | face 2754 area 0.3167 mm2 centre (188.57,-68.61,26.62) d=0.340
+      on tool windows()[44]                            (0.004 mm)
+      on tool windows()[12]                            (0.019 mm)
+point ( 188.71, -67.99,  26.93) wall 0.046 mm: faces ; face 2759 area 0.3730 mm2 centre (188.67,-68.10,26.86) d=0.002 | face 2755 area 0.1655 mm2 centre (188.71,-67.76,27.06) d=0.038 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.083 | face 2754 area 0.3167 mm2 centre (188.57,-68.61,26.62) d=0.155
+      on tool windows()[12]                            (0.002 mm)
+      on tool windows()[44]                            (0.038 mm)
+point ( 189.26, -63.14,  28.97) wall 0.029 mm: faces ; face 2704 area 0.1322 mm2 centre (189.25,-62.89,29.03) d=0.003 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.024 | face 2700 area 0.2299 mm2 centre (189.27,-62.75,29.06) d=0.027 | face 2703 area 0.0332 mm2 centre (189.19,-63.86,28.70) d=0.340
+      on tool windows()[44]                            (0.003 mm)
+      on tool windows()[12]                            (0.027 mm)
+point ( 189.27, -63.13,  28.95) wall 0.029 mm: faces ; face 2700 area 0.2299 mm2 centre (189.27,-62.75,29.06) d=0.002 | face 2704 area 0.1322 mm2 centre (189.25,-62.89,29.03) d=0.020 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.028 | face 2703 area 0.0332 mm2 centre (189.19,-63.86,28.70) d=0.345
+      on tool windows()[12]                            (0.002 mm)
+      on tool windows()[44]                            (0.020 mm)
+point ( 190.04, -64.60, -26.50) wall 0.030 mm: faces ; face 3451 area 0.2390 mm2 centre (190.06,-64.74,-26.47) d=0.006 | face 3177 area 0.4899 mm2 centre (190.12,-64.36,-26.56) d=0.031 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.166 | face 3450 area 0.3113 mm2 centre (190.16,-63.82,-26.77) d=0.325
+      on tool windows()[40]                            (0.006 mm)
+      on tool windows()[10]                            (0.031 mm)
+point ( 190.06, -65.56, -26.23) wall 0.163 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.001 | face 3452 area 0.1869 mm2 centre (189.95,-65.66,-26.15) d=0.019 | face 3176 area 0.3389 mm2 centre (189.91,-66.07,-25.97) d=0.032 | face 3177 area 0.4899 mm2 centre (190.12,-64.36,-26.56) d=0.294
+      on tool windows()[40]                            (0.019 mm)
+      on tool windows()[10]                            (0.032 mm)
+point (  90.55,  25.65, -92.70) wall 0.038 mm: faces ; face 212 area 0.4208 mm2 centre (90.43,25.45,-92.37) d=0.002 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.018 | face 214 area 0.4889 mm2 centre (90.46,25.40,-92.37) d=0.031 | face 213 area 0.0003 mm2 centre (90.60,25.86,-92.68) d=0.209
+      on tool windows()[29]                            (0.002 mm)
+      on tool windows()[3]                             (0.031 mm)
+point ( 194.96,  70.03,   7.95) wall 0.039 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.001 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.004
+      on tool duct_solids() walls at_seams             (0.001 mm)
+      on tool stem hole at_seams                       (0.004 mm)
+point ( 195.38,  69.33,   6.88) wall 0.341 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.006 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.035
+      on tool duct_solids() walls at_seams             (0.006 mm)
+      on tool stem hole at_seams                       (0.035 mm)
+point ( 188.97, -70.27, -23.86) wall 0.064 mm: faces ; face 3173 area 1.4868 mm2 centre (189.07,-70.84,-23.58) d=0.006 | face 3457 area 0.6199 mm2 centre (189.16,-70.06,-24.16) d=0.063 | face 3458 area 0.8143 mm2 centre (188.98,-70.87,-23.71) d=0.140 | face 3174 area 0.8650 mm2 centre (189.35,-69.38,-24.47) d=0.288
+      on tool windows()[10]                            (0.006 mm)
+point ( 189.11, -70.79, -23.84) wall 0.187 mm: faces ; face 3458 area 0.8143 mm2 centre (188.98,-70.87,-23.71) d=0.004 | face 3173 area 1.4868 mm2 centre (189.07,-70.84,-23.58) d=0.172 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.278 | face 3457 area 0.6199 mm2 centre (189.16,-70.06,-24.16) d=0.347
+      on tool windows()[40]                            (0.004 mm)
+point ( 189.43, -68.67, -24.86) wall 0.039 mm: faces ; face 3455 area 0.2827 mm2 centre (189.54,-68.36,-25.04) d=0.001 | face 3174 area 0.8650 mm2 centre (189.35,-69.38,-24.47) d=0.032 | face 3456 area 0.4403 mm2 centre (189.35,-69.21,-24.61) d=0.090 | face 3175 area 0.4385 mm2 centre (189.66,-67.77,-25.27) d=0.180
+      on tool windows()[40]                            (0.001 mm)
+      on tool windows()[10]                            (0.032 mm)
+point ( 189.69, -67.77, -25.28) wall 0.049 mm: faces ; face 3175 area 0.4385 mm2 centre (189.66,-67.77,-25.27) d=0.003 | face 3454 area 0.2176 mm2 centre (189.69,-67.47,-25.43) d=0.044 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.090 | face 3455 area 0.2827 mm2 centre (189.54,-68.36,-25.04) d=0.142
+      on tool windows()[10]                            (0.003 mm)
+      on tool windows()[40]                            (0.044 mm)
+point ( 190.20, -62.25, -27.18) wall 0.051 mm: faces ; face 3448 area 0.5667 mm2 centre (190.30,-61.96,-27.31) d=0.005 | face 3178 area 0.8451 mm2 centre (190.28,-62.67,-27.06) d=0.050 | face 3449 area 0.4372 mm2 centre (190.23,-62.89,-27.05) d=0.179 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.366
+      on tool windows()[40]                            (0.005 mm)
+      on tool windows()[10]                            (0.050 mm)
+point ( 190.25, -62.06, -27.19) wall 0.058 mm: faces ; face 3178 area 0.8451 mm2 centre (190.28,-62.67,-27.06) d=0.001 | face 3448 area 0.5667 mm2 centre (190.30,-61.96,-27.31) d=0.049 | face 3179 area 1.3517 mm2 centre (190.42,-60.99,-27.47) d=0.185 | face 3449 area 0.4372 mm2 centre (190.23,-62.89,-27.05) d=0.371
+      on tool windows()[10]                            (0.001 mm)
+      on tool windows()[40]                            (0.049 mm)
+point ( 188.85,  70.92, -23.59) wall 0.116 mm: faces ; face 683 area 0.8122 mm2 centre (188.99,70.77,-23.76) d=0.001 | face 688 area 1.3972 mm2 centre (189.11,70.48,-23.81) d=0.107 | face 684 area 0.8156 mm2 centre (188.88,71.63,-23.32) d=0.268 | face 787 area 2.0008 mm2 centre (188.49,73.49,-21.60) d=0.279
+      on tool windows()[41]                            (0.001 mm)
+point ( 188.91,  70.92, -23.49) wall 0.120 mm: faces ; face 688 area 1.3972 mm2 centre (189.11,70.48,-23.81) d=0.003 | face 683 area 0.8122 mm2 centre (188.99,70.77,-23.76) d=0.109 | face 684 area 0.8156 mm2 centre (188.88,71.63,-23.32) d=0.255 | face 689 area 1.5422 mm2 centre (188.99,71.93,-22.86) d=0.290
+      on tool windows()[11]                            (0.003 mm)
+point ( 189.31,  69.25, -24.50) wall 0.054 mm: faces ; face 691 area 0.7572 mm2 centre (189.43,68.97,-24.68) d=0.003 | face 681 area 0.4385 mm2 centre (189.37,69.11,-24.66) d=0.049 | face 682 area 0.6158 mm2 centre (189.17,69.97,-24.20) d=0.269 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.305
+      on tool windows()[11]                            (0.003 mm)
+      on tool windows()[41]                            (0.049 mm)
+point ( 189.61,  68.21, -25.14) wall 0.057 mm: faces ; face 680 area 0.2905 mm2 centre (189.55,68.27,-25.07) d=0.001 | face 691 area 0.7572 mm2 centre (189.43,68.97,-24.68) d=0.050 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.087 | face 692 area 0.4222 mm2 centre (189.72,67.33,-25.46) d=0.105
+      on tool windows()[41]                            (0.001 mm)
+point ( 123.07, -48.88, -79.92) wall 0.060 mm: faces ; face 3787 area 0.0948 mm2 centre (123.05,-48.90,-79.84) d=0.005 | face 3786 area 0.0389 mm2 centre (123.06,-48.84,-79.88) d=0.035 | face 3785 area 0.8432 mm2 centre (123.68,-48.99,-79.55) d=0.044 | face 3788 area 0.4221 mm2 centre (123.24,-49.28,-79.71) d=0.109
+      on tool windows()[31]                            (0.005 mm)
+      on tool windows()[4]                             (0.035 mm)
+point (  95.07, -37.43, -90.35) wall 0.065 mm: faces ; face 3899 area 0.2943 mm2 centre (95.09,-37.49,-90.25) d=0.002 | face 3898 area 0.2964 mm2 centre (95.15,-37.44,-90.24) d=0.059 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.198 | face 3900 area 0.3502 mm2 centre (95.39,-37.97,-90.13) d=0.342
+      on tool windows()[28]                            (0.002 mm)
+point ( 190.27,  61.41, -27.33) wall 0.067 mm: faces ; face 696 area 1.4536 mm2 centre (190.47,60.59,-27.57) d=0.004 | face 695 area 1.0006 mm2 centre (190.31,62.24,-27.16) d=0.026 | face 673 area 0.6103 mm2 centre (190.30,61.86,-27.33) d=0.064 | face 672 area 0.7741 mm2 centre (190.36,60.92,-27.58) d=0.083
+      on tool windows()[11]                            (0.004 mm)
+point ( 190.38,  62.06, -27.34) wall 0.116 mm: faces ; face 673 area 0.6103 mm2 centre (190.30,61.86,-27.33) d=0.002 | face 695 area 1.0006 mm2 centre (190.31,62.24,-27.16) d=0.104 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.191 | face 674 area 0.4646 mm2 centre (190.23,62.78,-27.08) d=0.324
+      on tool windows()[41]                            (0.002 mm)
+point ( 190.82,  60.65, -27.76) wall 0.376 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.000 | face 696 area 1.4536 mm2 centre (190.47,60.59,-27.57) d=0.074 | face 672 area 0.7741 mm2 centre (190.36,60.92,-27.58) d=0.160 | face 671 area 0.8095 mm2 centre (190.47,60.01,-27.84) d=0.185
+point ( 191.06, -77.62, -12.64) wall 0.077 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.000 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.018
+      on tool duct_solids() walls at_seams             (0.000 mm)
+      on tool stem hole at_seams                       (0.018 mm)
+point ( 191.72, -76.12, -12.40) wall 0.315 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.004 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.068
+      on tool duct_solids() walls at_seams             (0.004 mm)
+point ( 192.28,  74.95,  12.00) wall 0.267 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.006 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.060
+      on tool duct_solids() walls at_seams             (0.006 mm)
+point ( 192.87,  73.82,  11.41) wall 0.108 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.004 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.013
+      on tool duct_solids() walls at_seams             (0.004 mm)
+      on tool stem hole at_seams                       (0.013 mm)
+point ( 193.31,  72.97,  10.89) wall 0.084 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.001 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.014
+      on tool duct_solids() walls at_seams             (0.001 mm)
+      on tool stem hole at_seams                       (0.014 mm)
+point ( 193.85,  71.97,  10.13) wall 0.110 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.002 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.019
+      on tool duct_solids() walls at_seams             (0.002 mm)
+      on tool stem hole at_seams                       (0.019 mm)
+point ( 189.34, -58.56,  30.16) wall 0.092 mm: faces ; face 2708 area 0.7831 mm2 centre (189.43,-59.01,30.13) d=0.006 | face 2709 area 0.8488 mm2 centre (189.51,-58.05,30.40) d=0.067 | face 2697 area 1.5185 mm2 centre (189.63,-57.81,30.32) d=0.078 | face 2698 area 1.2122 mm2 centre (189.46,-59.46,29.94) d=0.122
+      on tool windows()[44]                            (0.006 mm)
+point ( 189.57, -59.54,  29.96) wall 0.132 mm: faces ; face 2698 area 1.2122 mm2 centre (189.46,-59.46,29.94) d=0.001 | face 2707 area 0.5836 mm2 centre (189.39,-60.00,29.88) d=0.122 | face 2708 area 0.7831 mm2 centre (189.43,-59.01,30.13) d=0.122 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.220
+      on tool windows()[12]                            (0.001 mm)
+point ( 194.88, -70.16,   8.14) wall 0.103 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.003 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.007
+      on tool duct_solids() walls at_seams             (0.003 mm)
+      on tool stem hole at_seams                       (0.007 mm)
+point ( 188.19,  70.20,  25.54) wall 0.104 mm: faces ; face 1668 area 1.3203 mm2 centre (188.31,70.07,25.66) d=0.004 | face 1675 area 0.7697 mm2 centre (188.24,70.12,25.74) d=0.090 | face 1676 area 0.8553 mm2 centre (188.13,70.98,25.26) d=0.330 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.365
+      on tool windows()[13]                            (0.004 mm)
+point ( 188.40,  69.99,  25.92) wall 0.151 mm: faces ; face 1675 area 0.7697 mm2 centre (188.24,70.12,25.74) d=0.007 | face 1668 area 1.3203 mm2 centre (188.31,70.07,25.66) d=0.134 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.203 | face 1674 area 0.4732 mm2 centre (188.44,69.26,26.26) d=0.338
+      on tool windows()[45]                            (0.007 mm)
+point ( 193.47, -72.66,  10.68) wall 0.118 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.002 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.020
+      on tool duct_solids() walls at_seams             (0.002 mm)
+      on tool stem hole at_seams                       (0.020 mm)
+point ( 190.48, -59.61, -27.75) wall 0.148 mm: faces ; face 3180 area 1.5022 mm2 centre (190.66,-59.36,-27.86) d=0.005 | face 3446 area 0.8096 mm2 centre (190.46,-60.11,-27.81) d=0.143 | face 3445 area 0.8088 mm2 centre (190.59,-59.19,-28.08) d=0.145 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.282
+      on tool windows()[10]                            (0.005 mm)
+point ( 190.81, -58.47, -28.38) wall 0.307 mm: faces ; face 3444 area 0.8081 mm2 centre (190.71,-58.27,-28.35) d=0.001 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.271 | face 3181 area 1.4993 mm2 centre (190.96,-57.67,-28.23) d=0.294 | face 3180 area 1.5022 mm2 centre (190.66,-59.36,-27.86) d=0.312
+      on tool windows()[40]                            (0.001 mm)
+point ( 190.93, -77.91,  12.69) wall 0.150 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.001 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.036
+      on tool duct_solids() walls at_seams             (0.001 mm)
+      on tool stem hole at_seams                       (0.036 mm)
+point ( 191.51, -76.59,  12.51) wall 0.290 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.001 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.063
+      on tool duct_solids() walls at_seams             (0.001 mm)
+point ( 192.14, -75.26,  12.12) wall 0.264 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.004 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.062
+      on tool duct_solids() walls at_seams             (0.004 mm)
+point ( 191.44,  76.75, -12.51) wall 0.153 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.004 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.029
+      on tool duct_solids() walls at_seams             (0.004 mm)
+      on tool stem hole at_seams                       (0.029 mm)
+point ( 191.85,  75.85, -12.31) wall 0.239 mm: faces ; face 797 area 55.4783 mm2 centre (194.19,71.28,0.00) d=0.004 | face 796 area 227.0992 mm2 centre (191.66,69.66,1.89) d=0.055
+      on tool duct_solids() walls at_seams             (0.004 mm)
+point ( 191.79,  72.42,  14.07) wall 0.155 mm: faces ; face 1807 area 4.3655 mm2 centre (193.31,70.44,12.60) d=0.006 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.035 | face 1809 area 1.4622 mm2 centre (191.88,72.94,14.64) d=0.112
+      on tool outlet_keepout()                         (0.006 mm)
+      on tool windows()[13]                            (0.006 mm)
+point ( 191.11, -73.75, -14.67) wall 0.157 mm: faces ; face 3164 area 7.6982 mm2 centre (193.30,-70.55,-12.51) d=0.002 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.043 | face 3166 area 1.4679 mm2 centre (191.11,-74.33,-15.37) d=0.184 | face 3165 area 0.0736 mm2 centre (191.82,-73.86,-14.66) d=0.419
+      on tool outlet_keepout()                         (0.002 mm)
+      on tool windows()[10]                            (0.002 mm)
+point ( 188.31, -70.35,  25.70) wall 0.163 mm: faces ; face 2752 area 0.8179 mm2 centre (188.20,-70.34,25.61) d=0.001 | face 2761 area 1.5621 mm2 centre (188.24,-71.00,25.03) d=0.151 | face 2760 area 1.0853 mm2 centre (188.39,-69.59,25.97) d=0.151 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.267
+      on tool windows()[44]                            (0.001 mm)
+point ( 195.50, -69.12,  -6.46) wall 0.197 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.005 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.019
+      on tool duct_solids() walls at_seams             (0.005 mm)
+      on tool stem hole at_seams                       (0.019 mm)
+point ( 157.28, -59.98,  60.96) wall 0.197 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.001 | face 2602 area 0.7680 mm2 centre (156.93,-60.00,60.69) d=0.011 | face 2601 area 0.7675 mm2 centre (157.63,-59.45,60.37) d=0.310
+      on tool windows()[47]                            (0.011 mm)
+point ( 198.06, -61.05,   7.25) wall 0.214 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.004 | face 2777 area 1.6045 mm2 centre (197.78,-60.61,7.02) d=0.046
+      on tool windows()[12]                            (0.046 mm)
+point ( 194.60,  31.74, -32.78) wall 0.221 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.003 | face 603 area 1.4772 mm2 centre (194.23,32.00,-32.53) d=0.035
+      on tool windows()[9]                             (0.035 mm)
+point ( 195.49, -69.14,   6.51) wall 0.234 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.001 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.025
+      on tool duct_solids() walls at_seams             (0.001 mm)
+      on tool stem hole at_seams                       (0.025 mm)
+point ( 206.05, -25.78,  -3.36) wall 0.245 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.000 | face 3143 area 1.6040 mm2 centre (205.61,-25.84,-3.27) d=0.058
+point ( 204.15, -37.82,  -2.63) wall 0.267 mm: faces ; face 3150 area 0.3344 mm2 centre (203.88,-37.64,-2.54) d=0.004 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.075 | face 3151 area 14.7553 mm2 centre (202.18,-44.06,-5.99) d=0.158 | face 3149 area 1.6090 mm2 centre (204.03,-36.54,-2.52) d=0.323
+      on tool windows()[10]                            (0.004 mm)
+point ( 189.66,  55.65,  31.01) wall 0.308 mm: faces ; face 1715 area 0.8469 mm2 centre (189.76,55.85,31.04) d=0.005 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.274 | face 1730 area 1.5129 mm2 centre (190.08,54.97,30.94) d=0.295 | face 1729 area 1.5161 mm2 centre (189.80,56.68,30.59) d=0.342
+      on tool windows()[45]                            (0.005 mm)
+point ( 189.98,  56.42,  30.70) wall 0.336 mm: faces ; face 1729 area 1.5161 mm2 centre (189.80,56.68,30.59) d=0.005 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.277 | face 1716 area 0.8478 mm2 centre (189.65,56.82,30.76) d=0.314 | face 1715 area 0.8469 mm2 centre (189.76,55.85,31.04) d=0.330
+      on tool windows()[13]                            (0.005 mm)
+point (  71.95,  -0.82,  97.56) wall 0.311 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.004 | face 1374 area 0.6392 mm2 centre (71.97,-0.86,97.13) d=0.005 | face 1373 area 0.6374 mm2 centre (71.30,-0.55,97.25) d=0.259
+      on tool windows()[55]                            (0.005 mm)
+point ( 190.82,  58.36, -28.41) wall 0.311 mm: faces ; face 669 area 0.8081 mm2 centre (190.73,58.17,-28.38) d=0.003 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.276 | face 697 area 1.5018 mm2 centre (190.74,58.92,-27.96) d=0.300 | face 670 area 0.8087 mm2 centre (190.60,59.09,-28.12) d=0.326
+      on tool windows()[41]                            (0.003 mm)
+point ( 200.50,  12.59,  26.53) wall 0.335 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.003 | face 1755 area 1.5379 mm2 centre (200.01,12.92,26.50) d=0.068
+point ( 194.97,  29.34, -32.79) wall 0.338 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.002 | face 601 area 1.4765 mm2 centre (194.73,28.52,-32.59) d=0.062 | face 602 area 1.4772 mm2 centre (194.50,30.26,-32.54) d=0.129
+point ( 143.36,  57.12,  69.01) wall 0.364 mm: faces ; face 1312 area 0.3608 mm2 centre (143.39,57.07,69.18) d=0.002 | face 1204 area 0.7019 mm2 centre (143.63,57.62,68.92) d=0.134 | face 1311 area 0.7874 mm2 centre (143.72,56.97,69.02) d=0.226 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.268
+      on tool windows()[51]                            (0.002 mm)
+point ( 196.34, -67.78,  -2.28) wall 0.365 mm: faces ; face 811 area 55.4784 mm2 centre (194.19,-71.28,-0.00) d=0.005 | face 6 area 227.0991 mm2 centre (191.66,-69.66,1.89) d=0.021
+      on tool duct_solids() walls at_seams             (0.005 mm)
+      on tool stem hole at_seams                       (0.021 mm)
+point ( 189.75, -54.93,  31.20) wall 0.368 mm: faces ; face 2712 area 0.8464 mm2 centre (189.84,-55.13,31.23) d=0.004 | face 4202 area 7085.4227 mm2 centre (155.03,-0.24,5.48) d=0.278 | face 2713 area 0.8455 mm2 centre (189.95,-54.15,31.49) d=0.341 | face 2695 area 1.5122 mm2 centre (190.17,-54.40,31.05) d=0.346
+      on tool windows()[44]                            (0.004 mm)
+point ( 189.50,   1.25, -42.63) wall 0.375 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.003 | face 582 area 1.3928 mm2 centre (189.02,1.33,-42.55) d=0.045
+      on tool windows()[9]                             (0.045 mm)
+point (  95.48,  38.09, -90.20) wall 0.381 mm: faces ; face 298 area 0.3497 mm2 centre (95.40,37.99,-90.13) d=0.004 | face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.171 | face 297 area 0.2097 mm2 centre (95.69,38.42,-90.02) d=0.214 | face 296 area 9.1787 mm2 centre (87.62,35.20,-92.33) d=0.339
+      on tool windows()[29]                            (0.004 mm)
+point ( 195.24,  26.99, -32.89) wall 0.393 mm: faces ; face 812 area 8114.4884 mm2 centre (154.67,-0.17,-0.34) d=0.004 | face 600 area 1.4755 mm2 centre (194.92,26.78,-32.66) d=0.060
+
+== summary: thin point -> nearest cutter ==
+0.007 mm (   90.6,  -25.9,  -92.7)  windows()[28]; windows()[2]
+0.011 mm (  193.7,   72.3,  -10.4)  stem hole at_seams; duct_solids() walls at_seams
+0.022 mm (  188.7,   67.8,   27.0)  windows()[45]; windows()[13]
+0.025 mm (  189.3,   62.4,   29.2)  windows()[45]; windows()[13]
+0.027 mm (  190.0,   65.0,  -26.4)  windows()[41]; windows()[11]
+0.029 mm (  188.7,  -67.8,   27.0)  windows()[44]; windows()[12]
+0.029 mm (  189.3,  -63.1,   29.0)  windows()[44]; windows()[12]
+0.029 mm (  189.3,  -63.1,   28.9)  windows()[12]; windows()[44]
+0.030 mm (  189.2,   63.7,   28.8)  windows()[13]; windows()[45]
+0.030 mm (  190.0,  -64.6,  -26.5)  windows()[40]; windows()[10]
+0.038 mm (   90.5,   25.6,  -92.7)  windows()[29]; windows()[3]
+0.039 mm (  189.4,  -68.7,  -24.9)  windows()[40]; windows()[10]
+0.039 mm (  195.0,   70.0,    8.0)  duct_solids() walls at_seams; stem hole at_seams
+0.044 mm (  190.0,   65.8,  -26.1)  windows()[11]; windows()[41]
+0.046 mm (  188.7,  -68.0,   26.9)  windows()[12]; windows()[44]
+0.049 mm (  189.7,  -67.8,  -25.3)  windows()[10]; windows()[40]
+0.051 mm (  190.2,  -62.2,  -27.2)  windows()[40]; windows()[10]
+0.054 mm (  189.3,   69.2,  -24.5)  windows()[11]; windows()[41]
+0.055 mm (  189.4,   62.0,   29.3)  windows()[13]; windows()[45]
+0.057 mm (  189.6,   68.2,  -25.1)  windows()[41]
+0.058 mm (  190.2,  -62.1,  -27.2)  windows()[10]; windows()[40]
+0.060 mm (  123.1,  -48.9,  -79.9)  windows()[31]; windows()[4]
+0.064 mm (  189.0,  -70.3,  -23.9)  windows()[10]
+0.065 mm (   95.1,  -37.4,  -90.3)  windows()[28]
+0.067 mm (  190.3,   61.4,  -27.3)  windows()[11]
+0.068 mm (  189.3,   59.6,   29.9)  windows()[45]
+0.077 mm (  191.1,  -77.6,  -12.6)  duct_solids() walls at_seams; stem hole at_seams
+0.084 mm (  193.3,   73.0,   10.9)  duct_solids() walls at_seams; stem hole at_seams
+0.092 mm (  189.3,  -58.6,   30.2)  windows()[44]
+0.103 mm (  194.9,  -70.2,    8.1)  duct_solids() walls at_seams; stem hole at_seams
+0.104 mm (  188.2,   70.2,   25.5)  windows()[13]
+0.108 mm (  192.9,   73.8,   11.4)  duct_solids() walls at_seams; stem hole at_seams
+0.110 mm (  193.8,   72.0,   10.1)  duct_solids() walls at_seams; stem hole at_seams
+0.116 mm (  188.8,   70.9,  -23.6)  windows()[41]
+0.116 mm (  190.4,   62.1,  -27.3)  windows()[41]
+0.118 mm (  193.5,  -72.7,   10.7)  duct_solids() walls at_seams; stem hole at_seams
+0.120 mm (  188.9,   70.9,  -23.5)  windows()[11]
+0.132 mm (  189.6,  -59.5,   30.0)  windows()[12]
+0.148 mm (  190.5,  -59.6,  -27.8)  windows()[10]
+0.150 mm (  190.9,  -77.9,   12.7)  duct_solids() walls at_seams; stem hole at_seams
+0.151 mm (  188.4,   70.0,   25.9)  windows()[45]
+0.153 mm (  191.4,   76.8,  -12.5)  duct_solids() walls at_seams; stem hole at_seams
+0.155 mm (  191.8,   72.4,   14.1)  outlet_keepout(); windows()[13]
+0.157 mm (  191.1,  -73.8,  -14.7)  outlet_keepout(); windows()[10]
+0.163 mm (  188.3,  -70.3,   25.7)  windows()[44]
+0.163 mm (  190.1,  -65.6,  -26.2)  windows()[40]; windows()[10]
+0.187 mm (  189.1,  -70.8,  -23.8)  windows()[40]
+0.197 mm (  157.3,  -60.0,   61.0)  windows()[47]
+0.197 mm (  195.5,  -69.1,   -6.5)  duct_solids() walls at_seams; stem hole at_seams
+0.214 mm (  198.1,  -61.0,    7.2)  windows()[12]
+0.221 mm (  194.6,   31.7,  -32.8)  windows()[9]
+0.228 mm (  189.5,   61.5,   29.5)  windows()[45]; windows()[13]
+0.234 mm (  195.5,  -69.1,    6.5)  duct_solids() walls at_seams; stem hole at_seams
+0.239 mm (  191.8,   75.8,  -12.3)  duct_solids() walls at_seams
+0.245 mm (  206.1,  -25.8,   -3.4)  no tool boundary
+0.264 mm (  192.1,  -75.3,   12.1)  duct_solids() walls at_seams
+0.267 mm (  192.3,   75.0,   12.0)  duct_solids() walls at_seams
+0.267 mm (  204.2,  -37.8,   -2.6)  windows()[10]
+0.290 mm (  191.5,  -76.6,   12.5)  duct_solids() walls at_seams
+0.307 mm (  190.8,  -58.5,  -28.4)  windows()[40]
+0.308 mm (  189.7,   55.6,   31.0)  windows()[45]
+0.311 mm (   72.0,   -0.8,   97.6)  windows()[55]
+0.311 mm (  190.8,   58.4,  -28.4)  windows()[41]
+0.315 mm (  191.7,  -76.1,  -12.4)  duct_solids() walls at_seams
+0.335 mm (  200.5,   12.6,   26.5)  no tool boundary
+0.336 mm (  190.0,   56.4,   30.7)  windows()[13]
+0.338 mm (  195.0,   29.3,  -32.8)  no tool boundary
+0.341 mm (  195.4,   69.3,    6.9)  duct_solids() walls at_seams; stem hole at_seams
+0.364 mm (  143.4,   57.1,   69.0)  windows()[51]
+0.365 mm (  196.3,  -67.8,   -2.3)  duct_solids() walls at_seams; stem hole at_seams
+0.368 mm (  189.8,  -54.9,   31.2)  windows()[44]
+0.375 mm (  189.5,    1.2,  -42.6)  windows()[9]
+0.376 mm (  190.8,   60.6,  -27.8)  no tool boundary
+0.381 mm (   95.5,   38.1,  -90.2)  windows()[29]
+0.393 mm (  195.2,   27.0,  -32.9)  no tool boundary

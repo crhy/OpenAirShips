@@ -1,0 +1,138 @@
+[
+ {
+  "kind": "FCStd",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026.FCStd",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "zipEntries": 3,
+   "hasDocumentXml": true,
+   "hasGuiDocumentXml": true,
+   "brpFiles": [
+    {
+     "name": "SimplifiedSlice.Shape.brp",
+     "bytes": 12685750
+    }
+   ],
+   "emptyBrpFiles": [],
+   "bytesCompressed": 3852895,
+   "bytesUncompressed": 12695957,
+   "brpBytesTotal": 12685750,
+   "programVersion": "1.1R45039 (Git)",
+   "storedLabel": "airship pie slice 1026",
+   "objectsInXml": 2,
+   "viewObjects": {
+    "SimplifiedSlice": true
+   },
+   "guiParseError": "",
+   "openSeconds": 0.2,
+   "docName": "airship_pie_slice_1026",
+   "labelAfterOpen": "airship pie slice 1026",
+   "objects": [
+    {
+     "name": "SimplifiedSlice",
+     "type": "Solid",
+     "label": "SimplifiedSlice",
+     "visibility": true,
+     "isNull": false,
+     "isValid": true,
+     "solids": 1,
+     "shells": 1,
+     "faces": 4248,
+     "edges": 12758,
+     "volume": 27546.353676446874,
+     "area": 66660.81072564202,
+     "bbox": [
+      181.370028187698,
+      204.06909561005,
+      222.689139020703
+     ],
+     "bboxMin": [
+      30.48802457287197,
+      -102.034547805,
+      -121.2339603476
+     ],
+     "bboxMax": [
+      211.85805276057,
+      102.03454780505,
+      101.455178673103
+     ],
+     "shellsClosed": [
+      true
+     ]
+    },
+    {
+     "name": "Spreadsheet",
+     "type": "Sheet",
+     "label": "Spreadsheet"
+    }
+   ],
+   "objectCount": 2,
+   "objectsWithGeometry": [
+    "SimplifiedSlice"
+   ],
+   "visibleGeometry": [
+    "SimplifiedSlice"
+   ],
+   "hasVisibleGeometry": true,
+   "mainObject": "SimplifiedSlice",
+   "totalVolume": 27546.353676446874,
+   "mainValid": true,
+   "mainSolids": 1,
+   "mainVolume": 27546.353676446874,
+   "mainFaces": 4248,
+   "mainShellsClosed": [
+    true
+   ]
+  },
+  "cross": {
+   "step": "CAD Files/SimplifiedSlice/airship pie slice 1026.step",
+   "volume": 27546.353676446874,
+   "stepVolume": 27546.35367644754,
+   "relDiff": 0.0,
+   "status": "same"
+  },
+  "seconds": 13.5
+ },
+ {
+  "kind": "STEP",
+  "path": "/home/rhy/strata-fleet/repos/OpenAirShips/CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026.step",
+  "problems": [],
+  "warnings": [],
+  "facts": {
+   "bytes": 30471567,
+   "ascii": false,
+   "stepWriter": "Open CASCADE Shape Model",
+   "stepDate": "2026-11-16T20:17:09",
+   "readSeconds": 7.3,
+   "isNull": false,
+   "isValid": true,
+   "type": "Solid",
+   "solids": 1,
+   "shells": 1,
+   "faces": 4248,
+   "edges": 12758,
+   "volume": 27546.35367644754,
+   "area": 66660.810725642,
+   "bbox": [
+    181.370028187698,
+    204.06909561005,
+    222.689139020703
+   ],
+   "bboxMin": [
+    30.48802457287197,
+    -102.034547805,
+    -121.2339603476
+   ],
+   "bboxMax": [
+    211.85805276057,
+    102.03454780505,
+    101.455178673103
+   ],
+   "shellsClosed": [
+    true
+   ]
+  },
+  "seconds": 11.6
+ }
+]
