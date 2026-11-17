@@ -77,6 +77,17 @@ MIN_WEB = 0.4              # the least skin a window cut must leave itself: it s
                          # its neighbouring windows. Closer than this and the boolean leaves a
                          # sliver face (0.009-0.05 mm walls on the prints, issue #36), not a
                          # thin web: see Analysis/OUTPUT-CHECK.md.
+POLY_CLOSE = MIN_WEB / 2   # every window polygon is closed by this radius (erode, then dilate
+                         # back): a notch or a spike in the cut boundary narrower than
+                         # 2*POLY_CLOSE = MIN_WEB mm is removed before the cut is ever made.
+                         # Such a notch leaves a tongue of skin that thin standing in the hole
+                         # - the 0.011-0.3 mm walls and the sub-millimetre facets issue #36
+                         # counts, on ovals as well as on junctions.
+SKIN_MARGIN = 0.02         # how far past the skin band's inner face a window cutter may reach:
+                         # the cutter's shell stops T + SKIN_MARGIN under the outer skin, so it
+                         # pierces the band (T) and never reaches a surface behind it - the duct
+                         # bore is 1.32 mm under the skin, and the housing wall and the keel skin
+                         # sit inside the band's inner face.
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
@@ -130,9 +141,16 @@ JOINT_CLEAR = 1.0          # mm every joint keeps from the fan housing and the
 # through a round hole with a bearing boss behind it.
 DUCT_BORE = 34.0 if LARGE else 24.0   # bore diameter; 4T: twice the area for twice the flow
 DUCT_W = T                 # duct wall
-DUCT_FUSE = 0.4            # how far the duct's outer wall overlaps the skin band:
+DUCT_FUSE = 0.25          # how far the duct's outer wall overlaps the skin band:
                            # enough for a watertight boolean, and the only place
-                           # two T walls lie on each other (see EXCEPTIONS)
+                           # two T walls lie on each other (see EXCEPTIONS). It also
+                           # sets the floor of a lattice window cut over a duct: the
+                           # cutter reaches T + SKIN_MARGIN (0.88 mm) under the outer
+                           # face, so the wall left under that floor is
+                           # T - DUCT_FUSE + DUCT_W - (T + SKIN_MARGIN) = 0.69 mm.
+                           # At 0.4 that was 0.44 mm - over MIN_WEB by luck, and the
+                           # bench slice measured 0.108-0.314 mm on the crest there
+                           # (issue #36); at 0.25 the worst facet was 0.186 mm.
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
 
@@ -663,8 +681,23 @@ _BAND = None
 
 
 def skin_shell():
-    """A thin shell round the skin (0.5 mm beyond both faces): window cutters
-    are trimmed to it, so they cut the skin and nothing inside it."""
+    """A thin shell round the skin: window cutters are trimmed to it, so they
+    cut the skin band and nothing inside it.
+
+    Both boundaries are the skin's own parallel curves (skin_point), not axis-offset
+    ellipses: 0.5 mm outside the outer face, and only SKIN_MARGIN (0.02 mm) past the
+    band's inner face at T. Measured, and kept: reaching deeper - a through-cut of the
+    band, floor at T + 1.5 mm, below the inner face of the duct wall fused under the
+    skin - makes the cutter's side walls cross that wall's surfaces at a shallow
+    angle, and the fuse leaves 0.061 mm fins behind (12 facets under the nozzle, worse
+    than the 7 at T + SKIN_MARGIN). Stopping short of the wall's outside face is no
+    better: the floor and the face coincide, 0.049 mm plates. The old shell was an axis offset 0.5 mm past BOTH faces,
+    which put its inner boundary 1.36 mm under the skin - past the duct's bore surface,
+    DUCT_BORE/2 + DUCT_W + T - DUCT_FUSE = 1.47 mm under the skin wherever a duct runs
+    under the lattice, and level with the fan housing's wall and the keel skin where the
+    lattice meets them (measured: skin_shell() and the duct bore overlap by 38 mm3). A
+    cutter reaching that far cuts a face that thin off a surface that is already there.
+    """
     global _SHELL
     if _SHELL is None:
         # A fine polygon rather than exact ellipse arcs: the kernel sometimes
@@ -672,8 +705,8 @@ def skin_shell():
         # the equator on the 1.58 m hull). 400 facets sag < 0.01 mm here.
         top, n = math.pi / 2 - 0.02, 400
         ts = [-math.pi / 2 + (top + math.pi / 2) * i / n for i in range(n + 1)]
-        outer = [((A + 0.5) * math.cos(t), (B + 0.5) * math.sin(t)) for t in ts]
-        inner = [((A - T - 0.5) * math.cos(t), (B - T - 0.5) * math.sin(t)) for t in reversed(ts)]
+        outer = [skin_point(t, -0.5) for t in ts]
+        inner = [skin_point(t, T + SKIN_MARGIN) for t in reversed(ts)]
         _SHELL = wedge(outer + inner, half=HALF + 3)
     return _SHELL
 
@@ -715,19 +748,55 @@ def skin_frame(psi, theta):
                      B * math.cos(psi)).normalized()                 # up the skin
     sgn = 1.0 if v.dot(tang) > 0 else -1.0
     x0 = skin_point(psi, T / 2)[0]
-    if PIECES:
-        def to_uv(p):
-            ps = math.atan2(p.z * A, math.hypot(p.x, p.y) * B)
-            return ((math.atan2(p.y, p.x) - theta) * skin_point(ps, T / 2)[0],
-                    math.copysign(ellipse_arc(min(psi, ps), max(psi, ps), 24), ps - psi))
-        def to_skin(uu, vv):
-            ps = psi + vv / ds_dpsi(psi)
-            for _ in range(4):                       # Newton: distance up the skin -> angle
-                ps -= (math.copysign(ellipse_arc(min(psi, ps), max(psi, ps), 24), ps - psi) - vv) / ds_dpsi(ps)
-            return surface(ps, theta + uu / skin_point(ps, T / 2)[0])
-    else:
-        to_uv = lambda p: ((p - origin).dot(u), (p - origin).dot(v))
-        to_skin = lambda uu, vv: surface(psi + sgn * vv / ds_dpsi(psi), theta + uu / x0)
+    # The frame is the skin UNROLLED (azimuth x arc length), not the flat tangent
+    # plane at (psi, theta): every window polygon, every clip line and every
+    # neighbour buffer is then measured in a frame that is isometric with the
+    # skin. The old flat-plane frame mapped the skin twice (once to lay the
+    # polygon out, once through to_skin when the cutter was built), and where
+    # the skin curves away from that plane - along the seams, at the keel, at
+    # the bellmouth - the two mappings disagree by up to a millimetre, and the
+    # cut boundary lands on top of itself: 553 pairs of faces 0.002-0.4 mm
+    # apart on the bench 8T slice, which is what prints as the 0.007-0.4 mm
+    # walls issue #36 counts. (PIECES builds already did this; it is now the
+    # only mapping, so the lattice cannot drift between the two.)
+    def psi_of(p):
+        # the ellipse angle of a point on the skin's MID line. The mid line is the
+        # skin offset inwards by T / 2, which is not an ellipse, so the plain
+        # atan2(z * A, rho * B) inverse is wrong by 0.26 mm anywhere and by 5 mm
+        # near the bellmouth. Undo the offset first, then take the angle.
+        rho, z = math.hypot(p.x, p.y), p.z
+        ps = math.atan2(z * A, rho * B)
+        for _ in range(3):
+            nx, nz = B * math.cos(ps), A * math.sin(ps)
+            L = math.hypot(nx, nz)
+            ps = math.atan2((z + (T / 2) * nz / L) * A,
+                            (rho + (T / 2) * nx / L) * B)
+        return ps
+
+    # The uv frame is the skin unrolled - azimuth across, ellipse angle up - and
+    # to_uv is the exact analytic inverse of to_skin, not a projection of 3D
+    # points onto the tangent plane at (psi, theta). A projection is a different
+    # map from the one that lays the cutter back down: the two disagree by up to
+    # a millimetre wherever the skin curves away from that plane (along the seams,
+    # at the keel, at the bellmouth), and the cut boundary then lands on top of
+    # itself - 553 pairs of faces 0.002-0.4 mm apart on the bench 8T slice, which
+    # is what prints as the 0.007-0.4 mm walls issue #36 counts. With one map,
+    # the band's edges and the slice's seam planes are also exact straight uv
+    # lines, which is what clip_window already measures them as.
+    x0, ds = skin_point(psi, T / 2)[0], ds_dpsi(psi)
+
+    def to_uv(p):
+        return ((math.atan2(p.y, p.x) - theta) * x0, sgn * (psi_of(p) - psi) * ds)
+
+    def to_skin(uu, vv):
+        ps = psi + sgn * vv / ds
+        # the skin ends at the axis: past psi = +-pi/2 the radius goes negative and
+        # the azimuth flips, which would fold a window's outline into a spike.
+        # The band's own clip keeps windows off the rim, so this only ever bites
+        # a polygon's buffer, and it folds that edge onto the rim instead.
+        lim = math.pi / 2 - 1e-9
+        ps = max(-lim, min(lim, ps))
+        return surface(ps, theta + uu / x0)
     return to_uv, to_skin, sgn
 
 
@@ -752,8 +821,10 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     window whose boundary touches the band's edge, a seam plane or a neighbouring
     window is cut flush against a face that is already there, and the kernel
     leaves a sliver behind: a face 0.000 mm from the face it was cut by, which
-    prints as a 0.01-0.05 mm wall, i.e. a hole (issue #36). Nothing repairs a
-    sliver afterwards, so the polygon is clipped here, in shapely.
+    prints as a 0.01-0.05 mm wall, i.e. a hole (issue #36). A notch or a spike in
+    the boundary narrower than MIN_WEB does the same thing the other way round: it
+    leaves a tongue of skin that thin standing in the hole. Nothing repairs either
+    afterwards, so the polygon is clipped and closed here, in shapely.
     """
     from shapely.geometry import box
     from shapely.ops import unary_union
@@ -773,13 +844,21 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     u_lo, v_lo, u_hi, v_hi = poly.bounds
     span = [psi + sgn * vv / ds for vv in (v_lo, (v_lo + v_hi) / 2, v_hi)]
     mv = MIN_WEB * max(ds_dpsi(q) for q in span) / ds            # the band's edges
-    mu = MIN_WEB * x0 / min(skin_point(q, T / 2)[0] for q in span)  # the seam planes
+    # the seam planes: a junction on a seam stops inside this slice's own edge strip
+    # (RIB / 2 per slice, the two slices' strips glue into one RIB rib), and never closer
+    # than MIN_WEB to the slice's side face, so the cut is never flush with it
+    mu = max(MIN_WEB, RIB / 2) * x0 / min(skin_point(q, T / 2)[0] for q in span)
     u_seam = sorted(((th_half - theta) * x0, (-th_half - theta) * x0))
     v_band = sorted((sgn * (psi_lo - psi) * ds, sgn * (psi_hi - psi) * ds))
     keep = box(u_seam[0] + mu, v_band[0] + mv, u_seam[1] - mu, v_band[1] - mv)
     poly = poly.intersection(keep)
     if others:
         poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
+    # Close the boundary: erode then dilate by POLY_CLOSE. A notch or a spike
+    # narrower than 2*POLY_CLOSE = MIN_WEB mm is removed, so no cut can leave a
+    # tongue of skin under MIN_WEB wide behind it. Ribs (RIB = 2.0 mm) and the
+    # webs between windows are far wider, so nothing structural moves.
+    poly = poly.buffer(-POLY_CLOSE).buffer(POLY_CLOSE)
     parts = [g for g in getattr(poly, "geoms", [poly]) if g.geom_type == "Polygon" and g.area > 6.0]
     if not parts:
         return None
@@ -899,10 +978,21 @@ def windows():
                 # never lies in the slice's own side face; each slice keeps a
                 # continuous edge strip there and the two strips glue into one rib
                 cut.append(c_ if th == 0.0 else c_.intersect(
-                    inset_wedge(MIN_WEB, min_radius(c_))))
+                    inset_wedge(RIB / 2 + MIN_WEB, min_radius(c_))))
     keep = outlet_keepout()
+    air = duct_air_keepout()
     out = []
     for c in cut:
+        if air is not None:
+            # and one that only grazes the air keeps MIN_WEB of the duct wall
+            v0 = c.Volume()
+            try:
+                clear = c.cut(air)
+            except ValueError:
+                continue
+            if clear.Volume() < 0.35 * v0:
+                continue
+            c = clear
         if keep is None:
             out.append(c)
             continue
@@ -1010,28 +1100,38 @@ def circle_profile(c, r, n=48):
              c.z + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
 
 
+def duct_envelope(off, extra=3.0, bulb=None):
+    """The duct's swept envelope at `off` mm from its centreline (duct_path),
+    plus the bulb's dome at the same offset when `bulb` names it.
+
+    off = DUCT_BORE/2 is the air path itself, DUCT_BORE/2 + DUCT_W the wall's outside
+    face; anything larger is a keep-clear volume for the cuts that must not breach the
+    air (the lattice). Built one way every time, so a keep-clear cannot drift from the
+    part it protects.
+    """
+    pts = duct_path()
+    spline = cq.Edge.makeSpline(pts)
+    t0 = (pts[1] - pts[0]).normalized()
+    start = pts[0] - t0 * extra
+    prof = cq.Wire.makeCircle(off, start, t0)
+    spine = ([cq.Edge.makeLine(start, pts[0]), spline] if extra else [spline])
+    body = cq.Solid.sweep(prof, [], cq.Wire.assembleEdges(spine), True, False)
+    body = body.fuse(cq.Solid.makeSphere(off, pts[-1],
+                                         angleDegrees1=-90, angleDegrees2=90))
+    if bulb:
+        body = body.fuse(cq.Solid.makeSphere(bulb, duct_bulb_centre(),
+                                             angleDegrees1=-90, angleDegrees2=90))
+    return body
+
+
 def duct_solids():
     """(walls, bore) of one full duct, seam plane = XZ, in the outlet frame."""
-    pts = duct_path()
-    path = cq.Wire.assembleEdges([cq.Edge.makeSpline(pts)])
-    t0 = (pts[1] - pts[0]).normalized()
-
-    def tube(r, extra=0.0):
-        start = pts[0] - t0 * extra
-        prof = cq.Wire.makeCircle(r, start, t0)
-        body = cq.Solid.sweep(prof, [], path if not extra else cq.Wire.assembleEdges(
-            [cq.Edge.makeLine(start, pts[0]), cq.Edge.makeSpline(pts)]), True, False)
-        return body.fuse(cq.Solid.makeSphere(r, pts[-1], angleDegrees1=-90, angleDegrees2=90))
-
     # the end swells into a bulb (bore DUCT_BULB) so the wide stem and its
     # flange fit; the bulb's centre moves inward so it stays inside the skin
-    centre = duct_bulb_centre()
-    # (the tube's rounded end sits inside the bulb, so a plain sphere joins them)
     inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
-    outer = tube(DUCT_BORE / 2 + DUCT_W, extra=8.0).fuse(   # reaches back into the housing wall (trimmed below)
-        cq.Solid.makeSphere(DUCT_BULB / 2 + DUCT_W, centre, angleDegrees1=-90, angleDegrees2=90))
-    bore = tube(DUCT_BORE / 2, extra=3.0).fuse(
-        cq.Solid.makeSphere(DUCT_BULB / 2, centre, angleDegrees1=-90, angleDegrees2=90))
+    outer = duct_envelope(DUCT_BORE / 2 + DUCT_W, extra=8.0,
+                          bulb=DUCT_BULB / 2 + DUCT_W)
+    bore = duct_envelope(DUCT_BORE / 2, extra=3.0, bulb=DUCT_BULB / 2)
     # stem bearing boss behind the hole, filled up to the skin
     x_s = hull_r(OUT_Z)
     boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
@@ -1043,6 +1143,17 @@ def duct_solids():
     # band: the two walls fuse, and neither is left thinner or thicker than T.
     walls = walls.cut(housing_space(T))
     return walls, bore
+
+
+def duct_air_keepout():
+    """The duct's air path grown MIN_WEB, on every seam that carries a duct.
+
+    No lattice cut may come within MIN_WEB of the air: the duct's own T wall is what
+    keeps it airtight (DESIGN-CONSTRAINTS), and a cut that nibbles into that wall leaves
+    a fin of it under the nozzle. windows() cuts every cutter with this.
+    """
+    body = duct_envelope(DUCT_BORE / 2 + MIN_WEB, extra=3.0, bulb=DUCT_BULB / 2 + MIN_WEB)
+    return at_seams(body)
 
 
 def stem_and_servo_holes():
