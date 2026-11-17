@@ -22,7 +22,10 @@ Run: pip install cadquery && python3 airship_slice.py
      then: freecadcmd make_fcstd.py
      -> "airship pie slice 1026.FCStd", and Print Files/PieSlice1026-v0.2.1-8T.stl laid
         flat for printing (FreeCAD's mesher gives a watertight STL)
+     and: "airship pie slice 1026.joints.json", the joint map Analysis/check_outputs.py
+        --joints measures the fan and air-path clearances against.
 """
+import json
 import math
 import os
 import cadquery as cq
@@ -116,6 +119,10 @@ PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
 CHAMFER = 0.4              # peg tip and hole mouth (also eats elephant foot)
 BOSS_D, BOSS_L = 7.0, 5.0
+AIR_KEEP = 0.6             # mm of wall a hole leaves toward the air path (joints()
+                         # docstring; Analysis/check_outputs.py --joints measures it)
+JOINT_CLEAR = 1.0          # mm every joint keeps from the fan housing and the
+                         # impeller's swept volume (same checker)
 
 # Thrust ducts: one per seam, split in half by the seam plane, entirely
 # inside the skin. Each runs from a mouth on the keel (in the plenum) up the
@@ -123,6 +130,9 @@ BOSS_D, BOSS_L = 7.0, 5.0
 # through a round hole with a bearing boss behind it.
 DUCT_BORE = 34.0 if LARGE else 24.0   # bore diameter; 4T: twice the area for twice the flow
 DUCT_W = T                 # duct wall
+DUCT_FUSE = 0.4            # how far the duct's outer wall overlaps the skin band:
+                           # enough for a watertight boolean, and the only place
+                           # two T walls lie on each other (see EXCEPTIONS)
 DUCT_MOUTH_R = 60.0        # the duct mouths sit just outside the impeller (tip r 44)
 DUCT_Z_IN = -B * math.sqrt(1 - (DUCT_MOUTH_R / A) ** 2)   # skin height at the mouth
 
@@ -146,6 +156,38 @@ BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
 SERVO_T = 44.0 if LARGE else 36.0     # servo spline: this far (tangentially) from the seam
                                      # (= the 1:1 gear pitch diameter: 44T or 36T, module 1)
 SERVO_HOLE = 8.0
+
+# ---- one wall thickness ----------------------------------------------------
+# The design has ONE wall: T. Every skin, duct, shaft, floor, keel, hatch ring,
+# housing and rib face is T thick. Analysis/check_outputs.py measures it on the
+# print mesh (per facet, inward ray): the % of the sampled surface whose wall
+# is over T + 0.25 mm, grouped into blobs with their place. Only what this list
+# names may be thicker, and each entry says why:
+EXCEPTIONS = [
+    ("peg/hole bosses (BOSS_D, BOSS_L) and the sleeve they sit in",
+     "joint_parts(): the material a Ø3 peg and a Ø3.3 hole are set in. A Ø3.3 "
+     "hole punched straight into the duct's T wall would leave no wall around "
+     "itself and nothing to glue to, so the wall there grows into a sleeve "
+     "BOSS_D - 2*AIR_KEEP across, from the duct wall's own face to AIR_KEEP + "
+     "HOLE_D past the bore: the hole keeps AIR_KEEP of wall to the air path on "
+     "both sides, and the boss keeps its Ø7 footprint on duct material."),
+    ("stem bearing sleeve (BOSS_R, BOSS_LEN)",
+     "duct_solids(): the stem's bearing seat behind the stem hole - 1.3 mm of "
+     "wall, 12 mm deep, hollow down its axis; the Ø25.4 (Ø34.4 on 4T) stem needs "
+     "it, and the duct's air path stays clear of it."),
+    ("lattice rib width (RIB)",
+     "windows()/oval_on_skin(): ribs are RIB wide ALONG the skin and T thick "
+     "across it. Width is not wall thickness; where two ribs cross the checker "
+     "sees a RIB x RIB patch, which is this, not a thick wall."),
+    ("keel hatch bayonet lug and stop post (LUG_R, LUG_Z, POST)",
+     "hatch_ring(): the tab the fan hatch locks under - 2.9 mm of engagement set "
+     "in a T-thick ring wall. The fan comes out through here."),
+    ("wall-to-wall fusion (DUCT_FUSE)",
+     "duct_path()/duct_solids(): where the duct's outer wall runs into the skin "
+     "band the two T walls overlap by DUCT_FUSE so the boolean is watertight. Two "
+     "walls touching are not one thick wall; the checker sees a band of T + "
+     "DUCT_FUSE along the duct, not a block."),
+]
 
 
 # ---- helpers ---------------------------------------------------------------
@@ -312,30 +354,128 @@ OUT_Z = 0.0
 OUT_THRUST_RIB = skin_ribs().index(0.0)
 
 
-def joints():
-    """(r, z) of each peg/hole pair on the seam plane.
+def joint(name, r, z, walls, why):
+    """One peg/hole pair on the seam plane: where it is, the wall faces its boss
+    is fused into, and why it is there. joints() returns these; joint_parts()
+    builds them, and joint_map() writes them for the checker."""
+    return dict(name=name, r=r, z=z, walls=walls, why=why)
 
-    Holes keep >= 0.6 mm of wall between them and the shaft, floor and keel,
-    so the fan duct and plenum stay airtight.
+
+# Where the two duct joints sit along the duct, as an arc fraction (0 = the mouth
+# in the fan housing, 1 = the bulb behind the stem hole). Both are on the duct's
+# interior-side wall: a Ø3.3 hole needs AIR_KEEP + HOLE_D/2 of material between
+# itself and the bore, and on the skin side the wall ends at the skin 0.46 mm past
+# its own face, so there is nowhere near the bore to put a hole that does not
+# breach it. The groove one sits where the duct's wall meets the bulb's dome,
+# which is where the design owner's "in that little groove there" is.
+S_DUCT_TOP = 0.72            # the one peg on the seam face, on top of the duct
+S_BULB_GROOVE = 0.87         # the groove where the duct wall meets the bulb: the
+                             # point where the tube's wall face crosses the bulb's
+                             # dome (duct_bulb_centre, DUCT_BULB/2 + DUCT_W)
+
+
+def duct_at(s):
+    """Point s along the duct's centreline (duct_path), and the outward normal
+    in the seam plane. The two walls' mid-surfaces sit DUCT_BORE/2 + DUCT_W/2
+    either side of the centreline; the crease where the duct's outer wall meets
+    the skin is DUCT_BORE/2 + DUCT_W - DUCT_FUSE/2 out toward the skin."""
+    pts = duct_path()
+    seg = [(pts[i + 1] - pts[i]).Length for i in range(len(pts) - 1)]
+    cum, acc = [0.0], 0.0
+    for L in seg:
+        acc += L
+        cum.append(acc)
+    d = max(0.0, min(1.0, s)) * acc
+    k = max(i for i in range(len(pts) - 1) if cum[i] <= d)
+    t = (d - cum[k]) / (cum[k + 1] - cum[k])
+    c = pts[k] + (pts[k + 1] - pts[k]) * t
+    tg = (pts[k + 1] - pts[k]).normalized()
+    n = cq.Vector(tg.z, 0, -tg.x)                     # 90 deg, in the seam plane
+    if n.dot(c) < 0:
+        n = n * -1                                     # outward: away from the axis
+    return c, n
+
+
+def joints():
+    """The peg/hole pairs on a seam, as records: name, (r, z), the wall faces
+    the boss fuses into, and why the joint is there.
+
+    A duct seam carries ONE peg on top of the duct, fused straight into the duct
+    wall ("that would be stronger"), ONE more in the groove where the duct wall
+    meets the bulb on the other side of the duct, and one in each corner where
+    the duct wall meets another wall, so its cylinder is fused into BOTH walls;
+    the joint between the two corner ones sits exactly midway between them on
+    the same wall. Nothing else is on that face: the pegs that used to float in
+    the open lattice cells there, and their holes in the neighbouring slice, are
+    gone, and so are the joint that used to stand on the housing ceiling over
+    the blade tips and the keel joint that used to hang over the hatch hardware -
+    both were thick blocks of material over the fan, and both sat within
+    JOINT_CLEAR of the impeller's swept volume.
+
+    Holes keep >= AIR_KEEP of wall between them and the shaft, floor and keel,
+    so the fan duct and plenum stay airtight, and every joint keeps >= JOINT_CLEAR
+    from the fan housing and the impeller's swept volume. Analysis/check_outputs.py
+    --joints measures both rules against the map this build writes.
     """
-    edge = T + HOLE_D / 2 + 1.0                     # hole centre depth under skin
-    r_shaft = SHAFT_R + T + HOLE_D / 2 + 0.6        # boss on the outside of the shaft
-    ribs = skin_ribs()
     if PIECES:                                      # one per piece, mid-way up each band
         edge = BOSS_D / 2 + 0.5                     # boss clear of the skin, not tangent to it
         c = cut_ribs()
         mids = [(c["z_hi"] + c["r_hi"]) / 2,          # top outer piece
-                (c["r_hi"] + ribs[-1]) / 2,           # top inner piece
+                (c["r_hi"] + skin_ribs()[-1]) / 2,    # top inner piece
                 (c["z_lo"] + c["r_lo"]) / 2,          # bottom outer piece
                 c["z_hi"] * 0.6]                      # middle band, clear of the stem hole
-        return ([skin_point(p, edge) for p in mids]
-                + [(IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5),   # on the housing ceiling, over the blade tips
-                   skin_point(-math.acos(53.0 / A), edge)])       # keel, outside the hatch ring
-    return [(r_shaft, intake()[2] - 4.0),           # shaft top, under the bellmouth
-            skin_point(ribs[-3], edge),             # upper skin, on a ring rib
-            (r_shaft, nozzle_top() + 4.0),          # shaft, above the contraction
-            (IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5),   # on the housing ceiling, over the blade tips
-            skin_point(-math.acos(53.0 / A), edge)]  # keel, outside the hatch ring
+        out = [joint("piece_%d" % (i + 1), skin_point(p, edge)[0], skin_point(p, edge)[1],
+                     ["hull skin"], "one joint per printable piece, mid-way up its band")
+               for i, p in enumerate(mids)]
+        out.append(joint("housing_ceiling", IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5,
+                         ["fan housing ceiling"],
+                         "pieces build: on the housing ceiling, over the blade tips"))
+        out.append(joint("keel", skin_point(-math.acos(53.0 / A), edge)[0],
+                         skin_point(-math.acos(53.0 / A), edge)[1], ["keel skin"],
+                         "pieces build: on the keel, outside the hatch ring"))
+        return out
+    if FOUR:
+        # a 4-thruster slice's two seams are NOT alike (a left slice carries its
+        # half-duct on +HALF and a plain seam on -HALF), so its joints cannot sit
+        # on duct walls: it keeps the old skin/shaft/keel layout. Open item - 4T
+        # wants per-seam joint lists; the 8T design is the one rebuilt here.
+        edge = T + HOLE_D / 2 + 1.0                     # hole centre depth under skin
+        r_shaft = SHAFT_R + T + HOLE_D / 2 + 0.6        # boss on the outside of the shaft
+        ribs = skin_ribs()
+        return [joint("shaft_top", r_shaft, intake()[2] - 4.0, ["intake shaft wall"],
+                      "shaft top, under the bellmouth"),
+                joint("upper_skin", skin_point(ribs[-3], edge)[0],
+                      skin_point(ribs[-3], edge)[1], ["hull skin"], "upper skin, on a ring rib"),
+                joint("shaft", r_shaft, nozzle_top() + 4.0, ["intake shaft wall"],
+                      "shaft, above the contraction"),
+                joint("housing_ceiling", IMP_TIP_R, FLOOR_Z + T + BOSS_D / 2 - 0.5,
+                      ["fan housing ceiling"], "on the housing ceiling, over the blade tips"),
+                joint("keel", skin_point(-math.acos(53.0 / A), edge)[0],
+                      skin_point(-math.acos(53.0 / A), edge)[1], ["keel skin"],
+                      "keel, outside the hatch ring")]
+    out = []
+    for s, name, side, walls, why in (
+        (S_DUCT_TOP, "duct_top", "mid_in",
+         ["duct inner wall"],
+         "the ONE peg on this seam face: on top of the duct, fused directly into "
+         "the duct wall. It replaces the two joints that used to float in the open "
+         "lattice cells above and beside the duct, and their holes in the "
+         "neighbouring slice."),
+        (S_BULB_GROOVE, "bulb_groove", "groove_in",
+         ["duct inner wall", "duct bulb wall"],
+         "one more peg for strength, on the other side of the duct from the duct-"
+         "top peg, seated in the groove where the duct wall meets the bulb: the "
+         "boss fuses into the duct wall and the bulb's wall, and the hole keeps "
+         "AIR_KEEP of wall to the air path.")):
+        c, n = duct_at(s)
+        # both sit the same distance out from the bore: the hole's near side keeps
+        # AIR_KEEP of wall to the air path, so its centre is AIR_KEEP + HOLE_D/2
+        # past the wall's face, and joint_parts() grows the wall there into a
+        # sleeve (see EXCEPTIONS: peg/hole bosses).
+        p = c - n * (DUCT_BORE / 2 + AIR_KEEP + HOLE_D / 2)
+        out.append(joint(name, p.x, p.z, walls, why))
+    return out
+
 
 
 # ---- body ------------------------------------------------------------------
@@ -794,40 +934,80 @@ def outlet_keepout():
 
 
 def joint_parts():
-    """Bosses (added), holes (cut) and pegs (added) on both seams."""
+    """Bosses (added), holes (cut) and pegs (added) on both seams, plus the
+    sleeve the bulb-groove hole is set in.
+
+    A joint whose hole sits in a groove, where one wall's face runs past the
+    next, gets a sleeve (BOSS_D - 2*AIR_KEEP across) from that wall's face out
+    past the hole's far side: the hole then has AIR_KEEP of wall to the air path
+    on the air side and HOLE_D/2 of boss around it everywhere else. Without it a
+    Ø3.3 hole punched into a groove would open the air path to the seam gap.
+    """
     ph, pp = math.radians(-HALF), math.radians(HALF)
-    bosses, holes, pegs = [], [], []
+    bosses, holes, pegs, sleeves = [], [], [], []
     def in_duct(r, z):
         """Where a seam carries a duct, a joint inside the duct's run would sit
         in its bore; the seam is glued along both duct halves there instead."""
         return PIECES and z < DUCT_BULB / 2 + BOSS_D and r > DUCT_MOUTH_R - 5
     seams = duct_seams()
-    for r, z in joints():
+    for j in joints():
+        r, z = j["r"], j["z"]
+        p0 = cq.Vector(r * math.cos(ph), r * math.sin(ph), z)   # hole seam
+        p1 = cq.Vector(r * math.cos(pp), r * math.sin(pp), z)   # peg seam
+        th = cq.Vector(-math.sin(ph), math.cos(ph), 0)
+        tp = cq.Vector(-math.sin(pp), math.cos(pp), 0)
         if not (-HALF in seams and in_duct(r, z)):
-            p, t = seam_axis(r, z, ph)              # hole seam, inward = +t
-            bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p, t))
-            hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, p - t * 0.01, t)
+            bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p0, th))
+            hole = cq.Solid.makeCylinder(HOLE_D / 2, HOLE_L, p0 - th * 0.01, th)
             mouth = cq.Solid.makeCone(HOLE_D / 2 + CHAMFER + 0.01, HOLE_D / 2, CHAMFER + 0.01,
-                                      p - t * 0.01, t)
+                                      p0 - th * 0.01, th)
             holes.append(hole.fuse(mouth))
         if HALF in seams and in_duct(r, z):
             continue
-        p, t = seam_axis(r, z, pp)                  # peg seam, inward = -t
-        bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p, -t))
-        peg = cq.Solid.makeCylinder(PEG_D / 2, PEG_L + 0.5, p - t * 0.5, t)
+        bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, BOSS_L, p1, -tp))
+        peg = cq.Solid.makeCylinder(PEG_D / 2, PEG_L + 0.5, p1 - tp * 0.5, tp)
         tip = [e for e in peg.Edges()
-               if e.geomType() == "CIRCLE" and (e.Center() - p).dot(t) > PEG_L - 0.1]
+               if e.geomType() == "CIRCLE" and (e.Center() - p1).dot(tp) > PEG_L - 0.1]
         pegs.append(peg.chamfer(CHAMFER, None, tip))
-    return bosses, holes, pegs
+        if j["name"] in ("duct_top", "bulb_groove"):
+            # the sleeve the hole is set in: from the duct wall's own face out past
+            # the hole's far side, BOSS_D - 2*AIR_KEEP across, so the hole keeps
+            # AIR_KEEP of wall to the bore and HOLE_D/2 of material around it.
+            # duct_at() works in the outlet frame (the seam plane), so the sleeve
+            # goes on every seam that carries a duct, as at_seams() does.
+            c, n = duct_at(S_DUCT_TOP if j["name"] == "duct_top" else S_BULB_GROOVE)
+            wall_face = DUCT_BORE / 2 + DUCT_W        # the duct wall's face, air side
+            far_side = DUCT_BORE / 2 + AIR_KEEP + HOLE_D
+            sleeve = cq.Solid.makeCylinder(BOSS_D / 2 - 2 * AIR_KEEP,
+                                           far_side - wall_face,
+                                           c - n * wall_face, -n)
+            for a_ in duct_seams():
+                sleeves.append(sleeve.rotate((0, 0, 0), (0, 0, 1), a_))
+    return bosses, holes, pegs, sleeves
 
 
 def duct_path():
     """Duct centreline in the seam plane (x = radius, y = 0), mouth to end."""
-    depth = T + DUCT_BORE / 2 + DUCT_W - 0.4         # duct wall merges into the skin
+    depth = T + DUCT_BORE / 2 + DUCT_W - DUCT_FUSE   # duct wall merges into the skin
     p0 = math.asin(DUCT_Z_IN / B)
     p1 = math.asin(OUT_Z / B)
     pts = [skin_point(p0 + (p1 - p0) * i / 16, depth) for i in range(17)]
     return [cq.Vector(x, 0, z) for x, z in pts]
+
+
+def duct_bulb_centre():
+    """The duct bulb's centre, in the seam plane: set in from the tube's end by
+    DUCT_BULB/2 - DUCT_BORE/2 so the bulb's dome stays inside the skin."""
+    p1 = math.asin(OUT_Z / B)
+    n_end = cq.Vector(B * math.cos(p1), 0, A * math.sin(p1)).normalized()
+    return duct_path()[-1] - n_end * (DUCT_BULB / 2 - DUCT_BORE / 2)
+
+
+def circle_profile(c, r, n=48):
+    """A closed (r, z) polygon: the circle of radius r about the point c, in the
+    seam plane (the bulb's bore is a sphere, and this is its section there)."""
+    return [(c.x + r * math.cos(2 * math.pi * i / n),
+             c.z + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
 
 
 def duct_solids():
@@ -845,9 +1025,7 @@ def duct_solids():
 
     # the end swells into a bulb (bore DUCT_BULB) so the wide stem and its
     # flange fit; the bulb's centre moves inward so it stays inside the skin
-    p1 = math.asin(OUT_Z / B)
-    n_end = cq.Vector(B * math.cos(p1), 0, A * math.sin(p1)).normalized()
-    centre = pts[-1] - n_end * (DUCT_BULB / 2 - DUCT_BORE / 2)
+    centre = duct_bulb_centre()
     # (the tube's rounded end sits inside the bulb, so a plain sphere joins them)
     inside = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=90)
     outer = tube(DUCT_BORE / 2 + DUCT_W, extra=8.0).fuse(   # reaches back into the housing wall (trimmed below)
@@ -860,8 +1038,10 @@ def duct_solids():
                                  cq.Vector(1, 0, 0))
     walls = outer.fuse(boss.intersect(inside))
     # nothing of the duct inside the housing: its tilted start would leave a lip
-    # under the ceiling at the mouth; the housing's outer wall closes round it
-    walls = walls.cut(housing_space(T / 2))
+    # under the ceiling at the mouth; the housing's outer wall closes round it.
+    # Trim to T + 0.2 so the duct's wall ends inside the housing wall's own T
+    # band: the two walls fuse, and neither is left thinner or thicker than T.
+    walls = walls.cut(housing_space(T))
     return walls, bore
 
 
@@ -962,12 +1142,106 @@ def slice_name(side=None):
             + ("" if SCALE == 1 else f" x{SCALE:g}"))
 
 
+# ---- the joint map the checker reads -------------------------------------
+def housing_wall_profile():
+    """(r, z) outline of the housing wall's own band: the shroud curve and the
+    same curve offset T to its dry side - plenum_ceiling()'s outline. The housing
+    is a body of revolution, so revolving this gives the wall it really builds."""
+    pts = shroud_curve()
+    off = []
+    for i, (r, z) in enumerate(pts):
+        a_, b_ = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        dr, dz = b_[0] - a_[0], b_[1] - a_[1]
+        L = math.hypot(dr, dz)
+        off.append((r - dz / L * T, z + dr / L * T))
+    return pts + off[::-1]
+
+
+def plenum_air_profile():
+    """(r, z) of the air inside the fan housing, from the shaft down the keel -
+    housing_space()'s outline."""
+    pts = [(r, z) for r, z in shroud_curve()[1:]
+           if r >= EYE_R + SHROUD_RC - 1e-9 and z <= FLOOR_Z + 1e-9]
+    return [(0, FLOOR_Z)] + pts + [(pts[-1][0], -B - 1), (0, -B - 1)]
+
+
+def impeller_sweep_profile():
+    """(r, z) of the volume the impeller's blades sweep: from the axis out to
+    the blade tips (IMP_TIP_R), from the backplate's underside up to SHROUD_GAP
+    under the housing's shroud. Blade height 12.5 mm and the 0.8 mm backplate are
+    ../Propulsion/propulsion.py:48 and :64; the top follows the shroud, as
+    propulsion.py:250-255 makes the blade tops do."""
+    BLADE = 12.5 + 0.8
+    top = [(r, z - SHROUD_GAP) for r, z in shroud_curve()
+           if EYE_R <= r <= IMP_TIP_R + 1e-9 and z <= FLOOR_Z + 1e-9]
+    bottom = FLOOR_Z - SHROUD_GAP - BLADE
+    return [(0, bottom), (IMP_TIP_R, bottom)] + top[::-1] + [(0, top[0][1])]
+
+
+def duct_bore_profile(off=DUCT_BORE / 2):
+    """(r, z) polygon of the duct's tube at `off` from its centreline, in the
+    seam plane: off = DUCT_BORE/2 is the air path, DUCT_BORE/2 + DUCT_W the
+    wall's outside face. The duct is NOT a body of revolution, so the checker
+    measures this one in the seam plane instead of revolving it - which is the
+    plane the joints live in, and it only ever under-states the distance."""
+    pts = duct_path()
+    nrm = []
+    for i in range(len(pts)):
+        d0 = pts[i] - pts[i - 1] if i else pts[1] - pts[0]
+        d1 = pts[i + 1] - pts[i] if i < len(pts) - 1 else pts[-1] - pts[-2]
+        tg = (d0 + d1).normalized()
+        n = cq.Vector(tg.z, 0, -tg.x)
+        if n.dot(pts[i]) < 0:
+            n = n * -1
+        nrm.append(n)
+    a = [(p + n * off) for p, n in zip(pts, nrm)]
+    b = [(p - n * off) for p, n in zip(pts, nrm)]
+    return [(p.x, p.z) for p in a] + [(p.x, p.z) for p in reversed(b)]
+
+
+def joint_map():
+    """The joint map this build writes next to the STEP: <slice>.joints.json.
+
+    Analysis/check_outputs.py --joints reads it and measures the two rules the
+    design owner set: every boss, peg and hole keeps JOINT_CLEAR from the fan
+    housing, the plenum air and the impeller's swept volume, and every hole keeps
+    AIR_KEEP of wall between itself and the air path. The keep-clear volumes come
+    from the same code that builds the part, so they cannot drift from it.
+    """
+    return {
+        "variant": VARIANT + (" 4T " + SIDE if FOUR else ""),
+        "scale": SCALE,
+        "nominal_wall": T,
+        "joint_clear": JOINT_CLEAR,
+        "air_keep": AIR_KEEP,
+        "seam_degrees": [-HALF, HALF],
+        "joints": [dict(name=j["name"], r=round(j["r"], 3), z=round(j["z"], 3),
+                        boss_d=BOSS_D, boss_l=BOSS_L, peg_d=PEG_D, peg_l=PEG_L,
+                        hole_d=HOLE_D, hole_l=HOLE_L,
+                        fused_to=j["walls"], why=j["why"]) for j in joints()],
+        "keep_clear": [
+            {"name": "fan housing wall", "kind": "joint",
+             "profile": housing_wall_profile()},
+            {"name": "plenum air", "kind": "joint",
+             "profile": plenum_air_profile()},
+            {"name": "impeller swept volume", "kind": "joint",
+             "profile": impeller_sweep_profile()},
+            {"name": "shaft bore", "kind": "air",
+             "profile": [(0, -B - 1), (SHAFT_R, -B - 1), (SHAFT_R, B + 1), (0, B + 1)]},
+            {"name": "duct bore", "kind": "air2d",
+             "profile": duct_bore_profile()},
+            {"name": "bulb bore", "kind": "air2d",
+             "profile": circle_profile(duct_bulb_centre(), DUCT_BULB / 2)},
+        ],
+    }
+
+
 def build():
     envelope = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)).cut(
         wedge([(0, -B), (SHAFT_R, -B), (SHAFT_R, B), (0, B)]))  # keep the shaft bore clear
     walls, bore = duct_solids()
     stem_hole, servo_hole = stem_and_servo_holes()
-    bosses, holes, pegs = joint_parts()
+    bosses, holes, pegs, sleeves = joint_parts()
 
     body = frame()
     for w in windows():                     # one at a time: a compound cut
@@ -981,7 +1255,7 @@ def build():
     if PIECES:                                      # bosses for the pegs across the cuts
         for _, p, ax in cut_joints():
             bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
-    body = body.fuse(cq.Compound.makeCompound(bosses).intersect(envelope))
+    body = body.fuse(cq.Compound.makeCompound(bosses + sleeves).intersect(envelope))
     if duct_seams():
         try:
             body = body.fuse(at_seams(walls))
@@ -1012,7 +1286,12 @@ if __name__ == "__main__":
     s = build()
     print(f"volume {s.Volume() / 1000:.2f} cm3, faces {len(s.Faces())}, "
           f"solids {len(s.Solids())}, valid {s.isValid()}")
-    cq.exporters.export(s, os.path.join(HERE, slice_name() + ".step"))
+    name = slice_name()
+    cq.exporters.export(s, os.path.join(HERE, name + ".step"))
+    with open(os.path.join(HERE, name + ".joints.json"), "w") as fh:
+        json.dump(joint_map(), fh, indent=1)
+    print(f"{name + '.joints.json':52} {len(joint_map()['joints'])} joints, "
+          f"{len(joint_map()['keep_clear'])} keep-clear volumes")
     if PIECES:                                      # printable pieces, and the intake tubes
         d = os.path.join(HERE, "pieces", slice_name())
         os.makedirs(d, exist_ok=True)

@@ -31,8 +31,13 @@ What it checks
            open (boundary) edges, non-manifold edges, self-intersections,
            orientation, volume; the STL header's declared facet count; whether
            the bounding box fits the printers the docs name; and a wall-thickness
-           scan (the model's own walls against the 0.4 mm nozzle / 0.2 mm layer
-           the build notes specify).
+           map (the model's own walls against the 0.4 mm nozzle / 0.2 mm layer
+           the build notes specify). The map measures both ends of the wall:
+           facets thinner than the nozzle, and thick material - the % of the
+           sampled surface whose wall is over NOMINAL_WALL + 0.25 mm, grouped
+           into blobs, each reported with its area and where it sits (r, z,
+           azimuth), and the facets thinner than the nozzle, grouped and placed
+           the same way. One uniform thickness is only provable both ways.
 
 Cross-check: every .FCStd and .stl is compared by volume with the .step it was
 made from, so a print file that is not the current model shows up.
@@ -49,6 +54,12 @@ Options (inside the `--pass` string)
                      files only (default: both)
   --no-tess          skip tessellating shapes (faster, display cost not measured)
   --no-thin          skip the STL wall-thickness scan
+  --joints PATH      check the joint map the generator writes (<slice>.joints.json):
+                     every peg/hole boss against the fan-housing wall, the plenum
+                     air and the impeller's swept volume, and every hole against
+                     the air path (the fan duct's bore and the bulb's bore, both
+                     measured in the seam plane the joints live in). One line per
+                     joint; a clearance short of the rule is a FAIL.
 """
 
 import argparse
@@ -73,6 +84,11 @@ CURRENT = os.path.dirname(HERE)                     # CurrentModel/
 NOZZLE = 0.40          # mm, the nozzle every build note assumes
 LAYER = 0.20           # mm, the layer height the build notes assume
 VOL_TOL = 0.005        # 0.5 % volume difference allowed between CAD and print
+NOMINAL_WALL = 0.86    # mm, the model's one wall thickness (airship_slice.py T)
+THICK_AT = NOMINAL_WALL + 0.25   # a wall this far over nominal is a thick blob
+BLOB_LINK = 3.0        # mm: thick facets this far apart are one blob
+JOINT_CLEAR = 1.0     # mm a joint keeps from the fan housing and the impeller
+AIR_KEEP = 0.6        # mm of wall a hole leaves toward the air path
 BEDS = [(400.0, 400.0, 450.0, "Anycubic Kobra Max"),
         (210.0, 210.0, 250.0, "Prusa MK3S+")]
 
@@ -147,17 +163,75 @@ def mesh_topology(m):
             "edges": len(seen)}
 
 
-def wall_thickness(m, max_depth=4.0, cell=1.0, samples=6000):
+def group_blobs(items, cen, fac_area, link=BLOB_LINK):
+    """Group (facet, thickness) items into blobs: facets within `link` of each
+    other. Used for both ends of the wall map - thick material, and walls thinner
+    than the nozzle - because both need the same answer: how much, how thick,
+    and where, so the fix can be pointed at the code that made it."""
+    cell_of, parent = {}, list(range(len(items)))
+
+    def find(k):
+        while parent[k] != k:
+            parent[k] = parent[parent[k]]
+            k = parent[k]
+        return k
+
+    for k, (i, _) in enumerate(items):
+        cx, cy, cz = cen[i]
+        key = (int(cx // link), int(cy // link), int(cz // link))
+        for gx in range(key[0] - 1, key[0] + 2):
+            for gy in range(key[1] - 1, key[1] + 2):
+                for gz in range(key[2] - 1, key[2] + 2):
+                    for j in cell_of.get((gx, gy, gz), ()):
+                        a_, b_ = cen[items[j][0]], cen[i]
+                        if (math.sqrt((a_[0] - b_[0]) ** 2 + (a_[1] - b_[1]) ** 2
+                                      + (a_[2] - b_[2]) ** 2) <= link):
+                            ra, rb = find(j), find(k)
+                            if ra != rb:
+                                parent[rb] = ra
+        cell_of.setdefault(key, []).append(k)
+
+    groups = {}
+    for k in range(len(items)):
+        groups.setdefault(find(k), []).append(k)
+    blobs = []
+    for ks in groups.values():
+        cs = [cen[items[k][0]] for k in ks]
+        ar = sum(fac_area[items[k][0]] for k in ks)
+        ts = [items[k][1] for k in ks]
+        cx = sum(c[0] for c in cs) / len(cs)
+        cy = sum(c[1] for c in cs) / len(cs)
+        cz = sum(c[2] for c in cs) / len(cs)
+        blobs.append({
+            "facets": len(ks), "area": round(ar, 1),
+            "thickness": [round(min(ts), 2), round(max(ts), 2)],
+            "at": [round(cx, 1), round(cy, 1), round(cz, 1)],
+            "r": round(math.hypot(cx, cy), 1),
+            "z": round(cz, 1),
+            "deg": round(math.degrees(math.atan2(cy, cx)), 1),
+            "bbox": [round(min(c[d] for c in cs), 1) for d in range(3)]
+                    + [round(max(c[d] for c in cs), 1) for d in range(3)]})
+    blobs.sort(key=lambda b_: -b_["area"])
+    return blobs
+
+
+def wall_map(m, max_depth=4.0, cell=1.0, samples=6000):
     """Cast each facet's inward normal and find the surface behind it.
 
-    A wall thinner than the nozzle cannot be printed as drawn: the slicer has
-    to widen it or leave a gap in it.
+    Two ends of one measurement. A wall thinner than the nozzle cannot be printed
+    as drawn: the slicer has to widen it or leave a gap in it. A wall more than
+    0.25 mm over the model's own nominal wall (NOMINAL_WALL, the single T every
+    skin, duct, shaft, floor, keel, hatch ring, housing and rib face must have)
+    is thick material: extra weight the design did not ask for. Thick facets are
+    grouped into blobs - facets within BLOB_LINK of each other - and each blob is
+    reported with its area and its place (r, z, azimuth), so the fix can be
+    pointed at the code that made it.
     """
     pts, facets = m.Topology
     nfac = len(facets)
     step = max(1, nfac // samples)
     P = [(p.x, p.y, p.z) for p in pts]
-    cen, nor = {}, {}
+    cen, nor, fac_area = {}, {}, {}
     grid = {}
     for i, f in enumerate(facets):
         a, b, c = (P[f[0]], P[f[1]], P[f[2]])
@@ -168,6 +242,7 @@ def wall_thickness(m, max_depth=4.0, cell=1.0, samples=6000):
         cx, cy, cz = (a[0] + b[0] + c[0]) / 3.0, (a[1] + b[1] + c[1]) / 3.0,\
                      (a[2] + b[2] + c[2]) / 3.0
         cen[i] = (cx, cy, cz)
+        fac_area[i] = 0.5 * ln
         if ln < 1e-12:
             nor[i] = None
             continue
@@ -176,7 +251,7 @@ def wall_thickness(m, max_depth=4.0, cell=1.0, samples=6000):
                         []).append(i)
 
     reach = int(max_depth / cell) + 1
-    hits, thin = 0, []
+    hits = []                      # (facet, wall thickness) for facets with a hit
     d2max = max_depth * max_depth
     for i in range(0, nfac, step):
         if nor.get(i) is None:
@@ -220,15 +295,186 @@ def wall_thickness(m, max_depth=4.0, cell=1.0, samples=6000):
                         if t > 0.005 and t <= max_depth and (best is None or t < best):
                             best = t
         if best is not None:
-            hits += 1
-            thin.append(best)
-    if not thin:
+            hits.append((i, best))
+    if not hits:
         return {"sampled": 0}
-    thin.sort()
-    return {"sampled": len(thin), "min": round(thin[0], 3),
-            "median": round(thin[len(thin) // 2], 3),
-            "underNozzle": sum(1 for t in thin if t < NOZZLE),
-            "underLayer": sum(1 for t in thin if t < LAYER)}
+
+    vals = sorted(t for _, t in hits)
+    hit_area = sum(fac_area[i] for i, _ in hits)
+    out = {"sampled": len(vals), "min": round(vals[0], 3),
+           "median": round(vals[len(vals) // 2], 3),
+           "underNozzle": sum(1 for t in vals if t < NOZZLE),
+           "underLayer": sum(1 for t in vals if t < LAYER),
+           "nominal": NOMINAL_WALL, "thickAt": round(THICK_AT, 3),
+           "hitArea": round(hit_area, 1)}
+
+    # thick material: group the facets over THICK_AT into blobs
+    thick = [(i, t) for i, t in hits if t > THICK_AT]
+    out["thinFacets"] = sum(1 for _, t in hits if t < NOMINAL_WALL - 0.25)
+    out["normalFacets"] = len(hits) - len(thick) - out["thinFacets"]
+    bins = [(0.0, LAYER), (LAYER, NOZZLE), (NOZZLE, NOMINAL_WALL - 0.25),
+            (NOMINAL_WALL - 0.25, THICK_AT), (THICK_AT, 2.0), (2.0, 4.0)]
+    out["hist"] = ["%.2f-%.2f mm: %d" % (lo, hi, sum(1 for t in vals if lo <= t < hi))
+                   for lo, hi in bins]
+    out["overMap"] = ">= 4 mm (not a wall): %d" % sum(1 for t in vals if t >= 4.0)
+    out["thickFacets"], out["thickArea"], out["thickAreaPct"] = 0, 0.0, 0.0
+    out["blobs"], out["blobCount"] = [], 0
+    blobs = group_blobs(thick, cen, fac_area)
+    ta = sum(b_["area"] for b_ in blobs)
+    out["thickFacets"] = len(thick)
+    out["thickArea"] = round(ta, 1)
+    out["thickAreaPct"] = round(100.0 * ta / hit_area, 2) if hit_area else 0.0
+    out["blobs"] = blobs[:14]
+    out["blobCount"] = len(blobs)
+
+    # the thin end, grouped the same way: a wall under the nozzle is not printable
+    # as drawn, and knowing WHERE it is is what makes the failure fixable.
+    slim = [(i, t) for i, t in hits if t < NOZZLE]
+    slim_blobs = group_blobs(slim, cen, fac_area)
+    out["underArea"] = round(sum(b_["area"] for b_ in slim_blobs), 1)
+    out["underBlobs"] = slim_blobs[:14]
+    out["underBlobCount"] = len(slim_blobs)
+    return out
+
+
+def blob_text(b):
+    """One blob, in the words the notes and the issue need: how much, how thick,
+    where (cylindrical coordinates, because the hull is a body of revolution)."""
+    return ("%.0f mm2 %.2f-%.2f mm at r=%.0f z=%.0f az=%.0f deg (%d facets)"
+            % (b["area"], b["thickness"][0], b["thickness"][1], b["r"], b["z"],
+               b["deg"], b["facets"]))
+
+
+def revolved(pts):
+    """A closed (r, z) polygon revolved about Z. The joint map's keep-clear
+    profiles for bodies of revolution (the housing wall, the plenum air, the
+    impeller's swept volume, the shaft bore) are meridian sections, so a revolve
+    turns them into the volume the generator really builds."""
+    vs = [App.Vector(r, 0, z) for r, z in pts]
+    vs.append(vs[0])
+    try:
+        return Part.Face(Part.makePolygon(vs)).revolve(App.Vector(), App.Vector(0, 0, 1), 360)
+    except Exception:
+        return None
+
+
+def seg_dist(p, a, b):
+    ax, ay = p
+    vx, vy = b[0] - a[0], b[1] - a[1]
+    L2 = vx * vx + vy * vy
+    t = max(0.0, min(1.0, ((ax - a[0]) * vx + (ay - a[1]) * vy) / L2)) if L2 else 0.0
+    return math.hypot(ax - (a[0] + t * vx), ay - (a[1] + t * vy))
+
+
+def poly_inside(poly, x, y):
+    n, inside_ = len(poly), False
+    j = n - 1
+    for i in range(n):
+        xi, yi = poly[i]
+        xj, yj = poly[j]
+        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi) + xi:
+            inside_ = not inside_
+        j = i
+    return inside_
+
+
+def circle_gap(cx, cy, rad, poly):
+    """How far a circle in the (r, z) plane stands from a closed polygon there;
+    0 if it touches or crosses it. The duct is not a body of revolution, so its
+    bore is compared in the seam plane - the plane the joints live in - which
+    only ever under-states the distance, the conservative way round for a
+    clearance rule."""
+    if poly_inside(poly, cx, cy):
+        return 0.0
+    d = min(seg_dist((cx, cy), poly[i], poly[i - 1]) for i in range(len(poly)))
+    return max(0.0, d - rad)
+
+
+def check_joints(path):
+    """Joint clearances, from the joint map airship_slice.py writes next to the
+    STEP (<slice>.joints.json).
+
+    For every peg/hole pair on a seam: the boss (ØBOSS_D x BOSS_L), the peg and
+    the hole must keep JOINT_CLEAR mm from the fan-housing wall, the plenum air
+    and the impeller's swept volume; the hole must keep AIR_KEEP mm of wall
+    between itself and the air path (the rule in joints()' docstring). Each
+    joint also reports the wall faces its boss is fused to, which is what the
+    design owner asks for in the notes.
+    """
+    rec = {"kind": "joints", "path": path, "problems": [], "warnings": [], "facts": {}}
+    facts = rec["facts"]
+    try:
+        with open(path) as fh:
+            jm = json.load(fh)
+    except Exception as exc:
+        rec["problems"].append("joint map not readable: %s" % exc)
+        return rec
+    facts["variant"] = jm.get("variant", "")
+    facts["scale"] = jm.get("scale", 1.0)
+    facts["nominalWall"] = jm.get("nominal_wall")
+    clear = []
+    for c in jm.get("keep_clear", []):
+        prof = [tuple(p) for p in c["profile"]]
+        kind = c.get("kind", "joint")
+        if kind == "air2d":                       # measured in the seam plane
+            clear.append((c["name"], kind, prof))
+            continue
+        s = revolved(prof)
+        if s is None or s.isNull():
+            rec["problems"].append("keep-clear profile '%s' did not build" % c["name"])
+            continue
+        clear.append((c["name"], kind, s))
+    if not clear:
+        rec["problems"].append("no keep-clear volume in the joint map")
+        return rec
+
+    rows = []
+    for j in jm.get("joints", []):
+        r, z = j["r"], j["z"]
+        name = j["name"]
+        tools = {"boss": (j["boss_d"] / 2.0, j["boss_l"]),
+                 "peg": (j["peg_d"] / 2.0, j["peg_l"]),
+                 "hole": (j["hole_d"] / 2.0, j["hole_l"])}
+        row = {"name": name, "r": r, "z": z, "fused_to": j.get("fused_to", []),
+               "why": j.get("why", ""), "clear": {}, "min": None, "airMin": None}
+        for tool, (tr, tl) in tools.items():
+            # stand the cylinder up on the seam plane, axis along the tangent:
+            # the same place and pose the generator puts its boss in. Azimuth 0
+            # is used because the revolved keep-clear volumes are symmetric.
+            cyl = Part.makeCylinder(tr, tl, App.Vector(), App.Vector(0, 0, 1))
+            cyl.Placement = App.Placement(App.Vector(r, 0, z),
+                                          App.Rotation(App.Vector(1, 0, 0), -90))
+            for cname, kind, vol in clear:
+                if kind == "air2d":
+                    d = circle_gap(r, z, tr, vol)
+                else:
+                    try:
+                        d = cyl.distToShape(vol)[0]
+                    except Exception as exc:
+                        rec["problems"].append("%s vs %s: distance failed: %s"
+                                               % (name, cname, exc))
+                        continue
+                need = JOINT_CLEAR if kind == "joint" else AIR_KEEP
+                row["clear"]["%s/%s" % (tool, cname)] = round(d, 3)
+                if kind == "joint":
+                    if row["min"] is None or d < row["min"]:
+                        row["min"] = d
+                    if d < need:
+                        rec["problems"].append(
+                            "%s %s is %.2f mm from %s, needs %.1f mm clear"
+                            % (name, tool, d, cname, need))
+                elif tool == "hole":
+                    if row["airMin"] is None or d < row["airMin"]:
+                        row["airMin"] = d
+                    if d < need:
+                        rec["problems"].append(
+                            "%s hole leaves %.2f mm to %s, needs %.1f mm of wall"
+                            % (name, d, cname, need))
+        rows.append(row)
+    facts["joints"] = rows
+    facts["count"] = len(rows)
+    facts["keepClear"] = [c[0] for c in clear]
+    return rec
 
 
 def mesh_ladder(shape):
@@ -544,9 +790,18 @@ def check_stl(path):
             "not placed at the bed origin: min corner is (%.1f, %.1f, %.1f), "
             "max (%.1f, %.1f, %.1f)" % (*facts["bboxMin"], *facts["bboxMax"]))
 
-    # wall thickness against the nozzle the build notes specify
+    # wall thickness against the nozzle the build notes specify, and the thick
+    # material the one-wall rule forbids. The hull STLs are laid flat for printing
+    # (make_fcstd.py's pose), so undo that pose first: the thick blobs are then
+    # reported where the code that makes them says they are, in model coordinates.
     if not THIN_OFF:
-        facts["thickness"] = wall_thickness(m)
+        scan = m
+        if re.search(r"PieSlice1026", os.path.basename(path)):
+            scan = m.copy()
+            scan.transformGeometry(App.Rotation(App.Vector(1, 0, 0), -90).toMatrix())
+            scan.transformGeometry(App.Rotation(App.Vector(0, 0, 1), -22.5).toMatrix())
+            facts["wallScanFrame"] = "model frame (the print pose is undone)"
+        facts["thickness"] = wall_map(scan)
         th = facts["thickness"]
         if th.get("sampled"):
             if th["min"] < LAYER:
@@ -559,6 +814,21 @@ def check_stl(path):
                 rec["warnings"].append(
                     "%.3f mm thick at %d of %d sampled facets, under the %.2f mm nozzle"
                     % (th["min"], th["underNozzle"], th["sampled"], NOZZLE))
+            if th.get("underBlobCount"):
+                rec["warnings"].append(
+                    "thin material: %.0f mm2 of the sampled wall is under the %.2f mm "
+                    "nozzle in %d blob(s)"
+                    % (th["underArea"], NOZZLE, th["underBlobCount"]))
+                for b in th["underBlobs"][:8]:
+                    rec["warnings"].append("thin blob   " + blob_text(b))
+        if th.get("thickFacets"):
+            rec["warnings"].append(
+                "thick material: %.1f%% of the sampled wall (%.0f of %.0f mm2) is over %.2f mm "
+                "(nominal %.2f + 0.25 mm) in %d blob(s)"
+                % (th["thickAreaPct"], th["thickArea"], th["hitArea"], th["thickAt"],
+                   th["nominal"], th.get("blobCount", 0)))
+            for b in th["blobs"][:8]:
+                rec["warnings"].append("thick blob  " + blob_text(b))
     return rec
 
 
@@ -732,6 +1002,7 @@ def main(argv):
                     choices=("cad", "print", "all"))
     ap.add_argument("--no-tess", dest="no_tess", action="store_true")
     ap.add_argument("--no-thin", dest="no_thin", action="store_true")
+    ap.add_argument("--joints", dest="joints", action="append")
     ns = ap.parse_args(shlex.split(" ".join(a for a in argv if a != "--pass")))
     TESS_OFF = ns.no_tess
     THIN_OFF = ns.no_thin
@@ -784,7 +1055,10 @@ def main(argv):
                       "bed {}".format("/".join(f.get("fitsBeds", ["-"])) or "-"),
                       "wall min {} mm <nozzle {} <layer {}".format(
                           th.get("min", "-"), th.get("underNozzle", "-"),
-                          th.get("underLayer", "-"))]
+                          th.get("underLayer", "-")),
+                      "thick {}% ({} mm2, {} blobs)".format(
+                          th.get("thickAreaPct", "-"), th.get("thickArea", "-"),
+                          th.get("blobCount", 0))]
         else:
             vol = f.get("totalVolume", f.get("volume", f.get("mainVolume", 0)))
             detail = ["solids {}".format(f.get("solids", f.get("mainSolids", 0))),
@@ -820,6 +1094,30 @@ def main(argv):
             print("      PROBLEM  {}".format(w))
         for w in warns:
             print("      note     {}".format(w))
+        sys.stdout.flush()
+
+    for jp in ns.joints or []:
+        rec = check_joints(jp)
+        recs.append(rec)
+        f, problems = rec["facts"], rec["problems"]
+        status = "FAIL" if problems else "PASS"
+        if problems:
+            fails += 1
+        print("{}  {}  [joints] {} joints, clear of: {}".format(
+            status, os.path.relpath(jp, CURRENT), f.get("count", 0),
+            ", ".join(f.get("keepClear", []))))
+        for j in f.get("joints", []):
+            print("      {:<24} r={:7.1f} z={:7.1f}  fused to {}  from fan/housing: {}  "
+                  "wall to air: {}".format(
+                      j["name"], j["r"], j["z"],
+                      "+".join(j["fused_to"]) or "-",
+                      " ".join("%s %.2f mm" % (k, v) for k, v in sorted(j["clear"].items())
+                                if not k.endswith(("/plenum air", "/duct bore", "/shaft bore"))),
+                      " ".join("%s %.2f mm" % (k, v) for k, v in sorted(j["clear"].items())
+                                if k.endswith(("/plenum air", "/duct bore",
+                                               "/shaft bore", "/bulb bore")))))
+        for w in problems:
+            print("      PROBLEM  {}".format(w))
         sys.stdout.flush()
 
     if ns.json:
