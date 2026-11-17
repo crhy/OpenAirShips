@@ -69,6 +69,11 @@ INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius 
 
 RIB = float(os.environ.get("OAS_RIB", "2.0"))   # lattice web width (a seam rib is RIB/2 on each slice);
                                                 # 1.2 = lightest printable (3 lines), for builds where stiffness doesn't matter
+MIN_WEB = 0.4              # the least skin a window cut must leave itself: it stays this far
+                         # inside the skin band, inside the slice's seam planes and away from
+                         # its neighbouring windows. Closer than this and the boolean leaves a
+                         # sliver face (0.009-0.05 mm walls on the prints, issue #36), not a
+                         # thin web: see Analysis/OUTPUT-CHECK.md.
 # Skin lattice: from the fan housing to the intake bellmouth, rows of two side
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
@@ -514,6 +519,7 @@ def oval_on_skin(p0, p1, side, n=96):
 
 
 _SHELL = None
+_BAND = None
 
 
 def skin_shell():
@@ -554,27 +560,22 @@ def skin_cutter(pts):
     return out
 
 
-def junction(psi, theta, ovals, keep_side=0):
-    """Hollow junction where ovals meet on the rib at psi, azimuth theta: all
-    the skin that is more than RIB from every oval around it (`ovals`: skin
-    points, including the neighbouring slice's across a seam). keep_side
-    +1/-1 keeps only the side of the rib above/below, RIB/2 off it (for the
-    first and last ribs). Returns skin points of its outline, or None."""
-    from shapely.geometry import Point, Polygon, box
-    from shapely.ops import unary_union
+def skin_frame(psi, theta):
+    """uv <-> skin for a window centred on the skin at (psi, theta).
+
+    uv is the flat tangent plane there, except in PIECES builds, where the big
+    cells near the axis are laid out on the skin unrolled instead (a flat plane
+    distorts them badly). Returns (to_uv, to_skin, sgn): sgn is the way +v runs
+    along the skin.
+    """
     origin, nrm = surface(psi, theta)
     u = cq.Vector(-math.sin(theta), math.cos(theta), 0)
     v = nrm.cross(u)
     tang = cq.Vector(-A * math.sin(psi) * math.cos(theta), -A * math.sin(psi) * math.sin(theta),
                      B * math.cos(psi)).normalized()                 # up the skin
     sgn = 1.0 if v.dot(tang) > 0 else -1.0
-    reach = 60.0 * SCALE
     x0 = skin_point(psi, T / 2)[0]
     if PIECES:
-        # big cells near the axis are long compared with their radius, where a
-        # flat tangent plane distorts badly: work on the skin unrolled instead,
-        # v = distance up the skin from this rib, u = distance round it
-        sgn = 1.0
         def to_uv(p):
             ps = math.atan2(p.z * A, math.hypot(p.x, p.y) * B)
             return ((math.atan2(p.y, p.x) - theta) * skin_point(ps, T / 2)[0],
@@ -587,11 +588,81 @@ def junction(psi, theta, ovals, keep_side=0):
     else:
         to_uv = lambda p: ((p - origin).dot(u), (p - origin).dot(v))
         to_skin = lambda uu, vv: surface(psi + sgn * vv / ds_dpsi(psi), theta + uu / x0)
-    polys = []
+    return to_uv, to_skin, sgn
+
+
+def lattice_band():
+    """Where the skin the lattice sits on actually is: the ring rib just outside
+    the fan housing, the rib under the intake bellmouth, and the slice's half-angle."""
+    global _BAND
+    if _BAND is None:
+        rows = skin_ribs()
+        _BAND = (rows[0], rows[-1], math.radians(HALF))
+    return _BAND
+
+
+def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
+    """A window polygon, kept MIN_WEB inside the skin band, MIN_WEB inside the
+    slice's seam planes, MIN_WEB away from the windows around it, with its tips
+    rounded by `tip` (0 for an oval: it has no tips, and rounding a 96-point
+    outline only loses area). Returns the polygon, or None if nothing printable
+    is left.
+
+    This is the sliver fix, and it happens before a window becomes a solid. A
+    window whose boundary touches the band's edge, a seam plane or a neighbouring
+    window is cut flush against a face that is already there, and the kernel
+    leaves a sliver behind: a face 0.000 mm from the face it was cut by, which
+    prints as a 0.01-0.05 mm wall, i.e. a hole (issue #36). Nothing repairs a
+    sliver afterwards, so the polygon is clipped here, in shapely.
+    """
+    from shapely.geometry import box
+    from shapely.ops import unary_union
+    if poly is None or poly.is_empty:
+        return None
+    if tip > 0.0:
+        poly = poly.buffer(-tip).buffer(tip)          # round the tips first
+    if poly.is_empty:
+        return None
+    psi_lo, psi_hi, th_half = lattice_band()
+    x0, ds = skin_point(psi, T / 2)[0], ds_dpsi(psi)
+    # The frame maps uv back to the skin as (psi + sgn*v/ds, theta + u/x0), so
+    # the band's edges and the slice's seam planes are straight uv lines at a
+    # fixed v / a fixed u. They must be measured that way, not by projecting
+    # those 3D edges into the tangent plane: near the keel and the bellmouth that
+    # plane is nearly horizontal, and they land in the middle of the window.
+    u_lo, v_lo, u_hi, v_hi = poly.bounds
+    span = [psi + sgn * vv / ds for vv in (v_lo, (v_lo + v_hi) / 2, v_hi)]
+    mv = MIN_WEB * max(ds_dpsi(q) for q in span) / ds            # the band's edges
+    mu = MIN_WEB * x0 / min(skin_point(q, T / 2)[0] for q in span)  # the seam planes
+    u_seam = sorted(((th_half - theta) * x0, (-th_half - theta) * x0))
+    v_band = sorted((sgn * (psi_lo - psi) * ds, sgn * (psi_hi - psi) * ds))
+    keep = box(u_seam[0] + mu, v_band[0] + mv, u_seam[1] - mu, v_band[1] - mv)
+    poly = poly.intersection(keep)
+    if others:
+        poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
+    parts = [g for g in getattr(poly, "geoms", [poly]) if g.geom_type == "Polygon" and g.area > 6.0]
+    if not parts:
+        return None
+    return max(parts, key=lambda g_: g_.area)
+
+
+def junction(psi, theta, ovals, keep_side=0):
+    """Hollow junction where ovals meet on the rib at psi, azimuth theta: all
+    the skin that is more than RIB from every oval around it (`ovals`: skin
+    points, including the neighbouring slice's across a seam). keep_side
+    +1/-1 keeps only the side of the rib above/below, RIB/2 off it (for the
+    first and last ribs). Returns skin points of its outline, or None."""
+    from shapely.geometry import Point, Polygon, box
+    from shapely.ops import unary_union
+    to_uv, to_skin, sgn = skin_frame(psi, theta)
+    reach = 60.0 * SCALE
+    polys, raw = [], []
     for ring in ovals:
         uv = [to_uv(p) for p, _ in ring]
         if min(math.hypot(a_, b_) for a_, b_ in uv) < reach:
-            polys.append(Polygon(uv).buffer(RIB))
+            p0 = Polygon(uv)
+            raw.append(p0)
+            polys.append(p0.buffer(RIB))
     region = box(-reach, -reach, reach, reach).difference(unary_union(polys))
     if keep_side:
         cut_line = box(-reach, -reach, reach, reach).intersection(
@@ -602,15 +673,31 @@ def junction(psi, theta, ovals, keep_side=0):
     near = [g for g in parts if g.area > 0 and g.distance(probe) < 3.0]
     if not near:
         return None
-    g = min(near, key=lambda g_: g_.distance(probe)).buffer(-0.6).buffer(0.6)   # round the tips
-    if g.is_empty or g.area < 6.0:
+    g = clip_window(min(near, key=lambda g_: g_.distance(probe)), psi, theta, to_uv, to_skin, sgn, raw)
+    if g is None:
         return None
-    if g.geom_type != "Polygon":
-        g = max(g.geoms, key=lambda g_: g_.area)
     ring = list(g.exterior.coords)[:-1]
     per = g.exterior.length
     pts = [g.exterior.interpolate(per * i / 80) for i in range(80)]    # even spacing
     return [to_skin(p.x, p.y) for p in pts]
+
+
+def inset_wedge(inset, r):
+    """The slice's wedge with both seam planes pushed `inset` mm inside it at
+    the radius r a window sits at. A window cut that reaches the slice's own
+    side face is cut flush with it, and the kernel leaves a sliver there.
+    Belt and braces after clip_window: r is the nearest the cutter gets to the
+    axis, the worst case along it."""
+    d = math.asin(max(-1.0, min(1.0, inset / r)))
+    return (column(0).rotate((0, 0, 0), (0, 0, 1), d)
+            .intersect(column(0).rotate((0, 0, 0), (0, 0, 1), -d)))
+
+
+def min_radius(shape):
+    """The closest a shape's bounding box comes to the Z axis."""
+    bb = shape.BoundingBox()
+    return max(1.0, min(math.hypot(x, y) for x in (bb.xmin, bb.xmax)
+                        for y in (bb.ymin, bb.ymax)))
 
 
 def windows():
@@ -632,7 +719,28 @@ def windows():
         rot = lambda p: cq.Vector(p.x * c - p.y * s_, p.x * s_ + p.y * c, p.z)
         return [[(rot(p), rot(nv)) for p, nv in r] for r in rings]
 
-    cut = [skin_cutter(o) for k in ovals for o in ovals[k]]
+    def oval_pts(k, ring):
+        """An oval window, clipped like every other window: MIN_WEB inside the
+        skin band, inside the seam planes and away from its neighbours. It is
+        already RIB/2 off the ribs and the seams by construction, so this only
+        bites where a cell is laid out too far out on the skin."""
+        from shapely.geometry import Polygon
+        psi = (rows[k] + rows[k + 1]) / 2
+        to_uv, to_skin, sgn = skin_frame(psi, 0.0)
+        g = clip_window(Polygon([to_uv(p) for p, _ in ring]), psi, 0.0, to_uv, to_skin, sgn, tip=0.0)
+        if g is None:
+            return None
+        ring = list(g.exterior.coords)[:-1]
+        per = g.exterior.length
+        pts = [g.exterior.interpolate(per * i / 96) for i in range(96)]   # even spacing, as the oval's own
+        return [to_skin(p.x, p.y) for p in pts]
+
+    cut = []
+    for k in ovals:                               # the ovals, clipped first, like the junctions
+        for o in ovals[k]:
+            pts = oval_pts(k, o)
+            if pts is not None:
+                cut.append(skin_cutter(pts))
     for j, psi in enumerate(rows):                  # junctions on every rib
         near = ovals.get(j - 1, []) + ovals.get(j, [])
         keep = 0 if 0 < j < nrows else (1 if j == 0 else -1)
@@ -647,8 +755,11 @@ def windows():
                 if pts is None:
                     continue
                 c_ = skin_cutter(pts)
-                # seam junctions stop RIB/2 short of the seam: the side edge stays continuous
-                cut.append(c_ if th == 0.0 else c_.intersect(whole))
+                # a junction on a seam stops MIN_WEB inside this slice, so the cut
+                # never lies in the slice's own side face; each slice keeps a
+                # continuous edge strip there and the two strips glue into one rib
+                cut.append(c_ if th == 0.0 else c_.intersect(
+                    inset_wedge(MIN_WEB, min_radius(c_))))
     keep = outlet_keepout()
     out = []
     for c in cut:
@@ -859,18 +970,14 @@ def build():
     bosses, holes, pegs = joint_parts()
 
     body = frame()
-    retry = []
     for w in windows():                     # one at a time: a compound cut
-        v = body.Volume()                   # silently drops overlapping tools
-        body = body.cut(w)
-        if v - body.Volume() < 0.5:         # the kernel can return a cut unchanged;
-            retry.append(w)                 # once the faces round it are split, it works
-    for w in retry:
         v = body.Volume()
         body = body.cut(w)
-        if v - body.Volume() < 0.5:
-            c = w.Center()
-            print(f"warning: window cut had no effect at {c.x:.0f}, {c.y:.0f}, {c.z:.0f}")
+        if v - body.Volume() < 0.5:         # a window cut that does nothing means
+            c = w.Center()                # the tool never reached the skin: a lattice
+            raise ValueError(f"window cut had no effect at {c.x:.1f}, {c.y:.1f}, "
+                             f"{c.z:.1f} mm - the build stops here rather than "
+                             f"shipping a slice with a window missing from it")
     if PIECES:                                      # bosses for the pegs across the cuts
         for _, p, ax in cut_joints():
             bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
@@ -887,6 +994,17 @@ def build():
     body = body.cut(cq.Compound.makeCompound(holes))
     body = body.fuse(cq.Compound.makeCompound(pegs))
     body = body.cut(hatch_hole()).clean()
+    # keep only real solids: a boolean can leave a degenerate shell in the
+    # compound (volume 0, a few faces), and it inflates every number read off
+    # the shape, so a slice must be reported by the solids it actually has
+    solids = [so for so in body.Solids() if so.Volume() > 1e-3]
+    if not solids:
+        raise ValueError(f"the slice came out with no solid in it: {len(body.Faces())} faces, "
+                         f"volume {body.Volume():.1f} mm3")
+    if len(solids) > 1:
+        print(f"note: {len(body.Solids()) - len(solids)} degenerate shell(s) dropped, "
+              f"{len(solids)} solids kept")
+    body = solids[0] if len(solids) == 1 else cq.Compound.makeCompound(solids)
     return body
 
 
