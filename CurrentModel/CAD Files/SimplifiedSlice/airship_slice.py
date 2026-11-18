@@ -589,20 +589,19 @@ def joint(name, r, z, walls, why, sleeve=None):
     return dict(name=name, r=r, z=z, walls=walls, why=why, sleeve=sleeve)
 
 
-# Where the duct joint sits along the duct, as an arc fraction (0 = the mouth in
-# the fan housing, 1 = the bulb behind the stem hole): the groove where the duct's
-# tube wall meets the bulb's dome on the DRY side of the duct, which is where the
-# design owner's "in that little groove there" is. The hole stands in a sleeve
-# joint_parts() grows: a Ø3.3 hole needs AIR_KEEP + HOLE_D/2 of material between
-# itself and the bore, and the wall it sits in is only T thick - which is also why
-# the peg f087 put on the duct's CREST (the seam plane, the one wall of T the skin
-# and the duct's outer wall have become) is gone: measured, that wall spans only
-# DUCT_BORE/2 = 12.00 .. 12.86 mm from the duct's centreline, so a Ø3.3 hole with
-# AIR_KEEP of wall to the air cannot fit in it without adding material outside the
-# outer skin.
-S_BULB_GROOVE = 0.87         # the groove where the duct wall meets the bulb: the
-                             # point where the tube's wall face crosses the bulb's
-                             # dome (duct_bulb_centre, DUCT_BULB/2 + DUCT_W)
+# f148 put the bulb joint at duct_at(S_BULB_GROOVE): a point a fixed fraction of
+# the way along the duct, on the tube wall. Measured on the f148 print, that boss
+# bit 2.05 mm into the tube wall and 0.00 mm into the bulb's dome wall - exactly
+# tangent to it, so it stood in ONE wall, which is what rhY saw: "other peg not in
+# the corner touching two sides". f149 finds the corners as surface intersections
+# (bulb_inner_corner / bulb_outer_corner below); S_BULB_GROOVE is kept only as the
+# f148 record.
+S_BULB_GROOVE = 0.87         # f148: the groove where the duct wall meets the bulb
+# The peg f087 put on the duct's CREST (the seam plane, the one wall of T the skin
+# and the duct's outer wall have become) is still gone: measured, that wall spans
+# only DUCT_BORE/2 = 12.00 .. 12.86 mm from the duct's centreline, so a Ø3.3 hole
+# with AIR_KEEP of wall to the air cannot fit in it without standing material
+# outside the outer skin.
 
 
 def duct_at(s):
@@ -628,13 +627,199 @@ def duct_at(s):
     return c, n
 
 
+# ---- the bulb's two corners (f149) ------------------------------------------------
+# The duct's tube wall and the bulb's dome wall meet in the seam plane in TWO
+# corners, and a bulb joint belongs IN one of them with its boss fused into BOTH
+# walls - the two-wall rule. The corner is the intersection of the two wall FACES;
+# nothing about it is a parameter along the duct. Points are (r, z) in the seam
+# plane, the same frame duct_path() and the joint map use.
+
+def duct_wall_r():
+    """The tube wall's own face, mm from the centreline (duct_solids())."""
+    return DUCT_BORE / 2 + DUCT_W - SKIN_BITE - SKIN_BURY
+
+
+def bulb_wall_r():
+    """The bulb dome wall's own face, mm from the bulb's centre (duct_solids())."""
+    return DUCT_BULB / 2 + DUCT_W - SKIN_BITE - SKIN_BURY
+
+
+def seam_off(p):
+    """p's distance from the duct's centreline polyline, in the seam plane."""
+    pts = duct_path()
+    best = None
+    for i in range(len(pts) - 1):
+        a, b = pts[i], pts[i + 1]
+        dx, dz = b.x - a.x, b.z - a.z
+        L2 = dx * dx + dz * dz
+        t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((p[0] - a.x) * dx + (p[1] - a.z) * dz) / L2))
+        d = math.hypot(p[0] - (a.x + t * dx), p[1] - (a.z + t * dz))
+        if best is None or d < best:
+            best = d
+    return best
+
+
+def seam_air(p):
+    """mm of wall between p and the duct's air path in the seam plane (0 inside
+    it): the tube's bore and the bulb's bore, the two surfaces duct_solids() cuts."""
+    C = duct_bulb_centre()
+    return max(0.0, min(seam_off(p) - DUCT_BORE / 2,
+                        math.hypot(p[0] - C.x, p[1] - C.z) - DUCT_BULB / 2))
+
+
+def band_tube(p):
+    """mm from p to the tube wall's own band, 0 inside it: the material between
+    DUCT_BORE / 2 and duct_wall_r() from the centreline."""
+    d, lo, hi = seam_off(p), DUCT_BORE / 2, duct_wall_r()
+    return 0.0 if lo <= d <= hi else min(abs(d - lo), abs(d - hi))
+
+
+def band_dome(p):
+    """mm from p to the bulb dome wall's own band, 0 inside it."""
+    C = duct_bulb_centre()
+    rho, lo, hi = math.hypot(p[0] - C.x, p[1] - C.z), DUCT_BULB / 2, bulb_wall_r()
+    return 0.0 if lo <= rho <= hi else min(abs(rho - lo), abs(rho - hi))
+
+
+def band_skin(p):
+    """mm from p to the hull skin's own band, 0 inside it: the duct's outer side,
+    which IS the skin (rhY f087 item 1)."""
+    u = hull_r(p[1]) - p[0]                          # depth under the outer face
+    return 0.0 if u <= T else u - T
+
+
+def stem_slot_wall(p):
+    """mm of wall between p and the ØSTEM_HOLE stem slot at the outlet, its flare
+    cone included - or a large number where there is no slot: the slot is a cylinder
+    from hull_r(OUT_Z) - BOSS_LEN - 2 out through the skin (stem_and_servo_holes()),
+    not a disc about the axis. build() cuts that slot AFTER the bosses are fused, so
+    a joint hole inside it is no hole at all and its peg is left loose in the air -
+    the f087 duct-top failure mode."""
+    if p[0] < hull_r(OUT_Z) - BOSS_LEN - 2.0:
+        return 1e9
+    flare = math.tan(math.radians(STEM_FLARE + 1.5))
+    return abs(p[1]) - (STEM_HOLE / 2
+                        + max(0.0, p[0] - (hull_r(OUT_Z) - 3.0)) * flare)
+
+
+def bulb_inner_corner():
+    """The INNER corner, toward the hull's inside: the tube wall's face (offset
+    duct_wall_r() from the centreline, on the dry side) crossing the dome wall's
+    face (the bulb_wall_r() sphere about duct_bulb_centre()). Walk the tube face
+    from the mouth and bisect the crossing."""
+    rt, rb, C = duct_wall_r(), bulb_wall_r(), duct_bulb_centre()
+
+    def f(s):
+        c, n = duct_at(s)
+        return ((c - n * rt) - C).Length - rb
+
+    lo, hi, prev = 0.3, 0.315, f(0.3)
+    while hi < 1.0:
+        v = f(hi)
+        if prev * v <= 0:
+            break
+        lo, hi, prev = hi, min(1.0, hi + 0.015), v
+    for _ in range(50):
+        mid = (lo + hi) / 2
+        if f(lo) * f(mid) <= 0:
+            hi = mid
+        else:
+            lo = mid
+    c, n = duct_at((lo + hi) / 2)
+    q = c - n * rt
+    return q.x, q.z
+
+
+def bulb_outer_corner():
+    """The OUTER corner: the dome wall's face crossing the skin band's inner face
+    - the duct's outer side, which is the hull skin. Walk the skin's inner face
+    from the equator and bisect the crossing. It is on the far side of the equator
+    from the mouth: the tube's own air swallows the dome wall where the duct comes
+    up, so that is the side where both walls are material."""
+    rb, C = bulb_wall_r(), duct_bulb_centre()
+
+    def f(psi):
+        q = skin_point(psi, T)
+        return math.hypot(q[0] - C.x, q[1] - C.z) - rb
+
+    lo, hi = 0.0, math.pi / 2
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if f(lo) * f(mid) <= 0:
+            hi = mid
+        else:
+            lo = mid
+    return skin_point((lo + hi) / 2, T)
+
+
+def bulb_boss_centre(apex, bands, reach):
+    """The boss centre for the corner at apex: the point within reach of it that
+    bites deepest into BOTH walls (maximize the shallower bite) while the ØHOLE_D
+    hole it carries keeps AIR_KEEP of wall to the duct's air path and to the stem
+    slot, and the boss stays RIM_KEEP under the hull's outer face. The corner
+    itself is always in one or the other - that is what puts the boss as close to
+    the corner as the rules allow, the same way AIR_KEEP and JOINT_CLEAR place
+    corner_top and corner_bottom. Returns (bite, point, air, slot) or None.
+
+    RIM_KEEP, not 0: a boss rim close to the outer skin leaves a wall the nozzle
+    cannot print (Analysis/check_outputs.py NOZZLE, 0.40 mm, and f148 is what a
+    0.02-0.07 mm sheet did - sliver faces the wall map read as a 0.026 mm wall),
+    and a rim through it breaks the smooth outer ellipsoid, which rhY forbids.
+    """
+    RIM_KEEP = 0.40
+    for step in (0.25, 0.05, 0.01):
+        top = None
+        n = int(round(reach / step))
+        for i in range(-n, n + 1):
+            for k in range(-n, n + 1):
+                p = (apex[0] + i * step, apex[1] + k * step)
+                u = hull_r(p[1]) - p[0]               # depth under the outer skin
+                if u <= 0 or BOSS_D / 2 - u > -RIM_KEEP:
+                    continue
+                bite = BOSS_D / 2 - max(bands[0](p), bands[1](p))
+                if bite <= 0:                         # the boss misses one wall
+                    continue
+                air, slot = seam_air(p) - HOLE_D / 2, stem_slot_wall(p) - HOLE_D / 2
+                if air < AIR_KEEP or slot < AIR_KEEP:
+                    continue
+                if top is None or bite > top[0]:
+                    top = (bite, p, air, slot)
+        if top is None:
+            return None
+        apex, reach = top[1], step * 4
+    return top
+
+
+def bulb_joints():
+    """(name, (r, z), walls, why) for the two bulb joints, one in each corner."""
+    out = []
+    for name, apex, bands, reach, walls, why in (
+            ("bulb_groove", bulb_inner_corner(), (band_tube, band_dome), 8.0,
+             ["duct tube wall", "duct bulb dome wall"],
+             "the INNER corner where the duct's tube wall meets the bulb's dome, "
+             "boss fused into both"),
+            ("bulb_outer", bulb_outer_corner(), (band_dome, band_skin), 14.0,
+             ["duct bulb dome wall", "hull skin (the duct's outer wall)"],
+             "the OUTER corner where the bulb's dome meets the duct's outer side, "
+             "which is the hull skin; the corner's apex is inside the stem slot, so "
+             "the boss sits on the same two walls as far out of the slot as the "
+             "hole's AIR_KEEP allows, its rim RIM_KEEP under the outer face")):
+        got = bulb_boss_centre(apex, bands, reach)
+        if got is None:
+            raise RuntimeError("no two-wall spot for %s within %.1f mm of its corner "
+                               "at (%.2f, %.2f)" % (name, reach, apex[0], apex[1]))
+        bite, p, air, slot = got
+        out.append((name, p, walls, why, bite, air, slot))
+    return out
+
+
 def joints():
     """The peg/hole pairs on a seam, as records: name, (r, z), the wall faces
     the boss fuses into, and why the joint is there.
 
-    A duct seam carries ONE peg in the groove where the duct's tube wall meets the
-    bulb's dome, on the dry side of the duct, fused into both of those walls, and
-    one joint at each end of the slice's straight shaft-side wall (the intake shaft's
+    A duct seam carries TWO pegs at its bulb - one in each corner where the duct's
+    tube wall meets the bulb's dome, fused into both of those walls - and one joint
+    at each end of the slice's straight shaft-side wall (the intake shaft's
     own wall: the bellmouth end at the top, the fan-housing ceiling end at the bottom),
     so each cylinder is fused into BOTH walls of its corner (the two-wall rule). Nothing
     else is on that face: the pegs that used to float in the open lattice cells there, and their
@@ -688,35 +873,29 @@ def joints():
                       skin_point(-math.acos(53.0 / A), edge)[1], ["keel skin"],
                       "keel, outside the hatch ring")]
     out = []
-    # The ONE duct joint: the corner where the duct's tube wall meets the bulb's
-    # dome, on the dry side of the duct. The boss there is fused into BOTH walls
-    # (the tube's T wall and the bulb's dome), and the hole keeps AIR_KEEP of wall
-    # to the air path inside the sleeve joint_parts() grows.
+    # The TWO bulb joints (f149): rhY at the f148 print - "Missing peg, other peg
+    # not in the corner touching two sides." One in each corner where the duct's
+    # tube wall meets the bulb's dome (bulb_joints()): each boss is fused into BOTH
+    # walls there, and each hole keeps AIR_KEEP of wall to the duct's air path.
     #
-    # The peg f087 put on top of the duct, on the seam face - the one wall of T the
-    # hull skin and the duct's outer wall have become (its item 1) - is DELETED,
-    # because no wall there can hold it: the whole span of material at the crest is
-    # 12.00 .. 12.86 mm from the duct's centreline. f087 set the hole centre at
-    # DUCT_BORE/2 - SKIN_BITE - AIR_KEEP - HOLE_D/2 = 9.73 mm, INSIDE the air; its
-    # boss was fused at build():1839 and then removed by the bore cut at build():1845,
-    # while the peg is fused at build():1850 - so STL part 14 is a 28 mm3 peg loose
-    # in the air at (178.9, -48.7) in the seam plane. A Ø3.3 hole with AIR_KEEP =
-    # 0.6 mm of wall to the air needs 3.9 mm of material (that is what the sleeve
-    # is for), and putting that outside the skin would break the outer skin, which
-    # rhY forbids.
-    c, n = duct_at(S_BULB_GROOVE)
-    p = c - n * (DUCT_BORE / 2 + AIR_KEEP + HOLE_D / 2)
-    out.append(joint("bulb_groove", p.x, p.z,
-                     ["duct tube wall", "duct bulb dome wall"],
-                     "the corner where the duct's tube wall meets the bulb's dome, on the "
-                     "dry side of the duct: the boss is fused into both walls there, and the "
-                     "hole keeps AIR_KEEP of wall to the air path in the sleeve joint_parts() "
-                     "grows. This is the corner f087 called corner_bulb_root and then put ON "
-                     "THE SKIN 4.0 mm under it: there the bulb's dome crosses the skin band, "
-                     "so its boss stood 13.9 mm from the bulb's centre - inside the bulb's "
-                     "16 mm bore - the bore cut removed it, and STL part 15 is the 28 mm3 peg "
-                     "left loose.",
-                     (S_BULB_GROOVE, -DUCT_BORE / 2, AIR_KEEP + HOLE_D)))
+    # bulb_groove is the INNER corner. f148 had it at duct_at(S_BULB_GROOVE), a
+    # point on the tube wall: measured, 2.05 mm of boss inside the tube wall and
+    # 0.00 mm inside the dome wall - tangent to it, so it stood in ONE wall.
+    #
+    # bulb_outer is the OUTER corner: the dome against the duct's outer side, which
+    # is the hull skin (rhY f087 item 1). The corner's apex, where the dome wall's
+    # face crosses the skin band's inner face, sits 6.2 mm under the equator at
+    # scale 1 - INSIDE the Ø25.4 stem slot, which build() cuts after the bosses are
+    # fused, so a boss there is cut away and its peg is left loose in the air. That
+    # is exactly how the peg f087 put on top of the duct failed: its hole centre sat
+    # at 9.73 mm from the centreline, inside the air; the boss was fused at
+    # build():1839, removed by the bore cut at build():1845, and the peg fused at
+    # build():1850 was left as a 28 mm3 solid loose in the air (STL part 14, at
+    # (178.9, -48.7) in the seam plane). bulb_outer therefore sits on the same two
+    # wall faces as far out of the slot as the hole's AIR_KEEP allows, where the
+    # boss bridges the dome wall and the skin.
+    for name, p, walls, why, _bite, _air, _slot in bulb_joints():
+        out.append(joint(name, p[0], p[1], walls, why))
     for name, p, walls, why, sl in corner_joints():
         out.append(joint(name, p.x, p.z, walls, why, sl))
     return out

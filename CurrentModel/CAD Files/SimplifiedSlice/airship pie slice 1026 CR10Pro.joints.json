@@ -11,8 +11,8 @@
  "joints": [
   {
    "name": "bulb_groove",
-   "r": 258.121,
-   "z": -26.581,
+   "r": 263.719,
+   "z": -13.402,
    "boss_d": 7.0,
    "boss_l": 5.0,
    "peg_d": 3.0,
@@ -23,7 +23,23 @@
     "duct tube wall",
     "duct bulb dome wall"
    ],
-   "why": "the corner where the duct's tube wall meets the bulb's dome, on the dry side of the duct: the boss is fused into both walls there, and the hole keeps AIR_KEEP of wall to the air path in the sleeve joint_parts() grows. This is the corner f087 called corner_bulb_root and then put ON THE SKIN 4.0 mm under it: there the bulb's dome crosses the skin band, so its boss stood 13.9 mm from the bulb's centre - inside the bulb's 16 mm bore - the bore cut removed it, and STL part 15 is the 28 mm3 peg left loose."
+   "why": "the INNER corner where the duct's tube wall meets the bulb's dome, boss fused into both"
+  },
+  {
+   "name": "bulb_outer",
+   "r": 287.211,
+   "z": 16.396,
+   "boss_d": 7.0,
+   "boss_l": 5.0,
+   "peg_d": 3.0,
+   "peg_l": 3.6,
+   "hole_d": 3.3,
+   "hole_l": 4.2,
+   "fused_to": [
+    "duct bulb dome wall",
+    "hull skin (the duct's outer wall)"
+   ],
+   "why": "the OUTER corner where the bulb's dome meets the duct's outer side, which is the hull skin; the corner's apex is inside the stem slot, so the boss sits on the same two walls as far out of the slot as the hole's AIR_KEEP allows, its rim RIM_KEEP under the outer face"
   },
   {
    "name": "corner_top",

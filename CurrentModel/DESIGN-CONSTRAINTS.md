@@ -14,7 +14,7 @@ These rules come from the design owner. Don't trade any of them away for weight 
 - **The ducts never get smaller** (Ø24 mm bore, ending in a Ø32 bulb and a Ø22 stem; Ø34 on the 4-thruster bench and Kobra Max builds). Only their walls are thinned, to the printable minimum.
 
 ## Outside shape
-- **The hull's outside is a smooth ellipsoid (207.765 × 104 mm semi-axes).** The pipes and ducts run inside it. Only the thruster stems and servo gear hubs pass through round holes in the skin, and only the 5 joint pegs per slice stick out, into the neighbouring slice.
+- **The hull's outside is a smooth ellipsoid (207.765 × 104 mm semi-axes).** The pipes and ducts run inside it. Only the thruster stems and servo gear hubs pass through round holes in the skin, and only the 4 joint pegs per slice stick out, into the neighbouring slice - and their bosses stay under the outer skin, so the ellipsoid stays smooth.
 
 ## Weight and printing (Prusa MK3S+, 0.4 mm nozzle)
 - **Walls are 0.86 mm** (2 perimeters of 0.45 mm at 0.2 mm layers). That's the minimum that prints airtight, and nothing structural is thinner. Ribs are 2.0 mm wide.

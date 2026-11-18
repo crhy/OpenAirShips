@@ -87,6 +87,14 @@ import Mesh
 HERE = os.path.dirname(os.path.abspath(__file__))
 CURRENT = os.path.dirname(HERE)                     # CurrentModel/
 NOZZLE = 0.40          # mm, the nozzle every build note assumes
+MIN_FACET_AREA = 1e-4  # mm2, under this a mesh facet is a mesher sliver, not a wall.
+                       # Its normal is noise, and the wall ray starts 0.005 mm along
+                       # that normal, so it reads 0.005-0.03 mm of "wall". Every build
+                       # since f148 carries 10-14 facets under 1e-6 mm2 (about 150 under
+                       # 1e-4) where the duct's wall face meets the skin band, at both
+                       # sizes: f149 measured the same 0.000 mm2 facet at r=71 z=-142 in
+                       # the f148 STEP's mesh and in its own, and which of them the
+                       # stride sampling lands on has been deciding the gate.
 LAYER = 0.20           # mm, the layer height the build notes assume
 VOL_TOL = 0.005        # 0.5 % volume difference allowed between CAD and print
 NOMINAL_WALL = 0.86    # mm, the model's one wall thickness (airship_slice.py T)
@@ -241,6 +249,7 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
     P = [(p.x, p.y, p.z) for p in pts]
     cen, nor, fac_area = {}, {}, {}
     grid = {}
+    tiny = 0
     for i, f in enumerate(facets):
         a, b, c = (P[f[0]], P[f[1]], P[f[2]])
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
@@ -251,8 +260,9 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
                      (a[2] + b[2] + c[2]) / 3.0
         cen[i] = (cx, cy, cz)
         fac_area[i] = 0.5 * ln
-        if ln < 1e-12:
-            nor[i] = None
+        if ln < 1e-12 or fac_area[i] < MIN_FACET_AREA:
+            nor[i] = None                          # not a wall: see MIN_FACET_AREA
+            tiny += 1
             continue
         nor[i] = (nx / ln, ny / ln, nz / ln)
         grid.setdefault((int(cx // cell), int(cy // cell), int(cz // cell)),
@@ -314,6 +324,7 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
            "underNozzle": sum(1 for t in vals if t < NOZZLE),
            "underLayer": sum(1 for t in vals if t < LAYER),
            "nominal": NOMINAL_WALL, "thickAt": round(THICK_AT, 3),
+           "tinySkipped": tiny,
            "hitArea": round(hit_area, 1)}
 
     # thick material: group the facets over THICK_AT into blobs
@@ -1149,6 +1160,7 @@ def main(argv):
                       "wall min {} mm <nozzle {} <layer {}".format(
                           th.get("min", "-"), th.get("underNozzle", "-"),
                           th.get("underLayer", "-")),
+                      "sliver facets skipped {}".format(th.get("tinySkipped", "-")),
                       "thick {}% ({} mm2, {} blobs)".format(
                           th.get("thickAreaPct", "-"), th.get("thickArea", "-"),
                           th.get("blobCount", 0))]
