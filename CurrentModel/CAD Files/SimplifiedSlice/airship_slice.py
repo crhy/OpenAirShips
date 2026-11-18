@@ -74,14 +74,23 @@ INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius 
 
 RIB = float(os.environ.get("OAS_RIB", "2.0"))   # lattice web width (a seam rib is RIB/2 on each slice);
                                                 # 1.2 = lightest printable (3 lines), for builds where stiffness doesn't matter
-MIN_WEB = 0.4              # the least skin a window cut must leave itself: it stays this far
-                         # inside the skin band, inside the slice's seam planes and away from
-                         # its neighbouring windows. Closer than this and the boolean leaves a
-                         # sliver face (0.009-0.05 mm walls on the prints, issue #36), not a
-                         # thin web: see Analysis/OUTPUT-CHECK.md.
-POLY_CLOSE = MIN_WEB / 2   # every window polygon is closed by this radius (erode, then dilate
-                         # back): a notch or a spike in the cut boundary narrower than
-                         # 2*POLY_CLOSE = MIN_WEB mm is removed before the cut is ever made.
+MIN_WEB = 0.0              # rhY f118 item 4: the lattice runs right out to the edges. This
+                         #   margin used to keep every window this far inside the skin band, inside
+                         #   the slice's seam planes, away from the duct's air and from its
+                         #   neighbouring windows - a solid skin margin all round the lattice. It is
+                         #   GONE. What it was really protecting (a cut boundary landing on a face
+                         #   that is already there -> the 0.009-0.05 mm sliver walls issue #36 counts)
+                         #   is now protected the other way round: a cell an edge or a keep-out cuts
+                         #   is not cut at all (clip_window returns None for it, windows() drops a
+                         #   cutter a keep-out solid has nibbled), so only the FULL cells are open
+                         #   windows and the partial cells along an edge stay filled - which is also
+                         #   what rhY asks for "for strength".
+POLY_CLOSE = 0.2           # every window polygon is closed by this radius (erode, then dilate
+                         # back): a notch or a spike in the cut boundary narrower than 2*POLY_CLOSE
+                         # is removed before the cut is ever made. No longer tied to MIN_WEB (now
+                         # 0): it is not a margin - it never moves the boundary outward, it only
+                         # rounds tips and closes sliver notches, and a tongue of skin that thin
+                         # standing in the hole is what the 0.011-0.3 mm walls issue #36 counts.
                          # Such a notch leaves a tongue of skin that thin standing in the hole
                          # - the 0.011-0.3 mm walls and the sub-millimetre facets issue #36
                          # counts, on ovals as well as on junctions.
@@ -182,6 +191,14 @@ PEG_D, HOLE_D = 3.0, 3.3   # 0.15 mm clearance per side for FDM
 PEG_L, HOLE_L = 3.6, 4.2
 CHAMFER = 0.4              # peg tip and hole mouth (also eats elephant foot)
 BOSS_D, BOSS_L = 7.0, 5.0
+BOSS_INSET = T / 2         # how far inside a wall band the clip that keeps a boss out
+                         #   of the shaft bore stops. A boss clipped exactly at the bore's
+                         #   own face (r = SHAFT_R) gets a flat face coincident with the shaft
+                         #   wall's inner face, and the fuse leaves a sliver there: the 0.03
+                         #   and 0.30 mm readings at (33.0, 91.0) and (33.0, -64.2) in
+                         #   build/f118/thin1.log, both at the new shaft-corner joints. Clipping
+                         #   BOSS_INSET into the T band puts that face inside the material the
+                         #   fuse is joining, so it disappears and the bore stays clear.
 AIR_KEEP = 0.6             # mm of wall a hole leaves toward the air path (joints()
                          # docstring; Analysis/check_outputs.py --joints measures it)
 JOINT_CLEAR = 1.0          # mm every joint keeps from the fan housing and the
@@ -223,7 +240,14 @@ STEM_HOLE = 34.4 if LARGE else 25.4   # stem OD + 0.4: 34/31 (4T) or 25/22 mm (s
 BOSS_LEN = 12.0            # bearing sleeve behind the stem hole (reaches into the duct bulb)
 DUCT_BULB = 44.0 if LARGE else 32.0   # the duct's end swells to this bore so the stem's flange fits
 BOSS_R = STEM_HOLE / 2 + 1.3      # thin bearing sleeve, not a solid block
-CREST_BAND = DUCT_BULB / 2 + MIN_WEB
+CREST_BAND = DUCT_BORE / 2   # half-width, mm along the skin, of the SOLID band that runs along
+                         #   the crest of each duct: the skin over a duct carries no lattice window,
+                         #   because with the skin as the duct's outer wall (rhY f087 item 1) a window
+                         #   there would be a hole in the air path. It is the duct TUBE's own air half-
+                         #   width now (was DUCT_BULB / 2 + MIN_WEB = 16.4): the wider part of the air
+                         #   path is the bulb at the duct's end, and duct_air_keepout() drops the cells
+                         #   it cuts, so the band is only as wide as the air actually is at each height
+                         #   (rhY f118 item 4: solid skin only where it must be).
                          # half-width, mm along the skin, of the SOLID band that runs along the
                          # crest of each duct: the skin over a duct and its outlet carries NO
                          # lattice window, because with the skin as the duct's outer wall (rhY f087
@@ -542,10 +566,10 @@ def joints():
 
     A duct seam carries ONE peg in the groove where the duct's tube wall meets the
     bulb's dome, on the dry side of the duct, fused into both of those walls, and
-    one joint at each of the two corners of the skin the lattice sits on plus one
-    exactly midway between them along that same wall, so each cylinder is fused
-    into BOTH walls of its corner (the two-wall rule). Nothing else is on that
-    face: the pegs that used to float in the open lattice cells there, and their
+    one joint at each end of the slice's straight shaft-side wall (the intake shaft's
+    own wall: the bellmouth end at the top, the fan-housing ceiling end at the bottom),
+    so each cylinder is fused into BOTH walls of its corner (the two-wall rule). Nothing
+    else is on that face: the pegs that used to float in the open lattice cells there, and their
     holes in the neighbouring slice, are gone, and so are the joint that used to
     stand on the housing ceiling over the blade tips and the keel joint that used
     to hang over the hatch hardware - both were thick blocks of material over the
@@ -631,62 +655,55 @@ def joints():
 
 
 def corner_joints():
-    """The joints on the slice's seam face: the two corners of the skin the lattice
-    sits on, and the one midway between them on that same wall.
+    """The joints at the two ends of the slice's straight shaft-side wall.
 
     Returns (name, point in the seam plane, the walls the boss fuses into, why,
     sleeve or None) for each. A corner joint sits where two walls meet, so its
-    cylinder is fused into BOTH walls (the two-wall rule); the joint between the
-    two corner ones sits exactly midway between them on the same wall - measured
-    ALONG the wall, not along the straight chord between the two points: the chord
-    through the hull's interior is where f087's two 217/156 mm3 bosses float in
-    thin air (build/f117/probe3.log: r=125.1 z=45.6, 61.6 mm inside the skin).
-    Every one keeps >= JOINT_CLEAR from the fan housing, the plenum air and the
-    impeller's swept volume, and >= AIR_KEEP of wall to any air side - Analysis/
-    check_outputs.py --joints measures both against the map this build writes -
-    and all three are on the seam wall's face, where clip_window keeps every
-    lattice window MIN_WEB clear, so the peg and the matching hole print as solid
-    pegs rather than a peg standing over an open window.
-    """
-    e = BOSS_D / 2 + 0.5       # hole/boss centre depth under the outer skin. The boss is
-                         #   BOSS_D (7.0) across, so its outer face sits 0.5 mm under the skin's
-                         #   own outer face: deep enough that the fuse cannot leave a membrane of
-                         #   itself under the skin (at T + HOLE_D/2 + 1.0 = 3.51 that face sat
-                         #   0.01 mm under the skin and the 8T slice came out with 0.004-0.05 mm2
-                         #   sliver faces at every corner joint, which is what the mesh then
-                         #   self-intersected on), and still 0.36 mm into the T band that holds it.
-    #   stays 1.0 mm inside the skin, and the boss (BOSS_D across, BOSS_L deep)
-    #   is fused into the corner's two walls.
-    out = []
-    # (a) the TOP corner of the seam face: the left end of the top edge, where the
-    # top wall - the solid skin band the lattice stops under, below the intake
-    # bellmouth - meets the seam and the skin.
-    psi_top = lattice_band()[1]
-    r, z = skin_point(psi_top, e)
-    out.append(("corner_top", cq.Vector(r, 0, z), ["hull skin", "seam edge strip"],
-                "the top corner of the slice: the top wall (the solid skin under the "
-                "intake bellmouth) meets the seam and the skin. Peg on one slice, hole in "
-                "the neighbour, fused into both walls of the corner.", None))
-    # (b) the other corner of that same wall: where the solid skin over the duct
-    # (the crest band) ends and the lattice resumes, on the seam.
-    psi_duct_top = crest_psi_range()[1]
-    r, z = skin_point(psi_duct_top, e)
-    out.append(("corner_duct_top", cq.Vector(r, 0, z), ["hull skin", "duct crest band"],
-                "the lower corner of the skin the lattice sits on: the solid skin over the "
-                "duct ends and the lattice resumes. Peg on one slice, hole in the neighbour, "
-                "fused into both walls of the corner.", None))
-    # (c) the joint between the two corner ones on the same wall - the seam wall's
-    # face runs from psi_top down to psi_duct_top - sits exactly midway between
-    # them ON that wall: the skin point at the mean ellipse angle.
-    r, z = skin_point((psi_top + psi_duct_top) / 2, e)
-    out.append(("seam_mid", cq.Vector(r, 0, z), ["hull skin", "seam edge strip"],
-                "the joint between the two corner ones, exactly midway between them along "
-                "the same wall (the seam wall's face, top corner to the duct's upper corner), "
-                "as the design owner's rule asks. f087 took the midpoint of the two POINTS "
-                "instead, a chord through the hull's interior: its two bosses floated 61.6 "
-                "mm inside the skin, in the open lattice.", None))
-    return out
+    cylinder is fused into BOTH walls (the two-wall rule). The two corners are the
+    two ends of the intake shaft's own straight wall (r = SHAFT_R .. SHAFT_R + T,
+    from nozzle_top() up to intake()[2]): the top end, where the bellmouth rolls
+    the hull skin into the shaft, and the bottom end, where the same wall turns
+    into the fan housing's ceiling over the shroud turn (radius SHROUD_RC about
+    (SHAFT_R + SHROUD_RC, FLOOR_Z + SHROUD_RC)) - the empty ~90 deg corner rhY
+    pointed at (print x 35-60, y +63..+75, hull z -63..-75).
 
+    Both sit at r = SHAFT_R + HOLE_D / 2 + AIR_KEEP: the hole keeps exactly AIR_KEEP
+    of wall to the shaft bore, and that is what puts the boss as close to each corner
+    as AIR_KEEP and JOINT_CLEAR allow. Measured in the (r, z) meridian plane
+    (build/f118/corner_2d.py): the Ø7 boss overlaps the shaft-side wall by 2.11 mm
+    at both corners, and the wall each corner turns into by 2.25 mm (top) and 1.25
+    mm (bottom), so it is fused through both; the hole keeps 0.60 mm of wall to the
+    shaft bore and to the housing's air, and the boss keeps 4.55 mm to the plenum
+    air and 6.05 mm to the impeller's swept volume, both over JOINT_CLEAR. Analysis/
+    check_outputs.py --joints measures both rules against the map this build writes.
+
+    The two joints f117 left out in the middle of the hull are DELETED (rhY 2026-11-17
+    item 1): seam_mid (149.4, 67.7), out on a lattice node, and corner_duct_top (201.0,
+    16.2), on the outer skin by the bulb. Their records, bosses, pegs and holes go
+    with them. bulb_groove is kept (rhY asked for it in f117).
+    """
+    r = SHAFT_R + HOLE_D / 2 + AIR_KEEP   # the hole keeps AIR_KEEP of wall to the shaft bore
+    out = []
+    # (a) the hull-top end of that wall: the shaft wall's straight run ends at
+    # z = intake()[2], where the bellmouth roll (radius INTAKE_R about
+    # (SHAFT_R + INTAKE_R, intake()[2])) takes over and the hull skin comes down.
+    out.append(("corner_top", cq.Vector(r, 0, intake()[2]),
+                ["intake shaft wall", "intake bellmouth (hull skin)"],
+                "the hull-top end of the straight shaft-side wall: the shaft wall meets the "
+                "bellmouth, where the hull skin rolls into the shaft. f117 had this joint at "
+                "(46.9, 97.3) - 15.2 mm from the shaft-side wall's outer face and 11.7 mm from "
+                "any material of it, so it was fused into the skin band only, not in the corner "
+                "rhY asked for. Peg on one slice, hole in the neighbour, fused into both walls "
+                "of the corner.", None))
+    # (b) the fan-housing end of the same wall: the empty corner at its other end.
+    out.append(("corner_bottom", cq.Vector(r, 0, FLOOR_Z + SHROUD_RC),
+                ["intake shaft wall", "fan housing ceiling (shroud turn)"],
+                "the fan-housing end of the straight shaft-side wall, the empty ~90 deg corner "
+                "where that wall turns into the fan housing's ceiling over the radius-SHROUD_RC "
+                "shroud turn. The boss is fused into both walls there; the hole keeps AIR_KEEP "
+                "= 0.60 mm of wall to the housing's air and to the shaft bore, and the boss keeps "
+                "4.55 mm to the plenum air and 6.05 mm to the impeller's swept volume.", None))
+    return out
 
 # ---- body ------------------------------------------------------------------
 def frame():
@@ -840,11 +857,24 @@ def ds_dpsi(psi):
     return math.hypot(A * math.sin(psi), B * math.cos(psi))
 
 
-def column_bounds(psi, side):
-    """Azimuths of one column's edges at ellipse angle psi: RIB/2 in from the
-    centre plane and from the seam plane (measured straight, like column())."""
+def crest_half(psi):
+    """How far in from the seam plane the solid skin over a duct reaches at ellipse angle
+    psi: CREST_BAND over the duct's run (crest_psi_range), nothing above it, where the
+    duct has ended and the lattice runs to the seam as it always has."""
+    lo, hi = crest_psi_range()
+    return CREST_BAND if lo <= psi <= hi else 0.0
+
+
+def column_bounds(psi, side, outer=None):
+    """Azimuths of one column's edges: RIB/2 in from the centre plane, and `outer` mm in
+    from the seam plane - the solid skin the duct's air needs (crest_half(psi)) where a
+    duct runs under the skin, RIB/2 where it does not. rhY f118 item 4: the lattice runs
+    right out to that edge instead of standing RIB/2 off the seam; a cell the edge cuts
+    stays filled (clip_window / windows() drop partial ones), so the half cells along the
+    duct's band are the solid patches rhY asks for "for strength"."""
     x = skin_point(psi, T / 2)[0]
-    th_in, th_out = math.asin((RIB / 2) / x), math.radians(HALF) - math.asin((RIB / 2) / x)
+    d = max(RIB / 2, outer if outer is not None else crest_half(psi))
+    th_in, th_out = math.asin((RIB / 2) / x), math.radians(HALF) - math.asin(d / x)
     return (th_in, th_out) if side > 0 else (-th_out, -th_in)
 
 
@@ -856,6 +886,8 @@ def oval_on_skin(p0, p1, side, n=96):
     rib lines (RIB/2 in) at one point and fills the cell."""
     q0 = p0 + (RIB / 2) / ds_dpsi(p0)
     q1 = p1 - (RIB / 2) / ds_dpsi(p1)
+    outer = crest_half((p0 + p1) / 2)   # one bound for the whole cell: the oval stays a
+                         #   full cell or is left filled, never tapered by the band's edge
     out = []
     for i in range(n):
         t = 2 * math.pi * i / n
@@ -863,7 +895,7 @@ def oval_on_skin(p0, p1, side, n=96):
         a_ = math.copysign(abs(c_) ** (2 / OVAL_N), c_)
         b_ = math.copysign(abs(s_) ** (2 / OVAL_N), s_)
         psi = (q0 + q1) / 2 + b_ * (q1 - q0) / 2
-        lo, hi = column_bounds(psi, side)
+        lo, hi = column_bounds(psi, side, outer)
         out.append(surface(psi, (lo + hi) / 2 + a_ * (hi - lo) / 2))
     return out
 
@@ -1275,11 +1307,17 @@ def lattice_band():
 
 
 def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
-    """A window polygon, kept MIN_WEB inside the skin band, MIN_WEB inside the
-    slice's seam planes, MIN_WEB away from the windows around it, with its tips
-    rounded by `tip` (0 for an oval: it has no tips, and rounding a 96-point
-    outline only loses area). Returns the polygon, or None if nothing printable
-    is left.
+    """A window polygon, clipped to the skin band, the slice's seam planes, the solid
+    skin the duct's air needs and the windows around it, with its tips rounded by `tip`
+    (0 for an oval: it has no tips, and rounding a 96-point outline only loses area).
+    Returns the polygon, or None if nothing printable is left.
+
+    rhY f118 item 4: the lattice runs right out to the edges, and ONLY a cell an edge
+    cuts stays filled. So a polygon that any of those clips CHANGES is not cut at all
+    (returned as None): every FULL cell is an open window, the partial cells along the
+    band's edges, the seam planes and the duct's air stay solid skin. That also keeps
+    the boolean safe the way MIN_WEB used to: no cut boundary ever lands on a face
+    that is already there.
 
     This is the sliver fix, and it happens before a window becomes a solid. A
     window whose boundary touches the band's edge, a seam plane or a neighbouring
@@ -1308,14 +1346,17 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     u_lo, v_lo, u_hi, v_hi = poly.bounds
     span = [psi + sgn * vv / ds for vv in (v_lo, (v_lo + v_hi) / 2, v_hi)]
     mv = MIN_WEB * max(ds_dpsi(q) for q in span) / ds            # the band's edges
-    # the seam planes: a junction on a seam stops inside this slice's own edge strip
-    # (RIB / 2 per slice, the two slices' strips glue into one RIB rib), and never closer
-    # than MIN_WEB to the slice's side face, so the cut is never flush with it
-    mu = max(MIN_WEB, RIB / 2) * x0 / min(skin_point(q, T / 2)[0] for q in span)
+    # the seam planes: MIN_WEB (0) inside the slice's own side face - rhY f118 item 4: no
+    #   solid edge strip any more, the lattice runs to the seam, and a junction the seam
+    #   plane cuts (the half diamonds along an edge) stays filled by the rule above.
+    mu = MIN_WEB * x0 / min(skin_point(q, T / 2)[0] for q in span)
+    whole = poly.area
     u_seam = sorted(((th_half - theta) * x0, (-th_half - theta) * x0))
     v_band = sorted((sgn * (psi_lo - psi) * ds, sgn * (psi_hi - psi) * ds))
     keep = box(u_seam[0] + mu, v_band[0] + mv, u_seam[1] - mu, v_band[1] - mv)
     poly = poly.intersection(keep)
+    if poly.is_empty or poly.area < whole - 1e-9:
+        return None                     # the band's edge or a seam plane cuts this cell: filled
     # The solid crest band along each duct (CREST_BAND either side of the crest line, which
     # is the seam plane: the duct is split in half by it). No window is cut inside it, and none
     # is left within MIN_WEB of its edge: a cut boundary that close is what left the 0.186-0.382
@@ -1325,28 +1366,25 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     # stops at the band's edge - the cells keep their rib lines, they are re-flowed around it.
     for s_ in duct_seams():
         u_c = (math.radians(s_) - theta) * x0
-        before = poly.area
-        poly = poly.difference(box(u_c - CREST_BAND - MIN_WEB, v_band[0],
-                                   u_c + CREST_BAND + MIN_WEB, v_band[1]))
-        if poly.is_empty:
-            return None
-        if poly.area < 0.6 * before:
-            # the crest band cutting a window down to a chip leaves a slot a few tenths of a
-            # mm wide, and such a slot severs the web beside it: the 8T skin came off the slice
-            # in 16 islands, 1.2-2.8 mm adrift of the rest. A window either survives or is not
-            # cut at all.
-            return None
+        # the band only runs the duct's own height (crest_psi_range): above the duct's
+        # end there is no air under the skin, so the lattice runs to the seam there too
+        v_c = sorted((sgn * (crest_psi_range()[0] - psi) * ds,
+                      sgn * (crest_psi_range()[1] - psi) * ds))
+        poly = poly.difference(box(u_c - CREST_BAND - MIN_WEB, v_c[0],
+                                   u_c + CREST_BAND + MIN_WEB, v_c[1]))
+        if poly.is_empty or poly.area < whole - 1e-9:
+            return None   # the duct's air band cuts this cell: it stays filled (rhY item 4)
     if others:
         before = poly.area
         poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
         if poly.is_empty:
             return None
         if poly.area < 0.6 * before:
-            return None
+            return None   # a neighbour window nibbling this one is the lattice's own layout
     # Close the boundary: erode then dilate by POLY_CLOSE. A notch or a spike
-    # narrower than 2*POLY_CLOSE = MIN_WEB mm is removed, so no cut can leave a
-    # tongue of skin under MIN_WEB wide behind it. Ribs (RIB = 2.0 mm) and the
-    # webs between windows are far wider, so nothing structural moves.
+    # narrower than 2*POLY_CLOSE is removed, so no cut can leave a tongue of skin
+    # that thin standing in the hole. Ribs (RIB = 2.0 mm) and the webs between
+    # windows are far wider, so nothing structural moves.
     poly = poly.buffer(-POLY_CLOSE).buffer(POLY_CLOSE)
     parts = [g for g in getattr(poly, "geoms", [poly]) if g.geom_type == "Polygon" and g.area > 6.0]
     if not parts:
@@ -1477,34 +1515,25 @@ def windows():
     crest = crest_keepout()
     out = []
     for c in cut:
-        if air is not None:
-            # and one that only grazes the air keeps MIN_WEB of the duct wall
-            v0 = c.Volume()
+        # rhY f118 item 4: every FULL cell is an open window, and ONLY a cell a keep-out
+        # cuts stays filled. So a cutter that any of these three solids CHANGES is dropped
+        # whole - the cell stays solid skin - rather than cut down to the part that survives.
+        # That is what lets MIN_WEB go to 0: the cut boundary never lands on a face that is
+        # already there (the band's edge, a seam plane, the duct's air, the stem collars),
+        # which is what the 0.009-0.05 mm sliver walls issue #36 counts came from.
+        v0 = c.Volume()
+        for solid in (air, crest, keep):
+            if solid is None:
+                continue
             try:
-                clear = c.cut(air)
-            except ValueError:
-                continue
-            if clear.Volume() < 0.35 * v0:
-                continue
-            c = clear
-        if crest is not None:
-            # no cutter may reach the solid crest band along a duct at all (clip_window
-            # already stopped it MIN_WEB clear of the band's edge; this is the looser guard)
-            try:
-                c = c.cut(crest)
-            except ValueError:
-                continue
-            if c.Volume() < 1.0:
-                continue
-        if keep is None:
+                cc = c.cut(solid)
+            except ValueError:                  # empty: the cell is fully inside the keep-out
+                cc = None
+            if cc is None or cc.Volume() < v0 - 1e-6:
+                break                           # this cell is a partial one: leave it filled
+            c = cc
+        else:
             out.append(c)
-            continue
-        try:
-            clipped = c.cut(keep)
-            if clipped.Volume() > 0.35 * c.Volume():   # drop slivers next to the collars
-                out.append(clipped)
-        except ValueError:                  # empty: fully inside the keep-out
-            pass
     return out
 
 
@@ -1694,8 +1723,12 @@ def crest_keepout():
         # the band in the outlet frame (x radial, y out of the seam plane, z up), then
         # rotated onto every seam that carries a duct, as at_seams() does
         psi_wedge = wedge([(0.0, lo), (reach, lo), (reach, hi), (0.0, hi)], half=HALF + 2)
-        slab = cq.Solid.makeBox(reach, 2 * CREST_BAND, 2 * B + 40,
-                                cq.Vector(0.0, -CREST_BAND, -B - 20))
+        # strictly LOOSER than clip_window's uv clip, which is at CREST_BAND + MIN_WEB =
+        #   CREST_BAND now that MIN_WEB is 0: a guard cutting at the SAME distance leaves the
+        #   cutter with two coincident walls and the boolean leaves 0.002-0.04 mm plates behind
+        #   (f085's measurement), so this slab is 0.5 mm narrower on each side.
+        slab = cq.Solid.makeBox(reach, 2 * (CREST_BAND - 0.5), 2 * B + 40,
+                                cq.Vector(0.0, -(CREST_BAND - 0.5), -B - 20))
         band0 = slab.intersect(psi_wedge)
         out = None
         for a_ in duct_seams():
@@ -1885,8 +1918,8 @@ def joint_map():
     """The joint map this build writes next to the STEP: <slice>.joints.json.
 
     Analysis/check_outputs.py --joints reads it and measures the two rules the
-    design owner set: every boss, peg and hole keeps JOINT_CLEAR from the fan
-    housing, the plenum air and the impeller's swept volume, and every hole keeps
+    design owner set: every boss, peg and hole keeps JOINT_CLEAR from the fan's
+    space (the plenum air and the impeller's swept volume), and every hole keeps
     AIR_KEEP of wall between itself and the air path. The keep-clear volumes come
     from the same code that builds the part, so they cannot drift from it.
     """
@@ -1902,8 +1935,18 @@ def joint_map():
                         hole_d=HOLE_D, hole_l=HOLE_L,
                         fused_to=j["walls"], why=j["why"]) for j in joints()],
         "keep_clear": [
-            {"name": "fan housing wall", "kind": "joint",
-             "profile": housing_wall_profile()},
+            # NO "fan housing wall" entry. It used to be the housing wall's whole band
+            # (housing_wall_profile()), which reads 0.00 mm for ANY joint fused into that
+            # wall - and rhY's corner_bottom (item 3) is exactly that: a peg in the corner
+            # where the straight shaft-side wall turns into the fan housing's ceiling. A
+            # Ø7 boss fused into a T-thick airtight wall stands 3.5 - T = 2.64 mm past that
+            # wall's air-side face by geometry, so no joint fused into the housing wall can
+            # keep JOINT_CLEAR from the wall itself. The rule protects the fan's space, and
+            # the two entries below carry it: measured (build/f118/jc2.py) the two f087
+            # joints that rule removed still fail against them - housing_ceiling (44.0,
+            # -67.4) is 0.36 mm from the plenum air, keel (52.5, -97.1) is inside it -
+            # while corner_bottom keeps 4.50 mm to the plenum air and 6.00 mm to the
+            # impeller's swept volume, and its hole keeps AIR_KEEP to the shaft bore.
             {"name": "plenum air", "kind": "joint",
              "profile": plenum_air_profile()},
             {"name": "impeller swept volume", "kind": "joint",
@@ -1920,7 +1963,8 @@ def joint_map():
 
 def build():
     envelope = wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2)).cut(
-        wedge([(0, -B), (SHAFT_R, -B), (SHAFT_R, B), (0, B)]))  # keep the shaft bore clear
+        wedge([(0, -B), (SHAFT_R + BOSS_INSET, -B), (SHAFT_R + BOSS_INSET, B), (0, B)]))
+        # keep the shaft bore clear (BOSS_INSET into the shaft wall's own band, see BOSS_INSET)
     walls, bore = duct_solids()
     stem_hole, servo_hole = stem_and_servo_holes()
     bosses, holes, pegs, sleeves = joint_parts()
