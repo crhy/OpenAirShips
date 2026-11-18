@@ -37,7 +37,12 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
   - A **ring rib on the equator (z = 0)** carries the thruster stem and servo holes. Thrusters stay exactly on the equator, for navigation.
   - **Minimum material:** the ovals are laid out on the real curved skin, so each fills its cell, touching all four rib lines. Every junction where ovals meet is a hollow window that takes *all* the skin more than 2 mm from the ovals, including along the first and last rows. What's left is a web of 2.0 mm ribs everywhere, and nothing thicker.
   - **Seams:** on the seams each slice's junction windows stop at a continuous 1 mm edge strip, so the two slices' strips glue into one full rib.
-- **Joints:** 5 bosses along each seam, all at the same (r, z) positions. The +22.5° seam has Ø3 × 3.6 mm pegs and the −22.5° seam has Ø3.3 × 4.2 mm holes, both with 0.4 mm chamfers.
+- **Joints:** 4 per slice, each a Ø7 x 5 mm boss carrying a Ø3 x 3.6 mm peg on its +22.5° seam and a Ø3.3 x 4.2 mm hole on its -22.5° seam, both with 0.4 mm chamfers. Each one sits where two walls actually meet and is fused into BOTH of them; `airship pie slice 1026.joints.json` lists them by name with their (r, z) and what they are fused to:
+  - `corner_top` (r 46.9, z 97.3): the hull skin and the seam's edge strip, at the top corner of the slice.
+  - `corner_duct_top` (r 201.0, z 16.2): the hull skin and the solid crest band along the duct.
+  - `seam_mid` (r 149.4, z 67.7): the hull skin and the seam's edge strip, on the skin's ARC between the two corners above. It used to be the straight chord's midpoint, (125.1, 45.6) - 61.6 mm inside the hull, in open lattice, where a boss has nothing to fuse to and prints as a loose lump.
+  - `bulb_groove` (r 176.6, z -14.3): the duct's tube wall and the bulb's dome wall, on the dry side of the duct, in the sleeve `joint_parts()` grows there so the hole keeps `AIR_KEEP` (0.6 mm) of wall to the air path.
+  There is no joint on the duct's centreline any more: the wall there is the T = 0.86 mm skin band, so a Ø3.3 hole with 0.6 mm of wall to the air cannot exist in it, and the sleeve that would make it thick would have to stand outside the outer skin.
 
 ## Kobra Max size (x1.9)
 - **What grows:** only the hull outline and its lattice cells grow 1.9×, to 790 mm across.

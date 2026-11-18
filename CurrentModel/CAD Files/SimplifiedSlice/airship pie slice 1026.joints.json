@@ -10,22 +10,6 @@
  ],
  "joints": [
   {
-   "name": "duct_top",
-   "r": 178.861,
-   "z": -48.655,
-   "boss_d": 7.0,
-   "boss_l": 5.0,
-   "peg_d": 3.0,
-   "peg_l": 3.6,
-   "hole_d": 3.3,
-   "hole_l": 4.2,
-   "fused_to": [
-    "hull skin",
-    "duct outer wall (the shared wall)"
-   ],
-   "why": "the ONE peg on top of the duct, on the seam face: the duct's crest line IS the seam plane, so this is the single wall of T the hull skin and the duct's outer wall have become (rhY f087 item 1). It replaces the peg that used to stand on the duct's interior wall beside the bulb - the one rhY marked with an X - and the two that used to float in the open lattice cells there."
-  },
-  {
    "name": "bulb_groove",
    "r": 176.56,
    "z": -14.345,
@@ -36,10 +20,10 @@
    "hole_d": 3.3,
    "hole_l": 4.2,
    "fused_to": [
-    "duct inner wall",
-    "duct bulb wall"
+    "duct tube wall",
+    "duct bulb dome wall"
    ],
-   "why": "one more peg for strength, on the other side of the duct from the duct-top peg, seated in the groove where the duct's wall meets the bulb's dome: the boss fuses into the duct wall and the bulb's wall, and the hole keeps AIR_KEEP of wall to the air path."
+   "why": "the corner where the duct's tube wall meets the bulb's dome, on the dry side of the duct: the boss is fused into both walls there, and the hole keeps AIR_KEEP of wall to the air path in the sleeve joint_parts() grows. This is the corner f087 called corner_bulb_root and then put ON THE SKIN 4.0 mm under it: there the bulb's dome crosses the skin band, so its boss stood 13.9 mm from the bulb's centre - inside the bulb's 16 mm bore - the bore cut removed it, and STL part 15 is the 28 mm3 peg left loose."
   },
   {
    "name": "corner_top",
@@ -55,7 +39,7 @@
     "hull skin",
     "seam edge strip"
    ],
-   "why": "the top-left corner of the slice: the top wall (the solid skin under the intake bellmouth) meets the seam and the skin. Peg on one slice, hole in the neighbour, fused into both walls of the corner."
+   "why": "the top corner of the slice: the top wall (the solid skin under the intake bellmouth) meets the seam and the skin. Peg on one slice, hole in the neighbour, fused into both walls of the corner."
   },
   {
    "name": "corner_duct_top",
@@ -69,30 +53,14 @@
    "hole_l": 4.2,
    "fused_to": [
     "hull skin",
-    "duct end wall"
+    "duct crest band"
    ],
-   "why": "the top-right corner of the slice: the top wall meets the duct's outer end, where the solid skin over the duct ends and the lattice resumes. Peg on one slice, hole in the neighbour, fused into both walls of the corner."
-  },
-  {
-   "name": "corner_bulb_root",
-   "r": 203.381,
-   "z": -6.07,
-   "boss_d": 7.0,
-   "boss_l": 5.0,
-   "peg_d": 3.0,
-   "peg_l": 3.6,
-   "hole_d": 3.3,
-   "hole_l": 4.2,
-   "fused_to": [
-    "hull skin",
-    "duct bulb wall"
-   ],
-   "why": "the corner just left of the bulb, low on the slice: the skin meets the bulb's dome and the duct's root. Peg on one slice, hole in the neighbour, fused into both walls of the corner; the hole keeps AIR_KEEP of wall to the bulb's air."
+   "why": "the lower corner of the skin the lattice sits on: the solid skin over the duct ends and the lattice resumes. Peg on one slice, hole in the neighbour, fused into both walls of the corner."
   },
   {
    "name": "seam_mid",
-   "r": 125.137,
-   "z": 45.61,
+   "r": 149.438,
+   "z": 67.735,
    "boss_d": 7.0,
    "boss_l": 5.0,
    "peg_d": 3.0,
@@ -103,7 +71,7 @@
     "hull skin",
     "seam edge strip"
    ],
-   "why": "the joint between the two corner ones, exactly midway between them on the same wall (the seam wall's face, top corner to bulb-root corner), as the design owner's rule asks."
+   "why": "the joint between the two corner ones, exactly midway between them along the same wall (the seam wall's face, top corner to the duct's upper corner), as the design owner's rule asks. f087 took the midpoint of the two POINTS instead, a chord through the hull's interior: its two bosses floated 61.6 mm inside the skin, in the open lattice."
   }
  ],
  "keep_clear": [
