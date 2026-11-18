@@ -8,6 +8,7 @@ One 45° slice of the hull; eight of them plug together into the full ship. The 
 | **4 thrusters, bench** | 4 left + 4 right, alternating | `PieSlice1026-v0.2.1-4T-left.stl`, `…-4T-right.stl` | 415 mm | Prusa MK3S+ |
 | **8 thrusters, Kobra Max** | 8 identical | `PieSlice1026-v0.2.1-8T-KobraMax.stl` | 790 mm | Anycubic Kobra Max (400 × 400 × 450 mm) |
 | **4 thrusters, Kobra Max** | 4 left + 4 right | `PieSlice1026-v0.2.1-4T-left-KobraMax.stl`, `…-right-KobraMax.stl` | 790 mm | Kobra Max |
+| **8 thrusters, CR-10 Pro** | 8 identical | `PieSlice1026-v0.2.1-8T-CR10Pro.stl` | 586 mm | Creality CR-10 Pro (300 × 300 × 400 mm) |
 
 It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at the repository root): the 207.765 × 104 mm ellipse, rebuilt as clean parametric geometry. See [../../DESIGN-CONSTRAINTS.md](../../DESIGN-CONSTRAINTS.md) for the fixed rules and [../../Analysis/FLOAT.md](../../Analysis/FLOAT.md) for weights, hydrogen volume and lift.
 
@@ -143,7 +144,11 @@ It saves about a third of the hull's weight; see the table above.
 - **`airship_slice.py`:** the parametric source (CadQuery). Everything is set at the top of the file. The version is chosen with environment variables:
   - `OAS_VARIANT=8T|4T`
   - `OAS_SIDE=L|R` (4 thrusters only)
-  - `OAS_SCALE=1|1.9` (3.8 for v0.2)
+  - `OAS_SCALE=1|1.9` (3.8 for v0.2; 1.41 is the largest that lies on its seam inside
+    290 × 290 × 390, the CR-10 Pro's bed less a 5 mm margin)
+  - `OAS_TAG=CR10Pro` names a build's files instead of the ` x<SCALE>` suffix: it writes
+    `airship pie slice 1026 CR10Pro.step/.FCStd/.joints.json` and
+    `PieSlice1026-v0.2.1-8T-CR10Pro.stl`
   - v0.2 only: `OAS_SLICES=12`, `OAS_SIDE=P` (plain slice), `OAS_THRUSTER=S` (8-thruster-size ducts on 4 thrusters), `OAS_PIECES=1` (cut into pieces, with intake tubes), `OAS_RIB=1.2` (web width)
 - **`make_pieces.py`:** builds the v0.2 piece STLs and FCStd documents.
 - **`make_fcstd.py`:** builds the FCStd and the print STL for the same settings.
@@ -160,6 +165,7 @@ All six whole-slice documents, from the `.step` files already in this folder:
 ```
 freecadcmd make_fcstd.py                                        # 8 thrusters, bench
 OAS_SCALE=1.9 freecadcmd make_fcstd.py                           # 8 thrusters, Kobra Max
+OAS_SCALE=1.41 OAS_TAG=CR10Pro freecadcmd make_fcstd.py          # 8 thrusters, CR-10 Pro
 OAS_VARIANT=4T OAS_SIDE=L freecadcmd make_fcstd.py              # 4 thrusters, left
 OAS_VARIANT=4T OAS_SIDE=R freecadcmd make_fcstd.py              # 4 thrusters, right
 OAS_VARIANT=4T OAS_SIDE=L OAS_SCALE=1.9 freecadcmd make_fcstd.py # 4 thrusters, left, Kobra Max

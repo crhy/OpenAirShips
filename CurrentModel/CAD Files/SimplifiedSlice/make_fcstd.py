@@ -19,12 +19,13 @@ import fcstd_doc
 FOUR = os.environ.get("OAS_VARIANT", "8T").upper() == "4T"
 SIDE = os.environ.get("OAS_SIDE", "L").upper()
 SCALE = float(os.environ.get("OAS_SCALE", "1"))
+TAG = os.environ.get("OAS_TAG", "")   # same OAS_TAG airship_slice.py uses (f118 item 5)
 FCSTD_ONLY = os.environ.get("OAS_FCSTD_ONLY", "").upper() in ("1", "TRUE", "YES")
 HAND = ("left" if SIDE == "L" else "right")
 NAME = ("airship pie slice 1026" + (f" 4T {HAND}" if FOUR else "")
-        + ("" if SCALE == 1 else f" x{SCALE:g}"))
+        + (f" {TAG}" if TAG else ("" if SCALE == 1 else f" x{SCALE:g}")))
 STL = ("PieSlice1026-v0.2.1-" + (f"4T-{HAND}" if FOUR else "8T")
-       + ("" if SCALE == 1 else "-KobraMax") + ".stl")
+       + (f"-{TAG}" if TAG else ("" if SCALE == 1 else "-KobraMax")) + ".stl")
 
 doc = fcstd_doc.new_document(NAME)
 shape = Part.Shape()
@@ -62,7 +63,13 @@ if FCSTD_ONLY:
 pose = shape.copy()
 pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
-for lin in (0.02, 0.015, 0.03, 0.01, 0.05):    # retry until the mesh is watertight
+for lin in (0.03, 0.02, 0.015, 0.01, 0.05):    # retry until the mesh is watertight
+    # 0.03 mm first now (f148): at 0.015-0.02 mm the tessellation puts facets whose centres
+    # sit within 0.01 mm of the seam face at the crease where the duct bulb's dome crosses
+    # that face, and Analysis/check_outputs.py's wall ray then runs along the seam face and
+    # reports 0.005-0.12 mm where the BREP wall is 0.800 mm (the bulb's two spheres are
+    # concentric, R 16.000 and 16.800). Measured on the same two STLs: wall min 0.64 mm at
+    # 0.03 against 0.236 mm at 0.02 (scale 1), 0.361 against 0.121 (CR-10 Pro size).
     mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=lin,
                                   AngularDeflection=0.1, Relative=False)
     if mesh.isSolid():

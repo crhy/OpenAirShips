@@ -62,6 +62,9 @@ assert N % (4 if FOUR else 8) == 0 and (FOUR or N == 8)
 # thrusters and servos keep their size, so mass grows ~S^2 while volume
 # grows S^3.
 SCALE = float(os.environ.get("OAS_SCALE", "1"))
+TAG = os.environ.get("OAS_TAG", "")   # names this build's files instead of the x<SCALE> suffix
+                                        # (f118 item 5: OAS_TAG=CR10Pro writes "airship pie slice
+                                        #  1026 CR10Pro.step" and PieSlice1026-v0.2.1-8T-CR10Pro.stl)
 
 # ---- parameters (mm) -------------------------------------------------------
 A, B = 207.765 * SCALE, 104.0 * SCALE   # hull outer semi-axes (radius, half-height)
@@ -85,6 +88,17 @@ MIN_WEB = 0.0              # rhY f118 item 4: the lattice runs right out to the 
                          #   cutter a keep-out solid has nibbled), so only the FULL cells are open
                          #   windows and the partial cells along an edge stay filled - which is also
                          #   what rhY asks for "for strength".
+CREST_EDGE_CLEAR = 0.5     # mm the crest band's cut boundaries stand INSIDE its own half-width,
+                         # so no cut boundary is within 0.3 mm of the lattice's outer edge (column_bounds
+                         # at CREST_BAND) or of each other: clip_window's uv clip runs at CREST_BAND +
+                         # MIN_WEB - CREST_EDGE_CLEAR, crest_keepout's slab at CREST_BAND - 0.5 -
+                         # CREST_EDGE_CLEAR. Measured before (build/f148/margins.py): the oval's outer
+                         # edge and the uv clip 0.005 mm apart at the equator row and 0.116 mm ON TOP of
+                         # it at the keel rows -> the 0.025-0.044 mm sliver walls issue #36 counts.
+                         # (Moving the lattice's edge outward instead was tried first and is wrong: it
+                         # changes where the lattice stops, which grew a junction window at the keel rib
+                         # that cuts nothing and tripped build()'s "window cut had no effect" guard at
+                         # OAS_SCALE 1.41.)
 POLY_CLOSE = 0.2           # every window polygon is closed by this radius (erode, then dilate
                          # back): a notch or a spike in the cut boundary narrower than 2*POLY_CLOSE
                          # is removed before the cut is ever made. No longer tied to MIN_WEB (now
@@ -457,11 +471,64 @@ def equal_arcs(p0, p1, n):
     return out + [p1]
 
 
+def crest_psi_hi():
+    """The ellipse angle the crest band ENDS at: DUCT_BULB / 2 + 1.5 past the equator,
+    where the duct's bulb ends and the stem hole's rim is. Split out of crest_psi_range
+    because skin_ribs() needs it to snap a rib onto it, and crest_psi_range's other end
+    comes from lattice_band(), which comes from skin_ribs() (f148)."""
+    return max(0.0, math.asin(min(1.0, (DUCT_BULB / 2 + 1.5) / B)))
+
+
+def snap_rib_to_crest(ribs, row):
+    """f148: move the rib nearest the crest band's top edge ONTO that edge (never add one).
+
+    crest_half() is a STEP: CREST_BAND mm inside crest_psi_range, 0 above it, and oval_on_skin
+    takes ONE bound per cell from the cell's MID psi. So a row that straddles crest_psi_range()[1]
+    is 'in the band' by its middle and 'out of it' by its top: its oval's outer edge lands exactly
+    on the band's clip edge (measured: 0.005 mm apart in the uv frame), and a cut boundary on a
+    face that is already there is what left the 0.025-0.044 mm sliver walls and the self-intersecting
+    shell issue #36 counts came from. With a rib ON the band's edge no cell straddles it, every
+    cell is wholly in or wholly out, and crest_keepout()'s slab ends on a rib.
+
+    If the move leaves a row shorter than half the nominal row height, that row is merged with
+    its neighbour (the rib on the far side of the short row is dropped). The equator rib and the
+    band's own end ribs never move: they carry the thrusters and define lattice_band(). If such a
+    short row CANNOT be merged (its other rib is one of those), the rib is not moved at all:
+    the cell that straddles the band's edge is then left filled by clip_window's partial-cell
+    rule, which is safe the same way - measured at OAS_SCALE 1.41, moving the rib there left a
+    17.7 mm row against a 51.3 mm nominal one and the build came out with a window cut that
+    removed nothing.
+    """
+    hi = crest_psi_hi()
+    if hi <= 0.0 or len(ribs) < 3:
+        return ribs
+    i = min((k for k in range(1, len(ribs) - 1) if ribs[k] != 0.0),
+            key=lambda k: abs(ribs[k] - hi))
+    if abs(ribs[i] - hi) < 1e-12:
+        return ribs
+    below, above = ribs[i - 1], ribs[i + 1]
+    short_below = ellipse_arc(below, hi) < row / 2
+    short_above = ellipse_arc(hi, above) < row / 2
+    drop_below = short_below and i >= 2 and below != 0.0
+    drop_above = short_above and i + 1 <= len(ribs) - 2
+    if (short_below and not drop_below) or (short_above and not drop_above):
+        return ribs
+    out = list(ribs)
+    out[i] = hi
+    if drop_above:
+        del out[i + 1]
+    if drop_below:
+        del out[i - 1]
+    return out
+
+
 def skin_ribs():
     """Ellipse angles of the skin's ring ribs, bottom to top. One sits exactly
     on the equator (z = 0), where the thrusters are. Every row is the same
     height along the skin, above and below the equator, so all the cells
-    have the same proportions."""
+    have the same proportions - except the row boundary f148 snaps onto the crest
+    band's top edge (see snap_rib_to_crest), which makes the rows either side of it
+    17.8 and 50.3 mm instead of 34.0."""
     ke = math.asin(keel_edge_z() / B)
     top = intake()[1] - (RIB / 2) / math.hypot(A * math.sin(intake()[1]), B * math.cos(intake()[1]))
     row = ellipse_arc(0.0, top) / ROWS_ABOVE_EQ
@@ -471,9 +538,10 @@ def skin_ribs():
         out = []
         for p0, p1 in zip(fixed, fixed[1:]):
             out += equal_arcs(p0, p1, max(1, round(ellipse_arc(p0, p1) / row)))[:-1]
-        return out + [top]
+        return snap_rib_to_crest(out + [top], row)
     below = max(3, round(ellipse_arc(ke, 0.0) / row))
-    return equal_arcs(ke, 0.0, below)[:-1] + equal_arcs(0.0, top, ROWS_ABOVE_EQ)
+    return snap_rib_to_crest(equal_arcs(ke, 0.0, below)[:-1]
+                             + equal_arcs(0.0, top, ROWS_ABOVE_EQ), row)
 
 
 # ---- printable pieces (OAS_PIECES=1) -----------------------------------------
@@ -1370,8 +1438,8 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
         # end there is no air under the skin, so the lattice runs to the seam there too
         v_c = sorted((sgn * (crest_psi_range()[0] - psi) * ds,
                       sgn * (crest_psi_range()[1] - psi) * ds))
-        poly = poly.difference(box(u_c - CREST_BAND - MIN_WEB, v_c[0],
-                                   u_c + CREST_BAND + MIN_WEB, v_c[1]))
+        poly = poly.difference(box(u_c - (CREST_BAND + MIN_WEB - CREST_EDGE_CLEAR), v_c[0],
+                                   u_c + (CREST_BAND + MIN_WEB - CREST_EDGE_CLEAR), v_c[1]))
         if poly.is_empty or poly.area < whole - 1e-9:
             return None   # the duct's air band cuts this cell: it stays filled (rhY item 4)
     if others:
@@ -1683,6 +1751,25 @@ def duct_solids():
     boss = cq.Solid.makeCylinder(BOSS_R, BOSS_LEN + 6, cq.Vector(x_s - BOSS_LEN, 0, OUT_Z),
                                  cq.Vector(1, 0, 0))
     walls = outer.fuse(boss.intersect(inside))
+    # f148: drop the part of the walls solid that lies inside the skin's own T band. It is
+    # redundant (the skin IS that wall), and leaving it meant the walls' outer boundary - a
+    # face SKIN_BURY = 0.04 mm under the outer skin, parallel to it for the duct's whole run -
+    # survived the fuse as sliver faces 0.01-0.33 mm2 sitting 0.02-0.07 mm under the skin
+    # (measured in the STEP at OAS_SCALE 1.41 at r=71 z=-142.3 and r=122 z=-133.4, the keel
+    # rows), which is what the wall map read as a 0.026 mm wall. What is cut away is inside
+    # the skin band, and the skin band is solid under the crest the duct runs in (clip_window
+    # keeps every lattice window CREST_BAND away from a seam that carries a duct), so the
+    # part is unchanged; the cut face lands SKIN_TRIM mm under the outer skin, INSIDE the
+    # skin's own T-thick material (SKIN_TRIM < T), so it is interior to the part and leaves
+    # no face of its own. Landing it ON the skin's inner face (SKIN_TRIM = T) instead puts
+    # it exactly on a surface that is already there - the coincidence this whole task is
+    # about: measured at scale 1 that gave 0.005-0.009 mm walls at r=97 z=-92, r=203 z=-22
+    # and r=111 z=87.
+    SKIN_TRIM = 0.3   # mm under the outer skin down to which the duct's walls are trimmed
+    band = (wedge_edges(arc(A, B, -math.pi / 2, math.pi / 2), half=180)
+            .cut(wedge_edges(arc(A - SKIN_TRIM, B - SKIN_TRIM, -math.pi / 2, math.pi / 2),
+                             half=180)))
+    walls = walls.cut(band)
     # nothing of the duct inside the housing: its tilted start would leave a lip
     # under the ceiling at the mouth; the housing's outer wall closes round it.
     # Trim to T + 0.2 so the duct's wall ends inside the housing wall's own T
@@ -1699,10 +1786,11 @@ def crest_psi_range():
     (the duct's mouth is below it, inside the fan housing) to DUCT_BULB / 2 + 1.5 past the
     equator, where the duct's bulb ends and the stem hole's rim is. The band stops with the
     duct: above it the lattice runs to the bellmouth as before. It has to cover the bulb's
-    dome, which is the widest part of the air path and now ends at the skin itself."""
-    lo = lattice_band()[0]
-    hi = max(0.0, math.asin(min(1.0, (DUCT_BULB / 2 + 1.5) / B)))
-    return lo, hi
+    dome, which is the widest part of the air path and now ends at the skin itself.
+
+    f148: its top end is a rib line (skin_ribs() snaps the nearest rib onto crest_psi_hi),
+    so no cell straddles the band's edge and this slab ends on a rib."""
+    return lattice_band()[0], crest_psi_hi()
 
 
 def crest_keepout():
@@ -1715,7 +1803,15 @@ def crest_keepout():
     strictly looser: CREST_BAND here against CREST_BAND + MIN_WEB there. When the two seam
     clips were at the SAME distance (f085) the cutter had two coincident walls and the boolean
     left 0.002-0.04 mm plates behind, so the guard must never bite where the uv clip has
-    already done the job."""
+    already done the job.
+
+    f148: this slab's half-width (CREST_BAND - 0.5 - CREST_EDGE_CLEAR = 11.0 mm) and the
+    lattice's own outer edge (column_bounds at CREST_BAND = 12.0 mm from the seam plane) differ
+    by 1.0 mm - measured 0.895 mm at the tightest cell - and clip_window's uv clip sits between
+    them at 11.5 mm, 0.395 mm at the tightest from the lattice's edge. The band's top end is a
+    rib line (skin_ribs() snaps the nearest rib onto crest_psi_hi), so the slab ends on a rib
+    instead of crossing a cell's middle.
+    """
     global _CREST
     if _CREST is None:
         lo, hi = crest_psi_range()
@@ -1727,8 +1823,8 @@ def crest_keepout():
         #   CREST_BAND now that MIN_WEB is 0: a guard cutting at the SAME distance leaves the
         #   cutter with two coincident walls and the boolean leaves 0.002-0.04 mm plates behind
         #   (f085's measurement), so this slab is 0.5 mm narrower on each side.
-        slab = cq.Solid.makeBox(reach, 2 * (CREST_BAND - 0.5), 2 * B + 40,
-                                cq.Vector(0.0, -(CREST_BAND - 0.5), -B - 20))
+        slab = cq.Solid.makeBox(reach, 2 * (CREST_BAND - 0.5 - CREST_EDGE_CLEAR), 2 * B + 40,
+                                cq.Vector(0.0, -(CREST_BAND - 0.5 - CREST_EDGE_CLEAR), -B - 20))
         band0 = slab.intersect(psi_wedge)
         out = None
         for a_ in duct_seams():
@@ -1854,7 +1950,7 @@ def slice_name(side=None):
     hand = {"L": "left", "R": "right", "P": "plain"}[side or SIDE]
     return ("airship pie slice 1026" + ("" if not FOUR else f" 4T {hand}")
             + ("" if N == 8 else f" {N}s") + ("" if LARGE == FOUR else (" large" if LARGE else " small"))
-            + ("" if SCALE == 1 else f" x{SCALE:g}"))
+            + (f" {TAG}" if TAG else ("" if SCALE == 1 else f" x{SCALE:g}")))
 
 
 # ---- the joint map the checker reads -------------------------------------

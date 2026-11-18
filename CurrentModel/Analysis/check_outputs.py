@@ -95,7 +95,8 @@ BLOB_LINK = 3.0        # mm: thick facets this far apart are one blob
 JOINT_CLEAR = 1.0     # mm a joint keeps from the fan housing and the impeller
 AIR_KEEP = 0.6        # mm of wall a hole leaves toward the air path
 BEDS = [(400.0, 400.0, 450.0, "Anycubic Kobra Max"),
-        (210.0, 210.0, 250.0, "Prusa MK3S+")]
+        (210.0, 210.0, 250.0, "Prusa MK3S+"),
+        (300.0, 300.0, 400.0, "Creality CR-10 Pro")]   # f118 item 5: rhY's printer
 
 TESS_OFF = False
 THIN_OFF = False
@@ -923,6 +924,7 @@ def check_stl(path):
 STEP_FOR_STL = {
     "PieSlice1026-v0.2.1-8T.stl": "airship pie slice 1026.step",
     "PieSlice1026-v0.2.1-8T-KobraMax.stl": "airship pie slice 1026 x1.9.step",
+    "PieSlice1026-v0.2.1-8T-CR10Pro.stl": "airship pie slice 1026 CR10Pro.step",
     "PieSlice1026-v0.2.1-4T-left.stl": "airship pie slice 1026 4T left.step",
     "PieSlice1026-v0.2.1-4T-left-KobraMax.stl": "airship pie slice 1026 4T left x1.9.step",
     "PieSlice1026-v0.2.1-4T-right.stl": "airship pie slice 1026 4T right.step",
