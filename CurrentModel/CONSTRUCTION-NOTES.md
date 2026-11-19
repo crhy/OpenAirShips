@@ -29,7 +29,7 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 7 BUILD AND CHECK WORKFLOW: 708-815
 - 8 FAILURE MODES AND FIXES: 816-854
 - 9 rhY's REVIEW HISTORY: 855-876
-- 10 LESSONS LOG: 877-1096
+- 10 LESSONS LOG: 877-1102
 
 Read first, by kind of edit:
 
@@ -1077,6 +1077,12 @@ the branch was parked (its changes may still be inherited by the next task).
   is cut; if it is, the mount's tools need a coarser/curvature-aware outline spacing than
   `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising toward `MOUNT_FILLET`;
   if it is not, the fragment comes from a lattice cutter and the keep-out rule is still wrong.
+  Fix 7 already answered half of that: making the whole mount ONE depth (`max(2 * T, BRACE_D)`
+  under the pad instead of `PAD_T`) did not remove the sliver, it MOVED it - the thin blob went
+  from r 206 to r 205, i.e. it follows the pad tool's inner face wherever that is - and cost
+  1.5 cm3. So the pair is a DOUBLED CAP on the pad tool itself, not a pad/beam interaction: look at
+  how `skin_cutter` closes the tool's inner end when the outline has a concave waist, not at the
+  keep-out. Fix 7 is reverted.
   Items 1, 3 and 4 of f156 are measured and clean on their own.
 
 ## Summary: f156 before / after
