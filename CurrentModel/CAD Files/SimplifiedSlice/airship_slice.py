@@ -2082,7 +2082,7 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
             # z +-8-9 mm) and the wall map failed the STL on two of them. A graze under 0.5 % of
             # the cell still clips - the mount's edge crosses a corner of some cells and dropping
             # those would open a hole in the lattice for nothing.
-            if before - poly.area > 0.05 * cell:
+            if before - poly.area > 0.05 * cell or poly.distance(bite) < 2.0:
                 return None
             bitten.append(bite)
             if poly.area < (1.0 - MIN_KEEP) * cell:
