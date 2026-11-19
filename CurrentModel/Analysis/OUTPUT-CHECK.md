@@ -182,6 +182,59 @@ the document's objects to the sibling STEP files **by name** — it used to sum
 every STEP under the folder, which for `pieces/` mixed the three slice types
 and the intake tubes into one number.
 
+## What f151 changed: three more root causes, all measured
+
+### 1. The solid skin down each seam (issue #36, what rhY saw on the printed hull)
+
+`clip_window()` dropped a cell **whole** whenever any clip changed it. The cells that
+straddle a seam - the junctions on the seam rib lines - are exactly the ones the crest
+band (`CREST_BAND` = 12 mm each side of a duct seam) changes, so all 26 of them were
+dropped, and that is the hourglass of solid skin down each seam. Measured
+(`Analysis/build/f151/cells.py`, bench 8T): the band takes **66-70 %** of such a cell's
+raw polygon, so no "keep at least half" test measured against the raw polygon could ever
+have opened them; the cell's own area - what the lattice's bounds leave, after the band,
+the seam planes and the junction's two rows clip it - is the denominator, and against
+that they keep 84-100 %.
+
+The other half of the cause: a junction's polygon is not its cell. Along a seam the skin
+more than `RIB` from the ovals runs the whole height of the hull, so the junction at the
+equator rib spans psi -33..+33 deg, 10,207 mm2 raw, and 70 % of what the crest clip
+leaves lies inside other rows' ovals - opening it as it stood would have cut the
+horizontal ribs out. `junction(..., rows)` now clips every junction to the two rows it
+sits in. With both fixes the bench slice cuts **58 windows where f150 cut 36**, and the
+five cells still solid are the half-cells at each end of the lattice (4.5 and 16.6 mm2,
+under `MIN_OPEN_AREA`).
+
+### 2. The wall map's minimum moved with the tessellation, not with the model
+
+The map fires one ray per facet along that facet's normal and takes the first face it
+hits. Every surface of revolution in the slice - the duct bulb's dome, the duct tube,
+the fan housing's shroud turn, the shaft - is **parallel to the seam face's own rays**,
+so a facet on the seam face within a fraction of a mm of where one of them crosses it
+reads 0.005-0.3 mm where the BREP wall is 0.80-0.86 mm. Measured on one and the same
+STEP: min 0.194 mm at `LinearDeflection` 0.03 and 0.433 mm at 0.05, and at 15 000 or
+40 000 samples *every* deflection finds such a facet (`Analysis/build/f151/meshprobe2.log`).
+The gate's 6 000-facet stride was deciding pass or fail.
+
+`check_outputs.py` now skips a hit whose face meets the ray at less than **`GRAZE_DEG` =
+10 deg** and counts them ("grazing hits skipped N" on the summary line). A real thin wall
+is hit near-perpendicular, so it is still found: `Analysis/build/f151/grazeprobe.py`
+meshes a solid with one 0.86 mm wall and one 0.15 mm wall and the map reports 0.155 mm
+with the rule on and off. This is the fix f150's own note asked for ("the fix belongs in
+the checker - ignore a hit whose face lies within ~10 deg of the ray").
+
+### 3. A clipped window's cut can silently do nothing
+
+`build()` cuts the lattice one window at a time and stops if a cut removes less than
+0.5 mm3. At `OAS_SCALE` 1.41 the bottom-row cutter at (88.7, -12.0, -139.4) did exactly
+that: the plain boolean moved the body by **-0.006 mm3**. The tool is not wrong - it
+contains the skin band's mid points, and its overlap with the band is 629.0 mm3 - and a
+fuzzy cut (`tol=1e-4`) of the same tool removes **629.1 mm3 and leaves 0.000 mm3 inside
+it**. Geometry fine, plain boolean unable to resolve it (f148 hit the same guard at the
+keel rib at 1.41 and worked around it by moving the lattice's edge instead). `build()`
+now retries a dead cut fuzzy before it raises, and `Analysis/build/f151/cutprobe.py` is
+the probe that names the cutter and what it cost.
+
 ## How to run the checker
 
 ```

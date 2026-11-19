@@ -37,7 +37,11 @@ What it checks
            sampled surface whose wall is over NOMINAL_WALL + 0.25 mm, grouped
            into blobs, each reported with its area and where it sits (r, z,
            azimuth), and the facets thinner than the nozzle, grouped and placed
-           the same way. One uniform thickness is only provable both ways.
+           the same way. One uniform thickness is only provable both ways. A hit
+           whose face meets the ray at less than GRAZE_DEG is skipped: that ray is
+           grazing a surface that passes beside the facet, not measuring the wall
+           behind it (see GRAZE_DEG for the measurements, and build/f151/
+           grazeprobe.py for the check that a real 0.15 mm wall is still found).
 
 Cross-check: every .FCStd and .stl is compared by volume with the .step it was
 made from, so a print file that is not the current model shows up.
@@ -96,6 +100,27 @@ MIN_FACET_AREA = 1e-4  # mm2, under this a mesh facet is a mesher sliver, not a 
                        # the f148 STEP's mesh and in its own, and which of them the
                        # stride sampling lands on has been deciding the gate.
 LAYER = 0.20           # mm, the layer height the build notes assume
+GRAZE_DEG = 10.0       # deg, the least angle at which a wall ray may meet the face it
+                       # hits. A ray that runs nearly ALONG a face is not measuring a wall
+                       # behind the facet it started from, it is grazing a surface that
+                       # passes beside it, and the reading is then the distance to that
+                       # surface along the graze, not a wall. Every surface of revolution in
+                       # this model (the duct's bulb dome and tube, the shroud turn, the
+                       # shaft) is parallel to the seam face's own wall rays, so a facet on
+                       # the seam face within a fraction of a mm of where one of them crosses
+                       # it reads 0.005-0.3 mm where the BREP wall is 0.80-0.86 mm: f148
+                       # measured that at the bulb dome ("the wall map's ray runs along the
+                       # seam face and reports 0.005-0.12 mm where the BREP wall is 0.800 mm")
+                       # and f150 at the shroud turn (build/f150/thin-8T-40k.log cluster 2: a
+                       # 0.001 mm2 facet at (32.47, 8.04, -65.98) reading 0.148 mm, the same
+                       # facet f151's bench mesh lands on at the 6 000-facet stride). Which of
+                       # them the stride sampling lands on has been deciding the gate: the
+                       # same STEP reads min 0.19 mm at LinearDeflection 0.03 and 0.44 mm at
+                       # 0.05, and at 15 000 or 40 000 samples every deflection finds one
+                       # (build/f151/meshprobe2.log). A real thin wall is hit near-perpendicular
+                       # (the ray crosses it), so this only rejects grazes: build/f151/
+                       # grazeprobe.py builds a mesh with a 0.15 mm wall and a 0.86 mm wall and
+                       # the map still reports the 0.15.
 VOL_TOL = 0.005        # 0.5 % volume difference allowed between CAD and print
 NOMINAL_WALL = 0.86    # mm, the model's one wall thickness (airship_slice.py T)
 THICK_AT = NOMINAL_WALL + 0.25   # a wall this far over nominal is a thick blob
@@ -250,6 +275,7 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
     cen, nor, fac_area = {}, {}, {}
     grid = {}
     tiny = 0
+    graze = 0
     for i, f in enumerate(facets):
         a, b, c = (P[f[0]], P[f[1]], P[f[2]])
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
@@ -311,6 +337,16 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
                             continue
                         t = (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) / det
                         if t > 0.005 and t <= max_depth and (best is None or t < best):
+                            # f151: reject a hit whose face runs nearly along the ray - see
+                            # GRAZE_DEG. The hit triangle's own normal is e1 x e2.
+                            hx, hy, hz = (e1[1] * e2[2] - e1[2] * e2[1],
+                                          e1[2] * e2[0] - e1[0] * e2[2],
+                                          e1[0] * e2[1] - e1[1] * e2[0])
+                            hl = math.sqrt(hx * hx + hy * hy + hz * hz)
+                            if hl > 1e-12 and (abs(dx * hx + dy * hy + dz * hz) / hl
+                                               < math.sin(math.radians(GRAZE_DEG))):
+                                graze += 1
+                                continue
                             best = t
         if best is not None:
             hits.append((i, best))
@@ -325,6 +361,7 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
            "underLayer": sum(1 for t in vals if t < LAYER),
            "nominal": NOMINAL_WALL, "thickAt": round(THICK_AT, 3),
            "tinySkipped": tiny,
+           "grazeSkipped": graze,
            "hitArea": round(hit_area, 1)}
 
     # thick material: group the facets over THICK_AT into blobs
@@ -1161,6 +1198,7 @@ def main(argv):
                           th.get("min", "-"), th.get("underNozzle", "-"),
                           th.get("underLayer", "-")),
                       "sliver facets skipped {}".format(th.get("tinySkipped", "-")),
+                      "grazing hits skipped {}".format(th.get("grazeSkipped", "-")),
                       "thick {}% ({} mm2, {} blobs)".format(
                           th.get("thickAreaPct", "-"), th.get("thickArea", "-"),
                           th.get("blobCount", 0))]
