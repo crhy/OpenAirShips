@@ -2073,6 +2073,17 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
             poly = poly.difference(bite)
             if poly.is_empty:
                 return None
+            # A cell the mount covers part of stays SOLID, like a seam junction the duct band
+            # bites (rule 8, and item 1 above). Clipping it instead leaves a cut wall running
+            # along the mount's own edge, and where two neighbours are clipped the same way the
+            # two walls land on each other: measured on the bench build, three cells by the
+            # mount's bulb flare came out with window walls 0.0087-0.0348 mm apart (faces.py:
+            # f110/f120/f142/f143/f145 against f703/f704/f1066/f1067/f1074/f1075 at az 16-17 deg,
+            # z +-8-9 mm) and the wall map failed the STL on two of them. A graze under 0.5 % of
+            # the cell still clips - the mount's edge crosses a corner of some cells and dropping
+            # those would open a hole in the lattice for nothing.
+            if before - poly.area > 0.005 * cell:
+                return None
             bitten.append(bite)
             if poly.area < (1.0 - MIN_KEEP) * cell:
                 return None    # the mount covers most of this cell: leave it solid
