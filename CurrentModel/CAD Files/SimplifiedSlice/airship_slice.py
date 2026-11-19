@@ -2835,7 +2835,7 @@ def servo_pad():
     g = mount_geom()
     if not g:
         return None
-    tool = _mount_tool(g["u_near"] - 1.0, g["u_t1"] + 4.0, max(PAD_T, T + 0.3))
+    tool = _mount_tool(g["u_near"] - 1.0, g["u_t1"] + 4.0, max(2 * T, BRACE_D))
     if tool is None:
         return None
     mo = servo_mount_outline()
