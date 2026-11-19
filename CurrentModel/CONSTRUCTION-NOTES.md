@@ -19,17 +19,17 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 ## 0 INDEX
 
-- 0 INDEX: 20-49
-- 1 FRAMES: 50-123
-- 2 GENERATOR MAP: 124-331
-- 3 DESIGN RULES: 332-414
-- 4 JOINTS: 415-472
-- 5 LATTICE AND KEEP-OUTS: 473-550
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 551-611
-- 7 BUILD AND CHECK WORKFLOW: 612-719
-- 8 FAILURE MODES AND FIXES: 720-752
-- 9 rhY's REVIEW HISTORY: 753-773
-- 10 LESSONS LOG: 774-875
+- 0 INDEX: 20-50
+- 1 FRAMES: 51-124
+- 2 GENERATOR MAP: 125-332
+- 3 DESIGN RULES: 333-437
+- 4 JOINTS: 438-495
+- 5 LATTICE AND KEEP-OUTS: 496-573
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 574-646
+- 7 BUILD AND CHECK WORKFLOW: 647-754
+- 8 FAILURE MODES AND FIXES: 755-787
+- 9 rhY's REVIEW HISTORY: 788-808
+- 10 LESSONS LOG: 809-966
 
 Read first, by kind of edit:
 
@@ -41,8 +41,9 @@ Read first, by kind of edit:
   corners).
 - **stem hole, servo hole, outlet** — 6, then 5 (outlet keep-out rings), then 8 (thin wall at a
   hole's rim).
-- **servo brace and mounting pad** — 6 (servo_brace, servo_pad), 3 (they do not scale), 10
-  (f150, f151; f152 will re-size them from a load estimate).
+- **servo brace and mounting pad** — 6 (servo_brace, servo_pad), 3 (rule 11: they do not
+  scale, and they are now sized by `Analysis/brace_sizing.py` against
+  `Analysis/STRUCTURE-ESTIMATES.md`, not guessed), 10 (f150, f151, f152).
 - **scale, printer fit, mass** — 1 (what OAS_SCALE does and does not scale), 3 (printer limits),
   7 (how to bisect a scale), 10 (f118, f148).
 - **the checker says FAIL / PROBLEM** — 7 (how to read its lines), 8 (symptom -> cause -> fix).
@@ -394,10 +395,17 @@ without asking.
 11. **Weight versus strength is a trade rhY makes explicitly.** 2026-11-18 (f152): "Lighter is
     better but we need it to be structurally solid. These are competing requests, and we will have
     to make trade offs. Until one is built for actual physical testing and flight, we are going to
-    have to do some educated guesses." f151's brace and pad sizes are a sturdy first guess; f152
-    replaces them with a documented estimate and a SAFETY_FACTOR (3, tagged as a guess) in
-    CurrentModel/Analysis/STRUCTURE-ESTIMATES.md. Until a part is tested, quote the low end of any
-    material property and say which numbers are guesses.
+    have to do some educated guesses." f151's brace and pad sizes were a sturdy first guess;
+    **f152 replaced them with an estimate**: every load is listed with its source tagged
+    [measured] / [datasheet] / [guess] in `CurrentModel/Analysis/STRUCTURE-ESTIMATES.md`, the
+    arithmetic is `CurrentModel/Analysis/brace_sizing.py`, and `SAFETY_FACTOR` = 3 [guess] now
+    sits in the generator next to `BRACE_W`, `BRACE_D` and `PAD_T` so nobody re-sizes them
+    without meeting the factor that sized them. Until a part is tested, quote the low end of
+    any material property (PLA across the layers: 20 MPa, not the 35-50 along them) and say
+    which numbers are guesses. What the estimate found: the brace had its material in the
+    wrong direction - the servo's stall torque is about the RADIAL axis, so it is `BRACE_W`
+    squared that carries it - and the pad's limit is the PLA under the bond, not the bond
+    (SF ~ 400 in shear).
 12. **Printers.** Bench: Prusa MK3S+ (0.4 mm nozzle, 0.2 mm layers, 0.45 lines) — the numbers
     `T` and `RIB` are derived from these. Anycubic Kobra Max 400 x 400 x 450 (`PRINT_BED` is that
     less a margin). Creality CR-10 Smart Pro 300 x 300 x 400, and rhY's fit rule from 2026-11-16
@@ -411,6 +419,21 @@ without asking.
     and servo holes, and the four joint pegs (which stick out into the neighbouring slice). Boss
     rims stay under the outer face (`RIM_KEEP` 0.40 mm), the brace starts `BRACE_OUT` 0.3 mm under
     it, the duct walls are buried `SKIN_BURY` under it.
+15. **The float problem is decided by the envelope, not by how thin the lattice is.** f155 sized
+    three concepts up to the size where each floats with +150 g and +250 g of margin on rhY's
+    CR-10 Pro bed - today's lattice skin re-pieced for that bed, a semi-rigid frame (meridian
+    battens + latitude rings) with a film envelope, and a pressure envelope with no printed skin
+    at all - in `CurrentModel/Analysis/FLOAT-DESIGN-STUDY.md`, arithmetic in
+    `CurrentModel/Analysis/float_design_study.py`. The lattice needs 1.67 m of hull and 256
+    printed pieces for +250 g; the batten frame needs 2.21 m and ~426 print hours, because
+    battens deep enough not to Euler-buckle under the film's Laplace load come to 1.7 kg; the
+    pressure envelope needs 1.63 m, 47 parts and ~89 h. So do not answer "it is too heavy" by
+    thinning the lattice: the skin is exactly the part that never stops paying (lift ~ a^3,
+    printed skin ~ a^0.8-1.0 measured, FLOAT.md). If a later task goes the film route, what is
+    left printed is the keel tube, the fan housing, the thruster ducts (tapered: 2T at the root,
+    because a duct is a 0.7 m cantilever - an `EXCEPTIONS` entry with this reason) and one duct
+    support ring, and the load path runs through a bonded film-to-keel band that no wall-map
+    checker can see. Rule 1 still holds for every printed member.
 
 ## 4 JOINTS
 
@@ -542,8 +565,8 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   `to_skin`. Laying a polygon out on the tangent plane and putting it back with the unrolled map
   disagreed by up to a millimetre at the seams, keel and bellmouth, so parts of one cut boundary
   arrived at the same place in 3D: 553 face pairs 0.002-0.4 mm apart.
-- **The brace corridor** (f150/f151): windows stand `max(RIB, BRACE_W) / 2 + BRACE_EDGE_CLEAR`
-  = 3.5 mm of arc off the equator over the brace's span, and the corridor is pushed out to the
+- **The brace corridor** (f150/f151, sized by f152): windows stand `max(RIB, BRACE_W) / 2 + BRACE_EDGE_CLEAR`
+  = 5.0 mm of arc off the equator over the brace's span (3.5 mm at f151's 6.0 mm brace), and the corridor is pushed out to the
   cell's own edge when that edge falls within `BRACE_EDGE_CLEAR` of it — a fixed 1.5 mm corridor
   landed 0.1 mm off an oval's own edge and left a 0.1 mm notch, the exact thing the partial-cell
   rule exists to prevent.
@@ -575,9 +598,19 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   (36 mm bench, 44 mm large) along the tangent from the seam, on the equator. There is no servo
   boss in the slice: the only material there is the pad.
 - **Servo brace** (`servo_brace`, `brace_span`): the equator beam from the servo end to the **far
-  stem keep-out ring**, `BRACE_W` 6.0 mm along the hull x `BRACE_D` 3.0 mm deep from the outer skin
-  = 18 mm2 of section, starting `BRACE_OUT` 0.3 mm under the outer face. 107 mm of arc at bench,
-  174 mm at CR-10 Pro, because the hardware does not scale. It must end buried in the uncut solid
+  stem keep-out ring**, `BRACE_W` 9.0 mm along the hull x `BRACE_D` 2.5 mm deep from the outer
+  skin = 22.5 mm2 of section, starting `BRACE_OUT` 0.3 mm under the outer face. 107 mm of arc at
+  bench, 174 mm at CR-10 Pro, because the hardware does not scale. **f152 sized it** (rule 11,
+  `Analysis/STRUCTURE-ESTIMATES.md`, `Analysis/brace_sizing.py`): the load that matters is the
+  servo's stall torque (SG90 1.8 / MG90S 2.2 kg-cm [datasheet]) taken as a single-failure bound -
+  the bracket's epoxy bond lets go and the brace alone holds the servo at full stall - and that
+  torque is about the **radial** axis (the spline is radial), so the section carries it with
+  `Z = BRACE_D * BRACE_W^2 / 6`: 33.8 mm3 and SF 3.13 at 9.0 x 2.5, against 18.0 mm3 and SF 1.67
+  at f151's 6.0 x 3.0. It is the same amount of material turned the way the load wants it:
+  +0.43 g a slice measured at bench (+0.53 g estimated), +1.0 g at CR-10 Pro. `BRACE_D` sits at its floor, not at its load -
+  2.5 mm is the band plus ~4 extruded lines, and f150's 1.72 mm rib (band + 2 lines) is what rhY
+  rejected - and the equator's buckling margin goes 9.1 -> 26.6 with the brace against a crash
+  load 20x under the critical stress. It must end buried in the uncut solid
   band: ending it at `CREST_BAND` (12 mm of arc) put its tip inside the stem hole's flare (13.93 mm
   at the outer face) and build()'s stem-hole cut sliced the tip into a sliver standing inside the
   hole's swept volume. Clearances measured before building: 3.75 mm to the duct's air (rule 0.6),
@@ -588,7 +621,9 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   azimuth faces) is geometrically cleaner and gave a better bench wall min, but the CR-10 Pro then
   failed on the pre-existing bulb-dome graze facet; the sector is kept as a comment in the function.
 - **Servo pad** (`servo_pad`): solid skin under the bracket's footprint, corners rounded
-  `PAD_CORNER` 4.0, wall `PAD_T` 1.5 mm **counting the band**. Fused after the lattice is
+  `PAD_CORNER` 4.0, wall `PAD_T` 1.5 mm **counting the band** - f152's estimate needs 1.34 mm
+  (MG90S) of plate under the bracket's 42.3 mm foot and the epoxy bond itself is at SF ~ 400 in
+  shear, so 1.5 is the requirement rounded up, not a guess (rule 11). Fused after the lattice is
   cut (so it closes the windows under the footprint into one 1.5 mm wall) and before the stem and
   servo holes are bored (so both are bored through it). Its near edge stands at
   `stem_keep_r() + PAD_RING_CLEAR` = 15.2 mm off the stem axis, as a **straight** edge: cut to an
@@ -850,10 +885,42 @@ the branch was parked (its changes may still be inherited by the next task).
   `servo_pad`; `GRAZE_DEG` in the checker. Worked: measure the cell inside the lattice's own bounds;
   retry a dead cut fuzzy. Differently: at a bigger scale fixed-size hardware lands beside lattice
   ribs — check the pad and beam edges at every scale, not just at bench.
-- **f152 brace sizing estimate — planned.** Replaces f151's guess with a load estimate
-  (servo + bracket + gear masses, stall torque, thrust reaction, a handling factor, PLA at the low
-  end, SAFETY_FACTOR 3 tagged as a guess) and sets BRACE_W, BRACE_D and PAD_T to the minimum that
-  meets it, never below 2 perimeters. Append its result here when it lands.
+- **f152 brace sizing estimate — OK.** Replaced f151's guess with
+  `CurrentModel/Analysis/STRUCTURE-ESTIMATES.md` (every load tagged [measured] /
+  [datasheet] / [guess], `SAFETY_FACTOR` 3 [guess]) and `CurrentModel/Analysis/brace_sizing.py`
+  (the arithmetic; it reads `SAFETY_FACTOR` from the generator, so the factor and the sizes
+  cannot drift apart). **`BRACE_W` 6.0 -> 9.0, `BRACE_D` 3.0 -> 2.5, `PAD_T` 1.5 unchanged.**
+  The finding: the servo's stall torque (SG90 1.8 / MG90S 2.2 kg-cm [datasheet]) is about the
+  **radial** axis, because the spline is radial, so the brace carries it in bending with
+  `Z = BRACE_D * BRACE_W^2 / 6` - f151's 6.0 x 3.0 had the same amount of material pointed the
+  wrong way (Z 18.0 mm3, SF 1.67 against the MG90S single-failure bound); 9.0 x 2.5 gives
+  33.8 mm3 and SF 3.13 for +0.43 g a slice (measured: bench slice 30.42 -> 30.77 cm3, 37.7 ->
+  38.2 g PLA). The pad's limit is the PLA under the bond, not the bond (the epoxy is at SF ~
+  400 in shear): plate bending under the bracket's 42.3 mm foot needs 1.34 mm, so 1.5 stays.
+  `BRACE_D` is at a documented floor (2.5 mm = band + ~4 lines; f150's 1.72 mm rib is what rhY
+  rejected), not at its load - the equator's buckling margin goes 9.1 -> 26.6 with the brace.
+  Worked: sizing on paper before rebuilding once - one bench and one CR-10 Pro build, both
+  first attempts, and the estimate's predicted mass (+0.53 g a slice) landed within 0.1 g of
+  the measured +0.43. Differently: the trade-off is a *shape* question before it is a *size*
+  question, and nobody had asked it; and a load-sharing fraction is the weakest link in an
+  estimate like this - the file says so and lists the five measurements that would replace it
+  (push a slice on a scale at the servo pad, strip an epoxied bracket, stall a real servo,
+  weigh a slice, note the print orientation).
+  **Float budget (f152 step 4):** `float_budget.py` re-run on the current hull, and it now has
+  **CR-10 Pro x1.41 rows** (8 and 4 thrusters, PLA and both LW-PLA foams) plus a grams-per-item
+  table for the 8T PLA build: hull 447 g, rings 143, servo mounts 42, stems and gears 94, fan
+  hatch 12, impeller 8, motor 32, 8 servos 107, wiring 33, screws 3, glue 29, gas cells 11 =
+  **961 g**, 49.2 L of H2, **55 g** of lift, lift/mass **6 %**, lift+thrust-mass **-501 g**;
+  the 4T at 1.41 is 672 g / 8 % / -196 g and hovers at full foam (+38 g). That lands on rhY's
+  2026-11-18 question (Claude's estimate: hull ~441 g, total ~940 g, ~50 L, ~56 g, ~6 %): the
+  measured hull is 447 g and the total 961 g, so the estimate was right to within 2 %. Two
+  side effects worth knowing: the 8T bench rows moved +26 g because FLOAT.md had not been
+  regenerated since v0.2.1 - f152's own share is **+3.4 g a hull**, measured by tessellating
+  the previous committed STEP (30.18 -> 30.51 cm3 a slice) - and `hull_volumes.py` grew an
+  OAS_PART_DIR environment variable, because the fan, thrusters and servos do not scale with
+  the hull and the x1.41 size has no Propulsion folder of its own, so it reads the bench parts. The 4T rows do
+  not move at all: `servo_brace()` returns None for FOUR, so a 4T slice has no brace (only the
+  right-hand slices get the pad).
 - **f153 construction notes — OK.** This manual, `AGENTS.md` and
   `CurrentModel/Analysis/check_construction_notes.py`. No model or geometry change. Worked: the
   manual is written to be read by section, so a task loads the 60-120 lines for its kind of edit
@@ -873,3 +940,27 @@ the branch was parked (its changes may still be inherited by the next task).
   can be the same bad facet, exposed at one size and buried at the other. And do not tune a feature's
   size to satisfy a clearance rule without re-running the wall map: f154's first scoring grew the pad
   to win 0.3 mm and the CR-10 Pro came back with a facet under the nozzle.
+- **f155 float design study - OK.** No model or geometry change: `CurrentModel/Analysis/FLOAT-DESIGN-STUDY.md`
+  and `CurrentModel/Analysis/float_design_study.py` (pure Python + numpy; it imports
+  `float_budget.py` for NET_LIFT, the densities and the film, and reproduces FLOAT.md's x3.8
+  rows to 5 g: 1027 L / 1150 g / +173 g against 1022 / 1145 / +168, so the comparison of shapes
+  is a comparison of shapes). Found: (a) the CR-10 Pro bed forces 16 slices and 256 pieces on the
+  x3.8 lattice build, and that re-piecing alone is +68 g of glue and joint bosses over FLOAT.md's
+  rows; (b) a semi-rigid batten frame is **heavier** than the lattice it replaces - 12 battens and
+  3 rings sized to `SAFETY_FACTOR` 3 against the film's Laplace load (axial N = dp x R x w / 2,
+  Euler over the ring spacing, dp 100 Pa [guess]) is ~0.9 kg at 1.58 m, and a geodesic strut frame
+  is worse again (~850 g of struts before its 42 nodes); (c) the lightest sound ship is a pressure
+  envelope - printed core only (keel tube, fan housing, 4 tapered ducts, one support ring, tray)
+  plus a metallized-PET film held at 200-300 Pa - which floats with **+250 g at 1.63 m hull,
+  1008 g all-up, 1123 L of H2, 47 printed parts, ~89 print hours**, against 1.67 m / 256 parts /
+  143 h for today's skin and 2.21 m / 235 parts / 426 h for the frame. Worked: anchoring every
+  mass on FLOAT.md's rows and every strength on `CurrentModel/Analysis/STRUCTURE-ESTIMATES.md`'s
+  tags, and tagging every new number [measured] / [datasheet] / [guess] the way f152 did. The
+  structure came out of the same maths: keel tube in bending SF 30, duct root under the thruster
+  reaction x 4 SF 15 (but only SF 0.6 with no support ring and 1.1 with a ring at 0.5 a and a T
+  wall - the tapered 2T root is what buys SF 2.3 against a 20 N hand), film in tension SF 6-60.
+  Differently: the two numbers that decide whether any of this is real are not in the CAD at all -
+  the film's grip on the keel rim (the film's Laplace tension at 100 Pa is only 1.3 x the ship's
+  weight, fixed by 200-300 Pa plus a 10 mm bond band) and whether LW-PLA really prints at 0.60
+  g/cm3 (at 0.80 the +250 g margin becomes +149 g). And one 0.1 mm pinhole in a seam leaks 20 L/day
+  of H2, ~100x the whole film's permeation: seal the seams before believing any datasheet.
