@@ -99,6 +99,30 @@ CREST_EDGE_CLEAR = 0.5     # mm the crest band's cut boundaries stand INSIDE its
                          # changes where the lattice stops, which grew a junction window at the keel rib
                          # that cuts nothing and tripped build()'s "window cut had no effect" guard at
                          # OAS_SCALE 1.41.)
+SERVO_WALL = 1.0         # mm of skin band left round the servo-spline hole: its outlet
+                         # keep-out ring is SERVO_HOLE / 2 + SERVO_WALL. It used to be
+                         # SERVO_HOLE / 2 + 3.5 = 7.5 mm, and that extra 2.5 mm of solid skin is
+                         # what left a 1476 mm2 filled patch in the cell below the equator
+                         # (rhY f150 item 2, measured in build/f150/probe1.log). 1.0 mm still
+                         # keeps the wall between the Ø8 spline hole and a lattice window over the
+                         # 0.40 mm nozzle (Analysis/check_outputs.py NOZZLE) with room to spare.
+BRACE_EDGE_CLEAR = 0.5   # mm the lattice's windows stand OUTSIDE the servo brace's own face and
+                         # ends (the same idiom as CREST_EDGE_CLEAR). The brace is RIB wide on the
+                         # equator; a window cut that landed exactly on its face would be a cut
+                         # boundary on a face that is already there - the sliver issue #36 counts -
+                         # so windows stop at RIB / 2 + BRACE_EDGE_CLEAR from the equator and the
+                         # brace's own faces stand BRACE_EDGE_CLEAR inside uncut skin.
+BRACE_OUT = 0.3          # mm under the outer skin the servo brace starts at: buried in the skin
+                         # band, never through the outer face (the hull stays a smooth ellipsoid).
+MIN_OPEN_AREA = 20.0     # mm2 of skin a clipped window must keep to be cut at all: below this
+                         # what is left is a crescent, not a window (clip_window's f150 clips).
+NOZZLE = 0.40            # mm, the same nozzle Analysis/check_outputs.py measures the wall map
+                         # against: no cut feature this side of it is printable, so a clip that
+                         # leaves a window narrower than this is not cut (the cell stays filled).
+BRACE_IN = 2 * T         # mm under the outer skin the brace reaches: the band (T) plus a rib of
+                         # the band's own DEPTH standing inboard of its inner face, which is what
+                         # strengthens the equator line - a rib that only filled the band would add
+                         # no material at all, since the band is already solid under it.
 POLY_CLOSE = 0.2           # every window polygon is closed by this radius (erode, then dilate
                          # back): a notch or a spike in the cut boundary narrower than 2*POLY_CLOSE
                          # is removed before the cut is ever made. No longer tied to MIN_WEB (now
@@ -1268,9 +1292,15 @@ def resample_ring(ring, step):
     return res
 
 
-def skin_cutter(pts):
+def skin_cutter(pts, top_depth=-CUT_OUT, bot_depth=CUT_IN):
     """Window cutter from an outline on the skin (points and normals): ONE filled
     solid that passes through the whole skin band over the WHOLE window area.
+
+    `top_depth` / `bot_depth` are the two depths under the outer skin its caps sit at;
+    the defaults are a window's (-CUT_OUT, so 0.6 mm clear of the outer face, down to
+    CUT_IN = T + SKIN_MARGIN under it). servo_brace() passes its own: a rib is fused,
+    not cut, so it stands inside the band (BRACE_OUT) and reaches one band depth past
+    its inner face (BRACE_IN) instead of through the outer face.
 
     The outline's side walls run along the skin's own normal AT each point of the
     outline, from CUT_OUT (0.6 mm clear of the outer face) to CUT_IN (T + SKIN_MARGIN)
@@ -1477,7 +1507,7 @@ def skin_cutter(pts):
             return None
         return sol if (sol.isValid() and sol.Volume() > 0) else None
 
-    sol = build(-CUT_OUT, CUT_IN) or build(CUT_IN, -CUT_OUT)
+    sol = build(top_depth, bot_depth) or build(bot_depth, top_depth)
     if sol is None:
         raise ValueError(f"the window cutter at {c.x:.1f}, {c.y:.1f}, {c.z:.1f} would not "
                          f"build as one stitched shell ({len(cells)} cells, {len(pts)} "
@@ -1575,7 +1605,7 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     leaves a tongue of skin that thin standing in the hole. Nothing repairs either
     afterwards, so the polygon is clipped and closed here, in shapely.
     """
-    from shapely.geometry import box
+    from shapely.geometry import Point, box
     from shapely.ops import unary_union
     if poly is None or poly.is_empty:
         return None
@@ -1621,6 +1651,75 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
                                    u_c + (CREST_BAND + MIN_WEB - CREST_EDGE_CLEAR), v_c[1]))
         if poly.is_empty or poly.area < whole - 1e-9:
             return None   # the duct's air band cuts this cell: it stays filled (rhY item 4)
+    # f150 item 2: the outlet keep-outs - the stem bearing sleeve's footprint on each seam
+    # that carries a thruster, and the ring round this slice's servo-spline hole. These CLIP,
+    # they do not DROP: a cell a ring only grazes becomes a clipped window with the ring bitten
+    # out of it, not a solid patch (rhY's three solid patches on the CR-10 Pro print, 1476 +
+    # 807 + 807 mm2 of skin that carries no window, build/f150/probe1.log). The ring's surface
+    # is not a face of the part - the sleeve's own face stands AIR_KEEP inside the ring, and
+    # the spline hole's is SERVO_WALL inside it - so this cut boundary does not land on a face
+    # that is already there, which is the only thing the drop rule was protecting against.
+    for _n, az, off, z_, rad in outlet_axes():
+        u_c = (math.radians(az) + off / max(1.0, hull_r(z_)) - theta) * x0
+        v_c = sgn * (math.asin(max(-1.0, min(1.0, z_ / B))) - psi) * ds
+        if poly.distance(Point(u_c, v_c)) > rad + 1.0:
+            continue                     # the ring is nowhere near this cell
+        disc = _uv_disc(psi, theta, x0, ds, sgn, az, off, z_, rad)
+        if disc is None:
+            continue
+        poly = poly.difference(disc)
+        if poly.is_empty:
+            return None
+    # f150 item 1: the servo brace's corridor. The brace is a RIB-wide rib on the equator
+    # between those two ends, so no window is cut inside RIB / 2 + BRACE_EDGE_CLEAR of the
+    # equator over that azimuth span: the cells it crosses are re-flowed around it, and the
+    # cut boundary never lands on the brace's own face (BRACE_EDGE_CLEAR of uncut skin keeps
+    # it off). Like the rings this clips the cell, it does not drop it.
+    b_lo, b_hi = brace_span()
+    if b_hi > b_lo:
+        r0 = hull_r(OUT_Z)
+        da = math.degrees(BRACE_EDGE_CLEAR / r0)
+        u0 = math.radians(b_lo - da) * x0
+        u1 = math.radians(b_hi + da) * x0
+        # How far the corridor has to reach for THIS cell. The brace's own face is at
+        # RIB / 2 from the equator and a window must not be cut inside
+        # RIB / 2 + BRACE_EDGE_CLEAR of it. But the lattice's own rib line is only
+        # ~1.6 mm of arc wide there, so a fixed corridor at 1.5 mm lands 0.1 mm off the
+        # oval's own edge and leaves a 0.1 mm notch - the sliver the f118 rule exists to
+        # prevent. So the corridor is pushed out to this cell's own edge plus
+        # BRACE_EDGE_CLEAR whenever that is wider: the strip it then removes is
+        # BRACE_EDGE_CLEAR wide, not a hair, and the cell's original edge is inside the
+        # solid rather than 0.1 mm from a new cut.
+        w0 = RIB / 2 + BRACE_EDGE_CLEAR
+        rings = ([poly.exterior] if poly.geom_type == "Polygon"
+                 else [g.exterior for g in getattr(poly, "geoms", ())
+                       if g.geom_type == "Polygon"])
+        graze = []
+        for ring in rings:
+            for uu, vv in ring.coords:
+                if not (u0 <= uu <= u1):
+                    continue
+                a = abs(ellipse_arc(0.0, psi + sgn * vv / ds))   # arc from the equator
+                if a <= w0 + BRACE_EDGE_CLEAR:
+                    graze.append(a)
+        # measured against w0 once, not against the widening as it grows: the boundary of
+        # a cell that crosses the corridor runs from the equator all the way up the hull,
+        # and widening as it walked swallowed the cell whole (probe3b.log: the equator
+        # junction and the oval at psi 4.84 dropped, 34 cutters instead of 36).
+        w = max(w0, max(graze) + BRACE_EDGE_CLEAR) if graze else w0
+        ph = psi_at_arc(w)
+        u_b = sorted(((math.radians(b_lo - da) - theta) * x0,
+                      (math.radians(b_hi + da) - theta) * x0))
+        v_b = sorted((sgn * (-ph - psi) * ds, sgn * (ph - psi) * ds))
+        poly = poly.difference(box(u_b[0], v_b[0], u_b[1], v_b[1]))
+        if poly.is_empty:
+            return None
+    # What a clip leaves must still be printable: a window narrower than the nozzle cannot
+    # be cut at all, and a crescent left by a ring that nearly covers the cell is the sliver
+    # issue #36 counts. So the clipped cell must survive an erosion by NOZZLE and keep
+    # MIN_OPEN_AREA of skin; otherwise it stays filled, the old rule.
+    if poly.area < MIN_OPEN_AREA or poly.buffer(-NOZZLE).area < 0.2 * poly.area:
+        return None
     if others:
         before = poly.area
         poly = poly.difference(unary_union([o.buffer(MIN_WEB) for o in others]))
@@ -1784,22 +1883,230 @@ def windows():
     return out
 
 
-def outlet_keepout():
-    """Solid skin only where it must be: a collar round each stem hole (both
-    seams) and round this slice's servo-hub hole. Elsewhere the lattice runs
-    straight over the ducts; their own walls keep them airtight."""
-    ax = cq.Vector(1, 0, 0)
-    stem = cq.Solid.makeCylinder(BOSS_R + 1.5, 60, cq.Vector(A - 37.765, 0, OUT_Z), ax)
-    servo = cq.Solid.makeCylinder(SERVO_HOLE / 2 + 3.5, 60, cq.Vector(A - 37.765, SERVO_T, OUT_Z), ax)
-    parts = [stem.rotate((0, 0, 0), (0, 0, 1), a_) for a_ in duct_seams()]
+def stem_flare_r(x):
+    """The stem hole's OWN radius at axial position x along the seam's equatorial line:
+    STEM_HOLE / 2 inboard, growing over the skin band as the flare cone (see STEM_FLARE).
+    stem_and_servo_holes() cuts exactly this and the keep-out below is sized from it, so
+    the hole and the keep-out it stands in cannot drift apart."""
+    x_in = hull_r(OUT_Z) - 3.0                      # inside the band's inner face at the rim
+    return STEM_HOLE / 2 + max(0.0, x - x_in) * math.tan(math.radians(STEM_FLARE + 1.5))
+
+
+def stem_keep_r():
+    """Radius of the outlet keep-out ring round a stem hole: the bearing sleeve's own
+    footprint (BOSS_R about the seam's equatorial line) or the flared hole's widest radius,
+    whichever is wider, plus AIR_KEEP. It used to be BOSS_R + 1.5 = 15.5 mm, which is 1.5 mm
+    more than the sleeve and reached into the full cells either side of the equator and left
+    them solid (rhY f150 item 2: two 806.8 mm2 patches, one of them grazed by 1.89 mm3 of a
+    1761 mm3 cutter - build/f150/probe1.log)."""
+    return max(BOSS_R, stem_flare_r(hull_r(OUT_Z) + 1.5)) + AIR_KEEP
+
+
+def servo_keep_r():
+    return SERVO_HOLE / 2 + SERVO_WALL
+
+
+def outlet_axes():
+    """(name, seam azimuth, tangent offset, height, radius) for every outlet keep-out this
+    slice needs: the stem bearing sleeve's footprint on each seam that carries a thruster,
+    and a ring round this slice's servo-spline hole. Each is a cylinder about a line at
+    height `z` running radially at azimuth `az`, offset `off` along the tangent from that
+    seam - the same lines stem_and_servo_holes() bores its holes along."""
+    out = [("stem ring r=%.2f" % stem_keep_r(), a_, 0.0, OUT_Z, stem_keep_r())
+           for a_ in duct_seams()]
     if has_servo():
-        parts.append(servo.rotate((0, 0, 0), (0, 0, 1), -HALF))
+        out.append(("servo ring r=%.2f" % servo_keep_r(), -HALF, SERVO_T, OUT_Z, servo_keep_r()))
+    return out
+
+
+def _axis_line(az, off, z):
+    """A point on and the direction of the outlet axis at azimuth `az` (degrees), offset
+    `off` mm along the tangent from that seam, at height `z`."""
+    a_ = math.radians(az)
+    o = cq.Vector(-off * math.sin(a_), off * math.cos(a_), z)
+    return o, cq.Vector(math.cos(a_), math.sin(a_), 0)
+
+
+def outlet_keepout():
+    """Solid skin only where it must be: the stem bearing sleeve's own footprint on each
+    seam that carries a thruster, and a ring round this slice's servo-spline hole. Elsewhere
+    the lattice runs straight over the ducts; their own walls keep them airtight.
+
+    f150 item 2: these are now only as big as the sleeve and the spline hole need (see
+    stem_keep_r / servo_keep_r), and clip_window CLIPS the lattice cells to them instead of
+    windows() dropping a cell the ring only grazes. The solids are kept 0.5 mm SMALLER than
+    the uv clip clip_window applies, the same way crest_keepout() is looser than its uv clip:
+    they are the belt-and-braces guard in windows(), and a guard that cut where the uv clip
+    already cut would leave the cutter with two coincident walls. 0.5 mm, not 0.1: the uv
+    disc is drawn on the skin's MID surface while the cutter's caps sit 0.6 mm above the
+    outer face and 1.16 mm below it, so the cutter's own edge swings +-0.2 mm in the distance
+    from the outlet axis; a 0.1 mm margin was inside that and dropped two cells that the clip
+    had just opened (build/f150/probe3.log: "outlet (-1.51 mm3)", "outlet (-1.25 mm3)").
+    """
+    parts = []
+    for _n, az, off, z, rad in outlet_axes():
+        o, d = _axis_line(az, off, z)
+        x_in = hull_r(OUT_Z) - BOSS_LEN - 1.0       # 1 mm inboard of the sleeve's back face
+        x_out = hull_r(OUT_Z) + 2.0                 # past the outer face at the rim
+        # The guard stands inside the uv disc clip by 0.5 mm PLUS the swing the cutter
+        # itself makes: the disc is drawn on the skin's MID surface, its caps sit 0.6 mm
+        # above the outer face and 1.16 mm below the inner one, and the skin's normal at the
+        # outlet is tilted atan(off / hull_r) away from the keep-out axis - 9.9 deg at this
+        # slice's servo hole (off = SERVO_T = 36 mm), 0 deg at a stem ring (off = 0). So the
+        # cutter's own edge swings (T/2 + 1.16) * tan(tilt) = 0.28 mm in radius at the servo
+        # ring, and a guard that does not stand inside that swing would nibble a second wall
+        # 0.28 mm off the clip's. Measured: with a flat 0.5 mm margin no cutter was dropped
+        # at either size (build/f150/probe3c.log, 36 of 36 kept), so this changes no face -
+        # it just stops the guard being able to cut where the clip already cut.
+        tilt = math.atan2(abs(off), hull_r(OUT_Z))
+        r_guard = rad - 0.5 - (T / 2.0 + 1.16) * math.tan(tilt)
+        if r_guard > 0.0:
+            parts.append(cq.Solid.makeCylinder(r_guard, x_out - x_in, o + d * x_in, d))
     if not parts:
         return None
     keep = parts[0]
     for p_ in parts[1:]:
         keep = keep.fuse(p_)
     return keep
+
+
+def _uv_disc(psi, theta, x0, ds, sgn, az, off, z, radius):
+    """The skin points within `radius` of an outlet axis (outlet_axes) as a polygon in the
+    cell's unrolled uv frame - the frame clip_window works in, where the skin band's edges
+    and the seam planes are straight lines. The axis is a line, so its keep-out is a disc
+    about the point the line touches the skin; the disc is traced by bisecting the exact
+    3D distance from the line out along 64 rays from that point, so it is the real cylinder
+    in uv, not an approximation of it in the tangent plane."""
+    from shapely.geometry import Polygon
+    o, d = _axis_line(az, off, z)
+
+    def dist(uu, vv):
+        ps = psi + sgn * vv / ds
+        r_, z_ = skin_point(ps, T / 2)
+        th_ = theta + uu / x0
+        p = cq.Vector(r_ * math.cos(th_), r_ * math.sin(th_), z_) - o
+        cr = p.cross(d)
+        return math.hypot(cr.x, cr.y, cr.z)
+
+    # where the axis touches the skin, in uv: the start of the search
+    u = (math.radians(az) + off / max(1.0, hull_r(z)) - theta) * x0
+    v = sgn * (math.asin(max(-1.0, min(1.0, z / B))) - psi) * ds
+    for step in (2.0, 0.2, 0.02):
+        best, bd = (u, v), dist(u, v)
+        for du, dv in ((step, 0), (-step, 0), (0, step), (0, -step)):
+            dd = dist(u + du, v + dv)
+            if dd < bd - 1e-12:
+                best, bd = (u + du, v + dv), dd
+        u, v = best
+    ring = []
+    for k in range(64):
+        t_ = 2 * math.pi * k / 64.0
+        lo, hi = 0.0, 2.0 * radius
+        if dist(u, v) > radius:
+            return None
+        for _ in range(40):
+            mid = (lo + hi) / 2
+            if dist(u + mid * math.cos(t_), v + mid * math.sin(t_)) < radius:
+                lo = mid
+            else:
+                hi = mid
+        ring.append((u + lo * math.cos(t_), v + lo * math.sin(t_)))
+    poly = Polygon(ring)
+    return poly if poly.is_valid and not poly.is_empty else None
+
+
+def psi_at_arc(w):
+    """The ellipse angle whose arc distance from the equator (psi = 0) is `w` mm."""
+    lo, hi = 0.0, math.pi / 2
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if ellipse_arc(0.0, mid) < abs(w):
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2 if w >= 0 else -(lo + hi) / 2
+
+
+def brace_span():
+    """The azimuths (degrees) the servo brace runs between: from the edge of the servo
+    mount's keep-out ring to the crest band's edge on the seam the servo is NOT next to.
+    Empty (0, 0) for a slice that has no such pair - a 4T slice's far seam carries no duct.
+
+    Measured on the skin, not along a chord: the brace follows the equator (constant
+    z = OUT_Z), so both ends are arc distances about hull_r(OUT_Z)."""
+    if FOUR or not has_servo() or len(duct_seams()) < 2:
+        return (0.0, 0.0)
+    near = -HALF                                   # the seam the servo spline sits off
+    far = max(duct_seams(), key=lambda a_: abs(a_ - near))
+    r0 = hull_r(OUT_Z)
+    # the near end stands BRACE_EDGE_CLEAR past the servo keep-out ring, so its end face is
+    # buried in uncut skin and keeps wall to the Ø8 spline hole. The far end stops at the
+    # stem keep-out ring, which is the wider of the bearing sleeve (BOSS_R) and the flared
+    # stem hole (stem_flare_r, 13.9 mm at the outer face) plus AIR_KEEP: out to that radius
+    # the band is uncut solid, so the rib's end face is buried in the band round the stem's
+    # bearing boss and is fused into it. Stopping at CREST_BAND (12 mm) instead put the tip
+    # INSIDE the stem hole's flare, and build()'s stem-hole cut then sliced the rib's end
+    # into a sliver standing inside the hole's swept volume.
+    a_from = near + math.degrees((SERVO_T + servo_keep_r() + BRACE_EDGE_CLEAR) / r0)
+    a_to = far - math.degrees(stem_keep_r() / r0)
+    return (a_from, a_to) if a_to > a_from else (0.0, 0.0)
+
+
+def servo_brace():
+    """f150 item 1: the horizontal brace on the equator from the servo mount to the far duct.
+
+    rhY at the CR-10 Pro print: "a horizontal brace from the farther duct to the servo
+    mount", and its purpose is strengthening the equator line. So it is a rib that follows
+    the equator itself (constant z = OUT_Z, along the skin) and ties the stem/servo end of
+    the slice to the duct on the seam the servo is NOT next to, as one continuous equator
+    rib: the thruster stem hole is ON the seam at the equator and the servo spline hole is
+    SERVO_T along the tangent from that seam, also at the equator, and each seam carries a
+    duct half - so the two ends of the brace are two real walls, and it is fused into both
+    and into the skin.
+
+    Section: RIB wide (the lattice's own web width) and the skin band's DEEP, standing
+    inboard of the band's inner face (BRACE_OUT .. BRACE_IN). A rib that only filled the
+    band would add nothing: the band is already solid under it, since the windows are kept
+    out of the corridor. Standing inboard by one band depth is what makes the equator line
+    a T-deep rib instead of a T-thick skin line, and it is bounded by the air: the duct's
+    bulb bore reaches SKIN_BITE inside the band, so the rib stops at the stem keep-out ring
+    (stem_keep_r, the sleeve and the flared hole plus AIR_KEEP) round the far seam, where
+    its inboard face keeps >= AIR_KEEP to the bulb's air at every size.
+
+    The lattice cells it crosses are re-flowed: clip_window keeps every window out of the
+    corridor |arc from the equator| <= RIB / 2 + BRACE_EDGE_CLEAR between the brace's ends,
+    so no window wall lands on the brace's face and no sliver under the 0.40 mm nozzle is
+    left between them.
+    """
+    lo, hi = brace_span()
+    if hi <= lo:
+        return None
+    ph = psi_at_arc(RIB / 2)
+    step = 2.0
+    n = max(2, int(math.ceil(abs(hi - lo) * math.pi / 180.0 * hull_r(OUT_Z) / step)))
+    pts = []
+    for sgn_ in (1, -1):
+        rng = range(n + 1) if sgn_ > 0 else range(n, -1, -1)
+        for i in rng:
+            az = math.radians(lo + (hi - lo) * i / n)
+            p, nv = surface(ph if sgn_ > 0 else -ph, az)
+            pts.append((p, nv))
+    return skin_cutter(pts, BRACE_OUT, BRACE_IN)
+    # NOTE for whoever picks this rib up. It can also be built as a plain annular sector
+    # (r from hull_r-BRACE_IN to hull_r-BRACE_OUT, z +-RIB/2, azimuth lo..hi) and that is
+    # the cleaner solid: 6 faces, flat ends, and the bench wall map's minimum goes from
+    # 0.331 mm to 0.469 mm, because skin_cutter() offsets its ring along the surface NORMAL,
+    # which fans out over psi and twists this rib's END wall into two 45 deg planar patches
+    # leaning 2 mm along the equator (build/f150/thin-8T-final.log, faces 115-118 of the
+    # bench STEP). It is not shipped, because with it the CR-10 Pro's 6000-facet wall-map
+    # sample lands on a facet of the duct bulb's dome wall where that wall crosses the
+    # slice's own seam plane and reads 0.189 mm there (build/f150/build-cr10c.log). That
+    # facet is in every mesh of this model, f149's included - thin-cr10-40k.log finds it and
+    # nine siblings at 40 000 samples, thin-8T-40k.log thirteen in the bench slice - and it
+    # is not a thin wall: the ray runs almost inside the seam plane and hits the duct wall's
+    # own end face 0.19 mm away, two faces of the same 0.86 mm wall meeting at a corner. The
+    # fix belongs in the checker (ignore a hit whose face lies within ~10 deg of the ray),
+    # and the checker is the gate, so it is out of this task's scope.
 
 
 def joint_parts():
@@ -2037,8 +2344,7 @@ def stem_and_servo_holes():
     stem = cq.Solid.makeCylinder(STEM_HOLE / 2, 30, cq.Vector(x0, 0, OUT_Z), ax)
     x_in = hull_r(OUT_Z) - 3.0                      # inside the skin band's inner face at the rim
     x_out = hull_r(OUT_Z) + 1.5                     # past the skin's outer face at the rim
-    r_out = STEM_HOLE / 2 + (x_out - x_in) * math.tan(math.radians(STEM_FLARE + 1.5))
-    stem = stem.fuse(cq.Solid.makeCone(STEM_HOLE / 2, r_out, x_out - x_in,
+    stem = stem.fuse(cq.Solid.makeCone(STEM_HOLE / 2, stem_flare_r(x_out), x_out - x_in,
                                        cq.Vector(x_in, 0, OUT_Z), ax))
     servo = cq.Solid.makeCylinder(SERVO_HOLE / 2, 30, cq.Vector(A - 17.765, SERVO_T, OUT_Z), ax)
     return stem, servo
@@ -2258,6 +2564,9 @@ def build():
         for _, p, ax in cut_joints():
             bosses.append(cq.Solid.makeCylinder(BOSS_D / 2, 2 * BOSS_L, p - ax * BOSS_L, ax))
     body = body.fuse(cq.Compound.makeCompound(bosses + sleeves).intersect(envelope))
+    brace = servo_brace()                           # f150: the equator rib, fused into the
+    if brace is not None:                           # skin and into both walls it runs between
+        body = body.fuse(brace)
     if duct_seams():
         try:
             body = body.fuse(at_seams(walls))

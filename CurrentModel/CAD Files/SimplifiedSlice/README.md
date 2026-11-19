@@ -30,6 +30,8 @@ It keeps the outline of `OldFiles/CAD/airship pie slice 125.FCStd` (archived at 
   - The housing holds the impeller (r 44) and the duct mouths (r ≈ 57–60). **The keel is solid only under this housing**; from its outer wall outward it's lattice.
 - **Fan hatch opening:** the keel under the fan is a Ø94 opening that the impeller and motor come in and out through. A ring wall round it carries this slice's **bayonet lug** and **stop post**. The removable `fan_hatch` (see `../Propulsion`) locks onto the 8 lugs.
 - **Ducts:** they run *inside* the skin, at a constant depth along the hull curve, from their mouths in the fan housing up to the equator, where each ends in a bulb behind the stem hole and its bearing sleeve. Each duct is split by a seam plane, so two slices close it. Their own 0.86 mm walls keep them airtight; the lattice runs straight over them.
+  - **Solid skin round an outlet only where the hardware needs it:** a ring round each stem hole's bearing sleeve (the wider of the sleeve's Ø28 and the flared hole's own rim, plus 0.6 mm of wall: **14.6 mm**), and a ring round the servo-spline hole (**5.0 mm** = Ø8 + 1 mm). The lattice is *clipped* to those rings, so a cell a ring only grazes is still an open window with the ring bitten out of it instead of going solid. They used to be 15.5 mm and 7.5 mm, and the extra skin they dragged in was three full cells left solid round the outlet on the printed hull (rhY on the CR-10 Pro print).
+  - **Servo brace (since f150):** a rib on the equator from the servo mount to the duct on the far seam, `RIB` (2.0 mm) wide and one skin band deep standing 0.3 mm under the outer face, so the equator line is a 2.0 × 1.72 mm rib instead of a 0.86 mm skin line. It runs from 41.5 mm along the tangent past the servo's seam to the keep-out ring round the far stem hole - **107 mm of arc** at bench size (az −11.1° to +18.5°) and **174 mm** at CR-10 Pro (−14.4° to +19.6°, because the hardware does not scale) - and is fused into the skin and into both duct ends. Measured before building: **4.6 mm** to the duct's air, **21 mm** to the nearest joint, 1.0 mm to the servo spline hole, 0.6 mm to the stem hole's flare. Its solid is 291 mm³ at bench size, of which 184 mm³ is new material below the band (0.23 g a slice); 473 mm³ / 299 mm³ (0.37 g) at CR-10 Pro. The cells it crosses are re-flowed around it, so no window wall lands on it.
   - **8 thrusters:** Ø24 ducts on every seam, a Ø32 bulb and a Ø25.4 stem hole.
   - **4 thrusters:** Ø34 ducts on every other seam (twice the flow each), a Ø44 bulb and a Ø34.4 stem hole. A **left** slice carries its half-duct on its +22.5° seam; a **right** slice carries it on its −22.5° seam, plus the servo hole. Assemble them alternating, left, right, left, right, so each pair closes one duct.
 - **Lattice:** everything else is structure only.
@@ -102,6 +104,7 @@ OAS_FCSTD_ONLY=1 OAS_VARIANT=4T OAS_SLICES=12 OAS_THRUSTER=S OAS_PIECES=1 \
 
 ## Checked (every version)
 - Each part is a single valid solid, and only the 5 pegs stick out of the hull.
+- **Wall map** (`Analysis/check_outputs.py`): nothing under the 0.20 mm layer, and the mesh has no self-intersections. Thinnest reading 0.33 mm on the bench slice (2 facets of 113,438, both at a corner of the servo brace, where the ray runs along one face of the rib into the next) and 0.40 mm at CR-10 Pro.
 - Neighbouring slices overlap by 0 mm³ (for 4 thrusters: left against right, on both seams).
 - **Airtight:** the keel round the hatch, the housing/shroud wall and the shaft wall are complete; their only openings are where the ducts leave the housing. The duct walls' only openings are the stem holes.
 - No material sits inside the shaft or the impeller eye.
@@ -118,6 +121,8 @@ Weights and lift for every version and material are in [Analysis/FLOAT.md](../..
 | 8 thrusters, Kobra Max (8 slices) | 415 cm³ | 514 g | 332 g | 249 g | 124 L |
 | 4 thrusters, Kobra Max (8 slices) | 349 cm³ | 432 g | 279 g | 209 g | 124 L |
 | double Kobra, 12 slices (v0.2 build) | 474 cm³ | 588 g | 379 g | 284 g | 1022 L |
+
+**Not in that table yet:** the outlet keep-outs cut to the hardware and the servo brace (f150) take one 8-thruster bench slice from 32.4 cm³ to 30.2 cm³ (37.5 g of PLA, −2.7 g a slice and −21 g a hull) and the CR-10 Pro slice from 55.5 cm³ to 53.5 cm³ (66.3 g).
 
 ## Printing
 - **Walls:** 0.20 mm layers, 0.4 mm nozzle, 2 perimeters, with no infill needed (the walls are 2 lines thick). Don't let "detect thin walls" change them.
