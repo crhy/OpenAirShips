@@ -2082,7 +2082,7 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
             # z +-8-9 mm) and the wall map failed the STL on two of them. A graze under 0.5 % of
             # the cell still clips - the mount's edge crosses a corner of some cells and dropping
             # those would open a hole in the lattice for nothing.
-            if before - poly.area > 0.005 * cell:
+            if before - poly.area > 0.05 * cell:
                 return None
             bitten.append(bite)
             if poly.area < (1.0 - MIN_KEEP) * cell:
@@ -2795,7 +2795,7 @@ def servo_brace():
     # wall readings of 0.005-0.02 mm (build/f156/faces.py: f203-f225 against f980-f988). Inset
     # the beam, not the pad, so the outline the eye sees - and the outline the lattice's
     # keep-out is drawn from - is unchanged over the 1.2 mm of depth the pad occupies.
-    t_a = _mount_tool(g["u_t1"] - 4.0, g["u_t1"] + 8.0, max(2 * T, BRACE_D), inset=0.8)
+    t_a = _mount_tool(g["u_t1"] - 4.0, g["u_t1"] + 4.0, max(2 * T, BRACE_D), inset=0.8)
     t_b = _mount_tool(g["u_t1"] + 4.0, g["u_far"] + 1.0, max(2 * T, BRACE_D))
     tool = t_a.fuse(t_b) if (t_a is not None and t_b is not None) else (t_a or t_b)
     if tool is None:
