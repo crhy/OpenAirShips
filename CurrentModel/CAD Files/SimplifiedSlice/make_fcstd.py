@@ -63,16 +63,28 @@ if FCSTD_ONLY:
 pose = shape.copy()
 pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
-for lin in (0.03, 0.02, 0.015, 0.01, 0.05):    # retry until the mesh is watertight
-    # 0.03 mm first now (f148): at 0.015-0.02 mm the tessellation puts facets whose centres
-    # sit within 0.01 mm of the seam face at the crease where the duct bulb's dome crosses
-    # that face, and Analysis/check_outputs.py's wall ray then runs along the seam face and
-    # reports 0.005-0.12 mm where the BREP wall is 0.800 mm (the bulb's two spheres are
-    # concentric, R 16.000 and 16.800). Measured on the same two STLs: wall min 0.64 mm at
-    # 0.03 against 0.236 mm at 0.02 (scale 1), 0.361 against 0.121 (CR-10 Pro size).
+for lin, ang in ((0.01, 0.03), (0.015, 0.05), (0.02, 0.08), (0.03, 0.1), (0.05, 0.1)):
+    # f156 item 4 (rhY, crop 10: wavy streaks on the INSIDE of the duct tube). Measured
+    # (build/f156/ductgeom.py): the bore's own geometry is a BSpline sweep whose surface
+    # stays within 0.006 mm of a true R = DUCT_BORE / 2 tube over a 24 x 24 sample grid -
+    # no segment seam, no crest-band or lattice cut grazing it, no boss. Measured on the
+    # print STL (build/f156/ductblemish.py): the same surface sits 0.029 mm inside that
+    # tube, facet by facet, with no ridge at any fixed place along or round the duct - the
+    # streaks are the tessellation of a curved surface, not the model. So the deflection
+    # comes down: 0.03 mm / 0.1 rad put 1.2-1.7 mm facets on a 12 mm radius (a chord of
+    # 1.2 mm on R 12 sags 0.03 mm, which is exactly the reading). 0.01 mm / 0.03 rad gives
+    # ~0.7 mm facets and 0.01 mm of sag, and the STL stays far under the 90 MB the task
+    # sets (bench 8T: 115,658 facets / 5.9 MB before, 262,884 / 13.5 MB after).
+    # 0.03 mm first used to be the fix for the bulb-dome crease (f148): at 0.015-0.02 the
+    # tessellation put facets within 0.01 mm of the seam face where the bulb's dome crosses
+    # it and the wall ray read 0.005-0.12 mm there. f151's GRAZE_DEG = 10 deg guard in
+    # Analysis/check_outputs.py is what makes the finer mesh safe now; the wall map is
+    # re-run on both print sizes to confirm it.
     mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=lin,
-                                  AngularDeflection=0.1, Relative=False)
+                                  AngularDeflection=ang, Relative=False)
     if mesh.isSolid():
+        print("mesh deflection %.3f mm / %.2f rad: %d facets, %.1f MB"
+              % (lin, ang, mesh.CountFacets, 84 * mesh.CountFacets / 1e6))
         break
 mesh.write(os.path.join(HERE, "..", "..", "Print Files", STL))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)
