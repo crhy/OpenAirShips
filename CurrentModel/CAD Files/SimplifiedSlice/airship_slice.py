@@ -99,6 +99,13 @@ CREST_EDGE_CLEAR = 0.5     # mm the crest band's cut boundaries stand INSIDE its
                          # changes where the lattice stops, which grew a junction window at the keel rib
                          # that cuts nothing and tripped build()'s "window cut had no effect" guard at
                          # OAS_SCALE 1.41.)
+CUT_FACE_CLEAR = 0.3       # f156 item 3: mm between a lattice cutter's faces and the DUCT's
+                         # own wall face where the lattice runs up beside a duct. The lattice
+                         # now stops at the duct's outer wall, not 12 mm from its crest line, so
+                         # the cutter's floor and the wall's face are the two surfaces that come
+                         # nearest: the same 0.3 mm SKIN_TRIM uses for the duct walls against the
+                         # skin. AIR_KEEP (0.6 mm to the air) is the wider bound over most of the
+                         # duct's run; this is the bound beside the bulb, whose wall is deeper.
 SERVO_WALL = 1.0         # mm of skin band left round the servo-spline hole: its outlet
                          # keep-out ring is SERVO_HOLE / 2 + SERVO_WALL. It used to be
                          # SERVO_HOLE / 2 + 3.5 = 7.5 mm, and that extra 2.5 mm of solid skin is
@@ -393,16 +400,20 @@ CREST_BAND = DUCT_BORE / 2   # half-width, mm along the skin, of the SOLID band 
                          #   path is the bulb at the duct's end, and duct_air_keepout() drops the cells
                          #   it cuts, so the band is only as wide as the air actually is at each height
                          #   (rhY f118 item 4: solid skin only where it must be).
-                         # half-width, mm along the skin, of the SOLID band that runs along the
-                         # crest of each duct: the skin over a duct and its outlet carries NO
-                         # lattice window, because with the skin as the duct's outer wall (rhY f087
-                         # item 1) a window there would be a hole in the air path. The duct's crest
-                         # line IS the seam plane (each duct is split in half by it), so the band is
-                         # a strip CREST_BAND either side of every seam that carries a duct, over the
-                         # duct's whole run. It must clear the widest part of the air path, which is
-                         # the bulb (Ø32 bench, Ø44 on 4T), hence DUCT_BULB / 2 + MIN_WEB = 16.4 mm
-                         # on the bench slice (was 7.4 in f086, which only had to keep window floors
-                         # off a separate duct wall and left the double wall rhY objected to).
+                         # the duct TUBE's own air half-width, mm: the reference the solid band
+                         # along each duct's crest is measured from. The skin over a duct carries
+                         # no lattice window, because with the skin as the duct's outer wall (rhY
+                         # f087 item 1) a window there would be a hole in the air path.
+                         # f156 item 3: the band's own half-width is no longer this constant. It
+                         # was 12 mm at every psi over the duct's run, which is the air's reach AT
+                         # its centreline; at the skin the duct reaches only ~6 mm from its crest
+                         # line, so 6 mm of solid skin each side carried nothing under it (rhY, crop
+                         # 9: "Too much material on the outer hull near the duct. There should only
+                         # be duct and lattice, no extra material"). crest_half() now measures the
+                         # duct's own reach under the skin at each psi (AIR_KEEP off the air,
+                         # CUT_FACE_CLEAR off the wall face): 5.93 mm beside the tube, 6.82 mm
+                         # beside the bulb at bench. CREST_BAND stays as the tube's air half-width
+                         # and as the upper bound that width is quoted against.
 # the hole's own wall is tilted off radial by the skin's NORMAL at the rim,
 # not by the ellipse angle of the rim. The skin's normal at ellipse angle psi
 # makes an angle atan((A/B) tan psi) with the axis -- for psi = 7 deg that is
@@ -451,11 +462,14 @@ EXCEPTIONS = [
     ("keel hatch bayonet lug and stop post (LUG_R, LUG_Z, POST)",
      "hatch_ring(): the tab the fan hatch locks under - 2.9 mm of engagement set "
      "in a T-thick ring wall. The fan comes out through here."),
-    ("solid crest band along each duct (CREST_BAND)",
+    ("solid crest band along each duct (crest_half / CREST_BAND)",
      "clip_window()/crest_keepout(): the skin over a duct carries no lattice window, because "
-     "the skin IS the duct's outer wall - a window there would be a hole in the air path. It "
-     "is the normal T wall with nothing added, so it is thick only in the sense that it is "
-     "solid where the rest of the skin is windowed; the wall map reads T across it."),
+     "the skin IS the duct's outer wall - a window there would be a hole in the air path. Its "
+     "half-width is crest_half(psi), the duct's own reach under the skin plus AIR_KEEP and "
+     "CUT_FACE_CLEAR. It is the normal T wall with nothing added, so it is thick only in the "
+     "sense that it is solid where the rest of the skin is windowed; the wall map reads T "
+     "across it and 0.84-2.5 mm over the duct tube itself, where the duct's inner wall is "
+     "behind the skin."),
     ("servo mounting pad (PAD_T) and servo brace (BRACE_W x BRACE_D)",
      "servo_pad()/servo_brace(): servo_mount.stl is a 42.3 x 24.2 x 16 mm, 4.3 cm3 bracket "
      "epoxied to the INSIDE of the skin centred on the 0 8 spline hole (../Propulsion). The "
@@ -1246,10 +1260,138 @@ def ds_dpsi(psi):
 
 def crest_half(psi):
     """How far in from the seam plane the solid skin over a duct reaches at ellipse angle
-    psi: CREST_BAND over the duct's run (crest_psi_range), nothing above it, where the
-    duct has ended and the lattice runs to the seam as it always has."""
+    psi: the duct's OWN reach under the skin, measured where a lattice cutter's floor is,
+    plus the clearances - nothing above it, where the duct has ended and the lattice runs
+    to the seam as it always has.
+
+    f156 item 3 (rhY at the print, crop 9: "Too much material on the outer hull near the
+    duct. There should only be duct and lattice, no extra material."): this used to be the
+    constant CREST_BAND = DUCT_BORE / 2 = 12 mm at every psi over the duct's run, which is
+    the air path's half-width AT ITS CENTRELINE. At the skin the duct does not reach that
+    far: the centreline sits T + DUCT_BORE / 2 - SKIN_BITE = 12.84 mm under the outer face,
+    so a cutter whose floor is CUT_IN = 1.16 mm down only meets the tube out to ~5 mm from
+    the seam plane, and the other 6 mm each side was solid skin with nothing under it but
+    the duct's own wall. Now the lattice runs up to the duct's outer wall and is clipped
+    against it (f151's clipped-cell rule), with AIR_KEEP = 0.6 mm of wall left to the air
+    and CUT_FACE_CLEAR = 0.3 mm between the lattice's cut faces and the duct wall's own face.
+    Measured at bench: 5.93 mm beside the tube, 6.82 mm beside the bulb (the bulb is deeper,
+    so it reaches further round), against the 12.0 mm before - build/f156/ductband.py.
+    """
     lo, hi = crest_psi_range()
-    return CREST_BAND if lo <= psi <= hi else 0.0
+    if not (lo <= psi <= hi):
+        return 0.0
+    xs, ys = _crest_half_table()
+    if psi <= xs[0]:
+        return ys[0]
+    if psi >= xs[-1]:
+        return ys[-1]
+    i = min(range(len(xs) - 1), key=lambda k: xs[k] if psi < xs[k + 1] else 1e9)
+    while xs[i + 1] < psi:                       # linear walk: the table is 48 wide
+        i += 1
+    f = (psi - xs[i]) / (xs[i + 1] - xs[i])
+    return ys[i] + f * (ys[i + 1] - ys[i])
+
+
+_CREST_HALF = None
+_DUCT_PTS = None
+
+
+def crest_half_cell(psi_lo, psi_hi):
+    """The band's half-width for a WHOLE cell: the widest crest_half over the psi the cell
+    spans. f156 item 3: the band's width now follows the duct (6.0 mm beside the tube, 7.0 mm
+    beside the bulb, 0 above the bulb's top), so it is not constant over a cell's height; the
+    layout (oval_on_skin) and the clip (clip_window) must use the same bound or a cell's edge
+    lands on the clip's own boundary - the coincidence rule 10 exists to prevent. Taking the
+    widest point of the span keeps the cut outside the protected skin at every height."""
+    a, b = min(psi_lo, psi_hi), max(psi_lo, psi_hi)
+    xs, ys = _crest_half_table()
+    best = 0.0
+    for x, y in zip(xs, ys):
+        if b < x - 1e-12 or a > x + 1e-12:
+            continue
+        best = max(best, y)
+    i = 0
+    while i < len(xs) - 1 and xs[i + 1] <= a:
+        i += 1
+    for x in (a, b):                       # the span's own ends, interpolated
+        if xs[0] <= x <= xs[-1]:
+            j = max(k for k in range(len(xs) - 1) if xs[k] <= x)
+            f = (x - xs[j]) / (xs[j + 1] - xs[j])
+            best = max(best, ys[j] + f * (ys[j + 1] - ys[j]))
+    return best
+
+
+def duct_centre_points(step=0.5):
+    """The duct centreline sampled ~step degrees of psi apart, in the seam frame: the same
+    curve duct_path() hands the sweep (skin_point at depth T + DUCT_BORE / 2 - SKIN_BITE,
+    from the mouth's psi to the equator). crest_half() measures the duct's reach under the
+    skin against these; at 0.5 deg the points are ~1 mm apart and the chord's sag over the
+    207 mm of curvature is 0.0006 mm."""
+    global _DUCT_PTS
+    if _DUCT_PTS is None:
+        p0 = math.asin(DUCT_Z_IN / B)
+        p1 = math.asin(OUT_Z / B)
+        depth = T + DUCT_BORE / 2 - SKIN_BITE
+        n = max(8, int(abs(math.degrees(p1 - p0)) / step) + 1)
+        _DUCT_PTS = [cq.Vector(x, 0, z) for x, z in
+                     (skin_point(p0 + (p1 - p0) * i / n, depth) for i in range(n + 1))]
+    return _DUCT_PTS
+
+
+def duct_air_sdist(p):
+    """Signed distance from p to the duct's AIR surface - the swept bore of radius
+    DUCT_BORE / 2 about duct_path() plus the bulb's sphere. Negative inside the air path:
+    this is the surface AIR_KEEP of wall must be kept off."""
+    d = min((p - q).Length for q in duct_centre_points()) - DUCT_BORE / 2
+    db = (p - duct_bulb_centre()).Length - DUCT_BULB / 2
+    return min(d, db)
+
+
+def duct_wall_sdist(p):
+    """Signed distance from p to the duct tube's own OUTER wall face: DUCT_W outside the
+    bore, less SKIN_BITE / SKIN_BURY - the same surface duct_solids() builds the walls to.
+    CUT_FACE_CLEAR of it is what keeps a lattice cutter's floor from landing on a face the
+    part already has (rule 10) where the lattice runs up beside a duct."""
+    off = DUCT_W - SKIN_BITE - SKIN_BURY
+    d = min((p - q).Length for q in duct_centre_points()) - (DUCT_BORE / 2 + off)
+    db = (p - duct_bulb_centre()).Length - (DUCT_BULB / 2 + off)
+    return min(d, db)
+
+
+def _crest_half_at(psi):
+    """Bisect the azimuth off the seam plane at which a lattice cutter standing CUT_IN under
+    the outer face clears the duct: AIR_KEEP from its air AND CUT_FACE_CLEAR from its wall
+    face. Returned as the perpendicular distance from the seam plane, the measure
+    column_bounds() takes (asin(d / x) off the seam).
+
+    duct_path() / duct_centre_points() are written in the SEAM frame (the centreline lies in
+    XZ, azimuth 0) and at_seams() rotates them onto the slice's own seams, so the probe point
+    is measured at azimuth -mid: rotating the whole picture by -HALF puts the seam at azimuth
+    0 and the point mid degrees the other way, and distances are rotation-invariant."""
+    lo, hi = 0.0, math.radians(HALF)
+    r = skin_point(psi, CUT_IN)[0]
+    for _ in range(30):
+        mid = (lo + hi) / 2.0
+        p, _n = surface(psi, -mid, CUT_IN)
+        if min(duct_air_sdist(p) - AIR_KEEP, duct_wall_sdist(p) - CUT_FACE_CLEAR) < 0.0:
+            lo = mid
+        else:
+            hi = mid
+    return r * math.sin((lo + hi) / 2.0)
+
+
+def _crest_half_table():
+    """crest_half() over the duct's run, sampled every ~2 deg of psi and read back linearly:
+    the width varies smoothly (5.9 mm beside the tube to 6.8 mm beside the bulb at bench),
+    and the SAME table feeds the layout (column_bounds / oval_on_skin) and the clip
+    (clip_window), so a cell's edge can never land on the clip's own boundary."""
+    global _CREST_HALF
+    if _CREST_HALF is None:
+        lo, hi = crest_psi_range()
+        n = 48
+        xs = [lo + (hi - lo) * i / n for i in range(n + 1)]
+        _CREST_HALF = (xs, [_crest_half_at(q) for q in xs])
+    return _CREST_HALF
 
 
 def column_bounds(psi, side, outer=None):
@@ -1273,8 +1415,10 @@ def oval_on_skin(p0, p1, side, n=96):
     rib lines (RIB/2 in) at one point and fills the cell."""
     q0 = p0 + (RIB / 2) / ds_dpsi(p0)
     q1 = p1 - (RIB / 2) / ds_dpsi(p1)
-    outer = crest_half((p0 + p1) / 2)   # one bound for the whole cell: the oval stays a
-                         #   full cell or is left filled, never tapered by the band's edge
+    outer = crest_half_cell(p0, p1)   # one bound for the whole cell: the oval stays a
+                         #   full cell or is left filled, never tapered by the band's edge, and
+                         #   f156's band width varies over a cell's height so the bound is the
+                         #   widest point of the span - the same bound clip_window clips to
     out = []
     for i in range(n):
         t = 2 * math.pi * i / n
@@ -1825,7 +1969,7 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
         # end there is no air under the skin, so the lattice runs to the seam there too
         v_c = sorted((sgn * (crest_psi_range()[0] - psi) * ds,
                       sgn * (crest_psi_range()[1] - psi) * ds))
-        half = crest_half(psi) + MIN_WEB - CREST_EDGE_CLEAR
+        half = crest_half_cell(min(span), max(span)) + MIN_WEB - CREST_EDGE_CLEAR
         if half <= 0.0:
             continue          # no band here at all (above the duct's run)
         bite = box(u_c - half, v_c[0], u_c + half, v_c[1])
@@ -2712,23 +2856,31 @@ def crest_psi_range():
 
 
 def crest_keepout():
-    """The crest band as a solid: the skin CREST_BAND mm either side of each seam that carries
-    a duct, over the duct's whole run (crest_psi_range). A slab about the seam plane, not a
-    wedge about the axis - the duct's crest line IS the seam plane, and u = (azimuth - theta) *
-    x0, the measure clip_window uses, is the perpendicular distance from that plane.
+    """The crest band as a solid: the skin either side of each seam that carries a duct,
+    over the duct's whole run (crest_psi_range). Built from the duct's own swept envelopes
+    (duct_envelope), not a box about the seam plane: the duct's crest line IS the seam plane,
+    and u = (azimuth - theta) * x0, the measure clip_window uses, is the perpendicular
+    distance from that plane, so an envelope about the centreline bounds exactly what the
+    lattice may not cut.
 
     windows() cuts every cutter with this as belt and braces after clip_window's uv clip, and
-    strictly looser: CREST_BAND here against CREST_BAND + MIN_WEB there. When the two seam
-    clips were at the SAME distance (f085) the cutter had two coincident walls and the boolean
-    left 0.002-0.04 mm plates behind, so the guard must never bite where the uv clip has
-    already done the job.
+    strictly looser: each envelope here is 0.5 mm inside the bound that made it, against the
+    clip's crest_half(psi) + MIN_WEB - CREST_EDGE_CLEAR. When the two seam clips were at the
+    SAME distance (f085) the cutter had two coincident walls and the boolean left 0.002-0.04
+    mm plates behind, so the guard must never bite where the uv clip has already done the job.
 
-    f148: this slab's half-width (CREST_BAND - 0.5 - CREST_EDGE_CLEAR = 11.0 mm) and the
-    lattice's own outer edge (column_bounds at CREST_BAND = 12.0 mm from the seam plane) differ
-    by 1.0 mm - measured 0.895 mm at the tightest cell - and clip_window's uv clip sits between
-    them at 11.5 mm, 0.395 mm at the tightest from the lattice's edge. The band's top end is a
-    rib line (skin_ribs() snaps the nearest rib onto crest_psi_hi), so the slab ends on a rib
-    instead of crossing a cell's middle.
+    f148: the guard's reach and the lattice's own outer edge (column_bounds) differ by
+    1.0 mm - measured 0.895 mm at the tightest cell - and clip_window's uv clip sits between
+    them. The band's top end is a rib line (skin_ribs() snaps the nearest rib onto
+    crest_psi_hi), so the guard ends on a rib instead of crossing a cell's middle.
+
+    f156 item 3: the width is no longer the constant CREST_BAND (12 mm) but crest_half(),
+    which is 5.6 mm beside the tube and 5.0 mm beside the bulb at bench. The slab is now the
+    NARROWEST of the two envelopes the band is made of - the air grown AIR_KEEP - 0.5 and the
+    duct wall's own face grown CUT_FACE_CLEAR - 0.5 - so it is strictly inside the uv clip at
+    every psi (the clip is crest_half(psi) - CREST_EDGE_CLEAR, and crest_half is the wider of
+    air + AIR_KEEP and wall + CUT_FACE_CLEAR). The bulb's extra reach is carried by the same
+    envelopes, which is why the slab is no longer a plain box about the seam plane.
     """
     global _CREST
     if _CREST is None:
@@ -2737,13 +2889,17 @@ def crest_keepout():
         # the band in the outlet frame (x radial, y out of the seam plane, z up), then
         # rotated onto every seam that carries a duct, as at_seams() does
         psi_wedge = wedge([(0.0, lo), (reach, lo), (reach, hi), (0.0, hi)], half=HALF + 2)
-        # strictly LOOSER than clip_window's uv clip, which is at CREST_BAND + MIN_WEB =
-        #   CREST_BAND now that MIN_WEB is 0: a guard cutting at the SAME distance leaves the
-        #   cutter with two coincident walls and the boolean leaves 0.002-0.04 mm plates behind
-        #   (f085's measurement), so this slab is 0.5 mm narrower on each side.
-        slab = cq.Solid.makeBox(reach, 2 * (CREST_BAND - 0.5 - CREST_EDGE_CLEAR), 2 * B + 40,
-                                cq.Vector(0.0, -(CREST_BAND - 0.5 - CREST_EDGE_CLEAR), -B - 20))
-        band0 = slab.intersect(psi_wedge)
+        # strictly LOOSER than clip_window's uv clip, which stands at crest_half(psi) +
+        #   MIN_WEB - CREST_EDGE_CLEAR: a guard cutting at the SAME distance leaves the
+        #   cutter with two coincident walls and the boolean leaves 0.002-0.04 mm plates
+        #   behind (f085's measurement), so each envelope here is 0.5 mm inside the bound
+        #   that made it.
+        wall = DUCT_W - SKIN_BITE - SKIN_BURY
+        g1 = duct_envelope(DUCT_BORE / 2 + AIR_KEEP - 0.5, extra=3.0,
+                           bulb=DUCT_BULB / 2 + AIR_KEEP - 0.5)
+        g2 = duct_envelope(DUCT_BORE / 2 + wall + CUT_FACE_CLEAR - 0.5, extra=3.0,
+                           bulb=DUCT_BULB / 2 + wall + CUT_FACE_CLEAR - 0.5)
+        band0 = (g1.fuse(g2)).intersect(psi_wedge)
         out = None
         for a_ in duct_seams():
             b = band0.rotate((0, 0, 0), (0, 0, 1), a_)
@@ -2753,13 +2909,21 @@ def crest_keepout():
 
 
 def duct_air_keepout():
-    """The duct's air path grown MIN_WEB, on every seam that carries a duct.
+    """The duct's air path grown AIR_KEEP, on every seam that carries a duct.
 
-    No lattice cut may come within MIN_WEB of the air: the duct's own T wall is what
+    No lattice cut may come within AIR_KEEP of the air: the duct's own T wall is what
     keeps it airtight (DESIGN-CONSTRAINTS), and a cut that nibbles into that wall leaves
     a fin of it under the nozzle. windows() cuts every cutter with this.
+
+    f156 item 3: it used to be grown MIN_WEB, which is 0 - the air surface itself, a guard
+    that could only catch a cutter already in the air. With the lattice running up to the
+    duct's outer wall this is the guard that enforces the 0.6 mm, and it is still strictly
+    looser than clip_window's uv clip (measured at bench: the air grown AIR_KEEP reaches
+    4.73 mm from the seam plane at the cutter's floor and 5.45 mm beside the bulb, against
+    the clip's 5.43 / 6.32 mm), so on a clean build it changes nothing.
     """
-    body = duct_envelope(DUCT_BORE / 2 + MIN_WEB, extra=3.0, bulb=DUCT_BULB / 2 + MIN_WEB)
+    body = duct_envelope(DUCT_BORE / 2 + AIR_KEEP, extra=3.0,
+                         bulb=DUCT_BULB / 2 + AIR_KEEP)
     return at_seams(body)
 
 
