@@ -157,6 +157,25 @@ PAD_MARGIN = 2.0         # mm of solid skin outside the bracket's footprint on e
 PAD_T = 1.5              # mm of wall under the bracket, COUNTING the skin band: the pad adds
                          #   PAD_T - T below the band's inner face
 PAD_CORNER = 4.0         # mm radius the pad's four corners are rounded to
+PAD_EDGE_CLEAR = 0.5     # f154: mm of solid skin past the bracket's own END, on the far side.
+                         #   f151 used PAD_MARGIN (2.0) on every side; the far side needs only
+                         #   enough to cover the 42.3 mm bracket, and the extra 1.5 mm of pad
+                         #   out in the lattice is what put the pad's edge face over a window
+                         #   opening at 1.41 (buried in the band at 1.0), where its own
+                         #   degenerate cap facet was left exposed to the wall map. The pad is
+                         #   now SERVO_BRACKET_L + 2 * PAD_EDGE_CLEAR long at the far end and
+                         #   still carries PAD_MARGIN up and down the hull.
+PAD_RIB_CLEAR = 0.3      # f154: the LEAST distance, in mm, between the edge of a solid
+                         #   feature's outline (the servo pad, the brace, a boss) and a
+                         #   lattice rib line - the wall face of a window - at ANY OAS_SCALE,
+                         #   measured by outline_rib_clear() against the outlines windows()
+                         #   actually cut. The hull grows with OAS_SCALE and the bracket does
+                         #   not, so the pad's edges move 4.7 deg of azimuth between the bench
+                         #   slice and the CR-10 Pro one while the lattice's walls stay put:
+                         #   a fused edge that runs beside a window wall at one size may not at
+                         #   the other, and that is how f151's pad edge came to be the place the
+                         #   wall map fired at. (The facet itself was a degenerate cap triangle
+                         #   of the pad's own tool - see TILE_EDGE - not a sliver against a rib.)
 PAD_RING_CLEAR = 0.6     # mm the pad's near edge stands OUTSIDE the stem keep-out ring. The
                          #   lattice's windows are clipped to that ring, so cutting the pad to
                          #   the ring itself puts the pad's edge face exactly on a window's wall
@@ -226,6 +245,19 @@ OUT_MESH = 1.0             # the window's OWN outline is resampled to this spaci
                          # wall face that thin (1625 faces under 0.3 mm2 in the previous
                          # build, all of them wall faces 0.00-0.28 mm wide), and the checker's
                          # ray grazing along one of those reads as a 0.005 mm wall.
+TILE_EDGE = 0.5            # f154: the least distance, in mm, between one of skin_cutter()'s
+                         #   interior tile grid lines and the outline's OWN vertices. A grid
+                         #   line passing within a hair of an outline vertex clips a cell whose
+                         #   ring has a 0.04-0.16 mm edge, and the cap triangle ear-clipped on
+                         #   it is degenerate: 0.027-0.055 mm2 of cap whose normal is the noise
+                         #   of three near-collinear points, and the checker's ray along it
+                         #   reads 0.033 mm to the wall beside it. Measured on the servo pad's
+                         #   own tool at both print sizes (build/f154/tileprobe.py: 12 cell
+                         #   edges under 0.16 mm, every one of them at a vertex that sat within
+                         #   0.16 mm of a grid line; build/f154/padfaces.py: the same 0.027 mm2
+                         #   cap triangles, all three vertices at one cap depth). Nudging the
+                         #   interior lines by up to 2 * TILE_EDGE moves the tiling only: the
+                         #   cells still tile the outline exactly, so the cut is unchanged.
 CREST_BAND_SEE_DUCTS = True  # the solid band along each duct's crest is defined with the
                          # ducts below (CREST_BAND), because its width is the duct's own
                          # air path: see the definition next to DUCT_BULB.
@@ -1222,6 +1254,10 @@ def oval_on_skin(p0, p1, side, n=96):
 
 
 _BAND = None
+_WIN_OUTLINES = None       # every lattice window's own outline, as (point, normal) skin
+                         #   points: filled by windows() as it lays the cells out and read
+                         #   back by outline_rib_clear(), so a fused feature's edge is
+                         #   measured against the SAME walls the lattice actually cuts.
 
 
 def ear_clip(poly):
@@ -1496,14 +1532,38 @@ def skin_cutter(pts, top_depth=-CUT_OUT, bot_depth=CUT_IN):
         u_lo, v_lo, u_hi, v_hi = poly.bounds
         nu = max(1, int(math.ceil((u_hi - u_lo) / mesh)))
         nv = max(1, int(math.ceil((v_hi - v_lo) / mesh)))
-        du, dv = (u_hi - u_lo) / nu, (v_hi - v_lo) / nv
+        verts = list(poly.exterior.coords)[:-1]
+        for h in poly.interiors:
+            verts += list(h.coords)[:-1]
+
+        def lines(lo, hi, n, axis):
+            """The n + 1 grid lines along one axis. The two bounds stay where they are;
+            every interior line is nudged up to 2 * TILE_EDGE off the outline's own
+            vertices, so no cell ring starts with a 0.04-0.16 mm edge (TILE_EDGE). The
+            lines stay strictly ordered and the cells still tile the outline EXACTLY,
+            so the cut is bit-for-bit the same shape - only the tiling moves."""
+            step = (hi - lo) / n
+            out = [lo]
+            for i in range(1, n):
+                x = lo + i * step
+                best, bestd = x, -1.0
+                for k in (-2, -1, 0, 1, 2):
+                    y = x + k * TILE_EDGE
+                    if y < out[-1] + 0.3 * step or y > hi - (0.3 * step if i == n - 1 else 0.0):
+                        continue
+                    d = min((abs(p[axis] - y) for p in verts), default=1e9)
+                    if d > bestd:
+                        best, bestd = y, d
+                out.append(best)
+            out.append(hi)
+            return out
+        us = lines(u_lo, u_hi, nu, 0)
+        vs = lines(v_lo, v_hi, nv, 1)
         out = []
         for i in range(nu):
-            u0 = u_lo + i * du
-            u1 = u_hi if i == nu - 1 else u0 + du
+            u0, u1 = us[i], us[i + 1]
             for j in range(nv):
-                v0 = v_lo + j * dv
-                v1 = v_hi if j == nv - 1 else v0 + dv
+                v0, v1 = vs[j], vs[j + 1]
                 g = poly.intersection(box(u0, v0, u1, v1))
                 for q in (getattr(g, "geoms", None) or [g]):
                     if q.geom_type == "Polygon" and q.area > 1e-9:
@@ -1927,6 +1987,82 @@ def min_radius(shape):
                         for y in (bb.ymin, bb.ymax)))
 
 
+def lattice_outlines():
+    """Every lattice window's own outline as skin points (see _WIN_OUTLINES).
+
+    windows() fills the cache while it lays the cells out; asking for it first pays for
+    windows() once. This is the wall list the 0.3 mm rule (PAD_RIB_CLEAR) is measured
+    against, so the rule cannot drift from what the lattice really cuts."""
+    global _WIN_OUTLINES
+    if _WIN_OUTLINES is None:
+        windows()
+    return _WIN_OUTLINES
+
+
+def outline_rib_clear(poly, to_uv, clear=PAD_RIB_CLEAR):
+    """f154's general rule: no edge of a fused solid feature's outline - the servo pad,
+    the brace, a boss - may lie within `clear` mm of a lattice rib line (a window's own
+    wall) at ANY OAS_SCALE.
+
+    Only a wall that runs PARALLEL to the feature's edge can leave a sliver, so a window
+    wall that the outline crosses at a steep angle is not a violation: the pad's far edge
+    crosses the equator junctions' walls at about 90 deg at both print sizes and has never
+    left a sliver there. What f151 hit was an edge face standing over a window opening at
+    one scale and buried in the band at the other - the fixed-size bracket against a hull
+    that grows (section 1.4) - and the reading came from the pad's own degenerate cap
+    facet, 0.033 mm from its own wall (build/f154/padfaces.py).
+
+    Returns (worst, (u, v)): the smallest parallel distance found and where it is, in the
+    feature's own uv frame. `to_uv` is the feature's skin_frame map.
+    """
+    from shapely.geometry import LineString, box
+    segs = []
+    ring = list(poly.exterior.coords)
+    for i in range(len(ring) - 1):
+        a, b = ring[i], ring[i + 1]
+        if math.hypot(b[0] - a[0], b[1] - a[1]) > 0.05:
+            segs.append((a, b))
+    if not segs:
+        return (1e9, None)
+    x0 = min(min(a[0], b[0]) for a, b in segs) - 8.0
+    x1 = max(max(a[0], b[0]) for a, b in segs) + 8.0
+    y0 = min(min(a[1], b[1]) for a, b in segs) - 8.0
+    y1 = max(max(a[1], b[1]) for a, b in segs) + 8.0
+    padbox = box(x0, y0, x1, y1)
+    worst, where = 1e9, None
+    for pts in lattice_outlines():
+        uv = [to_uv(p) for p, _ in pts]
+        for i in range(len(uv) - 1):
+            a, b = uv[i], uv[i + 1]
+            if math.hypot(b[0] - a[0], b[1] - a[1]) < 0.5:
+                continue                        # the window's own 1 mm outline steps
+            if not padbox.intersects(box(min(a[0], b[0]), min(a[1], b[1]),
+                                         max(a[0], b[0]), max(a[1], b[1]))):
+                continue
+            seg = LineString([a, b])
+            da = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0])) % 180.0
+            for c, d in segs:
+                dc = math.degrees(math.atan2(d[1] - c[1], d[0] - c[0])) % 180.0
+                ang = abs(da - dc)
+                ang = min(ang, 180.0 - ang)
+                if ang > 30.0:
+                    continue                    # a crossing, not a wall running beside
+                vx, vy = d[0] - c[0], d[1] - c[1]
+                ln = math.hypot(vx, vy)
+                s1 = ((a[0] - c[0]) * vy - (a[1] - c[1]) * vx) / ln
+                s2 = ((b[0] - c[0]) * vy - (b[1] - c[1]) * vx) / ln
+                if s1 * s2 < 0.0:
+                    continue                    # the wall crosses this edge: both slices of the
+                    #   crossing are thick material, and an outline that never crossed a window
+                    #   wall could not close the pad at all (measured at bench: window #12's own
+                    #   wall meets the pad's hull-side edge at 11.6 deg, build/f154/whyzero.log)
+                dd = seg.distance(LineString([c, d]))
+                if dd < worst:
+                    worst = dd
+                    where = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0)
+    return (worst, where)
+
+
 def windows():
     """The lattice: two columns of ovals with hollow junction windows.
 
@@ -1939,6 +2075,8 @@ def windows():
     whole = column(0)
     rows = skin_ribs()
     nrows = len(rows) - 1
+    global _WIN_OUTLINES
+    _WIN_OUTLINES = []
     ovals = {k: [oval_on_skin(rows[k], rows[k + 1], sd) for sd in (-1, 1)] for k in range(nrows)}
 
     def turn(rings, deg):
@@ -1967,6 +2105,7 @@ def windows():
         for o in ovals[k]:
             pts = oval_pts(k, o)
             if pts is not None:
+                _WIN_OUTLINES.append(pts)
                 c_ = skin_cutter(pts)
                 if c_ is not None:
                     cut.append(c_)
@@ -1984,6 +2123,7 @@ def windows():
                 pts = junction(psi, math.radians(th), around, side_, cell_rows)
                 if pts is None:
                     continue
+                _WIN_OUTLINES.append(pts)
                 c_ = skin_cutter(pts)
                 if c_ is None:
                     continue
@@ -2284,27 +2424,65 @@ def servo_pad():
     psi_s = math.asin(max(-1.0, min(1.0, OUT_Z / B)))
     to_uv, to_skin, _sgn = skin_frame(psi_s, az_s)
     from shapely.geometry import box
-    half_l = SERVO_BRACKET_L / 2.0 + PAD_MARGIN      # along the equator
+    half_near = SERVO_BRACKET_L / 2.0 + PAD_MARGIN   # along the equator, the stem side
     half_w = SERVO_BRACKET_W / 2.0 + PAD_MARGIN      # up the hull
-    g = box(-half_l, -half_w, half_l, half_w)
-    g = g.buffer(-PAD_CORNER).buffer(PAD_CORNER)     # rounded corners, no sharp inside corners
-    # The bracket's near edge stands 13.85 mm along the tangent from the seam and the stem
-    # hole's own rim is at 13.9 mm, so the pad ends AT the stem hole. Where it ends is decided
-    # by the hole, not by a straight line drawn at the bracket's edge: measured on the first
-    # CR-10 Pro build, a straight edge at 12.85 mm crossed the hole's flare cone at a shallow
-    # angle - inside the swept volume near the equator, outside it 7.7 mm up and down the hull
-    # - and the boolean left a 0.028 mm2 face of pad at (274.4, -99.8, -9.5) with 0.034 mm of
-    # wall behind it, which is what the wall map fired on (build/f151/thin-cr10.log). So the
-    # edge is moved outside the hole's whole swept volume: a straight line at
-    # stem_keep_r() + PAD_RING_CLEAR from the stem axis (the flared rim is 13.9 mm, the ring is
-    # 14.6, the edge is 15.2), which is also 0.6 mm outside the ring the lattice's windows are
-    # clipped to, so it never lands on a window's wall face. It is a straight line and not an
-    # arc about the stem axis because an arc there made the slice's own solid fail BRepCheck:
-    # the shell, every face and every edge stayed valid while the solid did not, and no resew,
-    # clean or self-fuse repaired it (build/f151/gen-8T.log `valid False`, and the STEP at the
-    # same commit; f150's STEP is valid).
     edge = -SERVO_T + stem_keep_r() + PAD_RING_CLEAR      # u of the pad's near edge
-    g = g.difference(box(-1e6, -1e6, edge, 1e6))
+
+    def outline(far_u, half_w_):
+        """The pad's footprint: bracket + margin, corners rounded, near edge cut at the
+        stem keep-out ring's outside. `far_u` is where the far edge stands and `half_w_`
+        how far up and down the hull it runs.
+
+        The bracket's near edge stands 13.85 mm along the tangent from the seam and the stem
+        hole's own rim is at 13.9 mm, so the pad ends AT the stem hole. Where it ends is
+        decided by the hole, not by a straight line drawn at the bracket's edge: measured on
+        the first CR-10 Pro build, a straight edge at 12.85 mm crossed the hole's flare cone
+        at a shallow angle - inside the swept volume near the equator, outside it 7.7 mm up
+        and down the hull - and the boolean left a 0.028 mm2 face of pad at (274.4, -99.8,
+        -9.5) with 0.034 mm of wall behind it, which is what the wall map fired on
+        (build/f151/thin-cr10.log). So the edge is moved outside the hole's whole swept
+        volume: a straight line at stem_keep_r() + PAD_RING_CLEAR from the stem axis (the
+        flared rim is 13.9 mm, the ring is 14.6, the edge is 15.2), which is also 0.6 mm
+        outside the ring the lattice's windows are clipped to, so it never lands on a
+        window's wall face. It is a straight line and not an arc about the stem axis because
+        an arc there made the slice's own solid fail BRepCheck: the shell, every face and
+        every edge stayed valid while the solid did not, and no resew, clean or self-fuse
+        repaired it (build/f151/gen-8T.log `valid False`, and the STEP at the same commit;
+        f150's STEP is valid)."""
+        g = box(-half_near, -half_w_, far_u, half_w_)
+        g = g.buffer(-PAD_CORNER).buffer(PAD_CORNER)     # rounded corners, no sharp inside corners
+        return g.difference(box(-1e6, -1e6, edge, 1e6))
+
+    # f154: where the pad's edges stand. f151 ran the far edge out on PAD_MARGIN like the other
+    # three sides; the far side only has to cover the bracket, so it now starts at
+    # PAD_EDGE_CLEAR (0.5 mm) past the bracket's own end, and the hull side starts at the
+    # bracket's own half-width + 0.5. outline_rib_clear() then measures that outline against
+    # every lattice rib line at THIS scale - the hull grows with OAS_SCALE and the bracket does
+    # not, so the pad's edges move by 4.7 deg of azimuth between the bench slice and the CR-10
+    # Pro one (the far edge az -6.18 -> -10.93) while the lattice's walls keep their azimuths.
+    # The candidate that clears the walls it runs beside wins, and among those the one closest to
+    # bracket + margin, so the pad only changes size when the rule makes it; it must always still
+    # cover the bracket.
+    far_c = [SERVO_BRACKET_L / 2.0 + PAD_EDGE_CLEAR + 0.25 * k
+             for k in range(int((PAD_MARGIN - PAD_EDGE_CLEAR) / 0.25) + 1)]
+    w_c = [SERVO_BRACKET_W / 2.0 + 0.5 + 0.25 * k for k in range(9)] + [half_w]
+    w_nom = half_w
+    pick = None
+    for fw in far_c:
+        for hw in w_c:
+            d, at = outline_rib_clear(outline(fw, hw), to_uv)
+            # clear of the rib lines first, then the shape closest to bracket + margin, so the
+            # pad does not grow or shrink unless the rule makes it
+            score = (1 if d >= PAD_RIB_CLEAR else 0, -abs(hw - w_nom), -abs(fw - far_c[0]), d)
+            if pick is None or score > pick[0]:
+                pick = (score, fw, hw, d, at)
+    _, far, half_w, best_d, best_at = pick
+    g = outline(far, half_w)
+    print("servo pad: %.2f x %.2f mm (bracket %.1f x %.1f), far edge %.2f mm along the tangent"
+          " from the servo axis, rib clearance %.2f mm%s" % (
+              far + SERVO_T - stem_keep_r() - PAD_RING_CLEAR, 2 * half_w,
+              SERVO_BRACKET_L, SERVO_BRACKET_W, far, best_d, "" if best_at is None else
+              " at u %.1f, v %.1f" % best_at))
     if g.is_empty or g.area < 1.0:
         return None
     ring = resample_ring(list(g.exterior.coords)[:-1], OUT_MESH)

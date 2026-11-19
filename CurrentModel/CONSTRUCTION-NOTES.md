@@ -20,16 +20,16 @@ Everything below is measured unless it says otherwise, and the task that measure
 ## 0 INDEX
 
 - 0 INDEX: 20-49
-- 1 FRAMES: 50-121
-- 2 GENERATOR MAP: 122-321
-- 3 DESIGN RULES: 322-404
-- 4 JOINTS: 405-462
-- 5 LATTICE AND KEEP-OUTS: 463-532
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 533-583
-- 7 BUILD AND CHECK WORKFLOW: 584-691
-- 8 FAILURE MODES AND FIXES: 692-723
-- 9 rhY's REVIEW HISTORY: 724-744
-- 10 LESSONS LOG: 745-832
+- 1 FRAMES: 50-123
+- 2 GENERATOR MAP: 124-331
+- 3 DESIGN RULES: 332-414
+- 4 JOINTS: 415-472
+- 5 LATTICE AND KEEP-OUTS: 473-550
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 551-611
+- 7 BUILD AND CHECK WORKFLOW: 612-719
+- 8 FAILURE MODES AND FIXES: 720-752
+- 9 rhY's REVIEW HISTORY: 753-773
+- 10 LESSONS LOG: 774-875
 
 Read first, by kind of edit:
 
@@ -115,9 +115,11 @@ rotate -90 about X, then -HALF about Z (f117's probes call this to_model()).
   - `crest_psi_hi()` = asin((`DUCT_BULB` / 2 + 1.5) / `B`) **shrinks** as the hull grows (0.1691 rad
     at scale 1, 0.1196 at 1.41) while the rib angles do not, so the rib nearest the crest band's
     edge is a different rib at each size. `snap_rib_to_crest()` has a guard for exactly this (f148).
-  - Fixed-size hardware against a growing hull moves features into each other: at 1.41 the servo
-    pad's far edge lands 1.6 mm inside a lattice rib line where at 1.0 it is 3 mm clear of it
-    (f151, still open — see 8 and 10).
+  - Fixed-size hardware against a growing hull moves features into each other: the servo pad's
+    far edge stands at az -6.18 deg at scale 1.0 and az -10.93 at 1.41 (the bracket and `SERVO_T`
+    do not grow, `hull_r` does) while the lattice's walls keep their azimuths. f151 read that as
+    the edge landing beside a rib line; f154 measured it as the pad's own degenerate cap facet
+    exposed at one size and buried in the band at the other - see 8 and 10.
 
 ## 2 GENERATOR MAP
 
@@ -134,11 +136,12 @@ from that file at this commit. Variant switches are environment variables, read 
   `MIN_OPEN_AREA` 117, `MIN_KEEP` 119, `CELL_CLOSE` 129, `NOZZLE` 135, `OVAL_N` 240,
   `ROWS_ABOVE_EQ` 239.
 - Cutter geometry: `SKIN_MARGIN` 178, `CUT_OUT` 186, `CUT_IN` 194, `CUT_MESH` 199, `RING_WELD` 211,
-  `OUT_MESH` 222.
+  `OUT_MESH` 222, `TILE_EDGE` 244 (f154).
 - Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `SERVO_WALL` 102, `BRACE_EDGE_CLEAR` 109,
   `BRACE_OUT` 115, `CREST_BAND` 324.
 - Servo brace and pad: `BRACE_W` 138, `BRACE_D` 145, `BRACE_IN` 148, `SERVO_BRACKET_L` 153,
-  `SERVO_BRACKET_W` 154, `PAD_MARGIN` 156, `PAD_T` 157, `PAD_CORNER` 159, `PAD_RING_CLEAR` 160.
+  `SERVO_BRACKET_W` 154, `PAD_MARGIN` 156, `PAD_T` 157, `PAD_CORNER` 159, `PAD_EDGE_CLEAR` 160
+  (f154), `PAD_RIB_CLEAR` 168 (f154), `PAD_RING_CLEAR` 175.
 - Fan housing and shaft: `FLOOR_Z` 74, `INTAKE_R` 76, `EYE_R` 251, `IMP_TIP_R` 252, `SHAFT_R` 257,
   `SHROUD_RC` 258, `NOZZLE_L` 259, `SHROUD_GAP` 260, `HATCH_R` 264, `HATCH_WALL_TOP` 265,
   `LUG_R` 266, `LUG_Z` 267, `LUG_HALF` 268, `POST` 269.
@@ -204,10 +207,17 @@ Cutters (the boolean that makes the windows):
 - `clean_ring` 1287 — drop repeated/collinear ring points (a box clip leaves them; ear_clip's
   fallback then returns a zero-area triangle and the shell will not close). skin_cutter().
 - `resample_ring` 1315 — spread a ring's vertices to `OUT_MESH` steps. skin_cutter().
-- `skin_cutter` 1345 — ONE filled solid from an outline on the skin: the window's area is tiled
+- `skin_cutter` 1377 — ONE filled solid from an outline on the skin: the window's area is tiled
   into `CUT_MESH` cells, each a small prism along the skin's normal at that point, stitched into a
   single shell with shared edges. This is what fixed the plates left in windows (f117) and it also
-  builds the servo brace. windows(), servo_brace().
+  builds the servo brace. Its interior tile grid lines are nudged off the outline's own vertices by
+  `TILE_EDGE` (f154) so no cell ring starts with a 0.04 mm edge. windows(), servo_brace(),
+  servo_pad().
+- `lattice_outlines` 1986 — every window outline `windows()` laid out, as skin points, from the
+  `_WIN_OUTLINES` cache.
+- `outline_rib_clear` 1998 — f154's rule: the smallest distance between a fused feature's own
+  outline and a lattice window wall running parallel to it (a wall the outline crosses at a steep
+  angle is not a violation). servo_pad() places its far edge with it.
 - `skin_frame` 1586 — the uv <-> skin map for one window: `to_uv` is the exact analytic inverse of
   `to_skin`. clip_window(), junction(), _uv_disc().
 
@@ -515,6 +525,14 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   face (measuring 0.5 from the outer face left it 0.07 mm clear and the faceted cap sagged through).
   `CUT_IN` = T + `SKIN_MARGIN` (0.30) is the floor: at `SKIN_MARGIN` 0.02 the floor sat 0.02 mm off
   the band's inner face and the boolean left 0.005-0.1 mm membranes behind it.
+- **The tile grid must not clip a cell ring at an outline vertex (f154).** `skin_cutter()`'s caps
+  are ear-clipped from each tile cell's ring, and a grid line passing within a hair of one of the
+  outline's own vertices leaves a cell ring whose first edge is 0.04-0.16 mm long. The cap triangle
+  on it is degenerate - 0.027-0.055 mm2 with all three vertices at one cap depth - and its normal is
+  the noise of three near-collinear points, so the checker's ray along it reads 0.033 mm to the wall
+  beside it. `TILE_EDGE` 0.5 keeps the interior grid lines off the outline's vertices; the cells
+  still tile the outline exactly, so the cut does not move. Measured on the servo pad's own tool at
+  both print sizes before the fix: 12 cell edges under 0.16 mm (`build/f154/tileprobe.py`).
 - **The outline, not the cell grid, sets where walls are** (`OUT_MESH` 1.0): a box clip leaves pairs
   of outline vertices a few hundredths of a mm apart and each pair becomes a wall face that thin
   (~1,600 of them), which the checker's ray reads as a 0.005 mm wall. `RING_WELD` 1e-3 was tried
@@ -569,15 +587,25 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   whose end face came out a 45 deg twisted surface (f150). An annular sector (constant z, r and
   azimuth faces) is geometrically cleaner and gave a better bench wall min, but the CR-10 Pro then
   failed on the pre-existing bulb-dome graze facet; the sector is kept as a comment in the function.
-- **Servo pad** (`servo_pad`): solid skin under the bracket's footprint + `PAD_MARGIN` 2.0, corners
-  rounded `PAD_CORNER` 4.0, wall `PAD_T` 1.5 mm **counting the band**. Fused after the lattice is
+- **Servo pad** (`servo_pad`): solid skin under the bracket's footprint, corners rounded
+  `PAD_CORNER` 4.0, wall `PAD_T` 1.5 mm **counting the band**. Fused after the lattice is
   cut (so it closes the windows under the footprint into one 1.5 mm wall) and before the stem and
   servo holes are bored (so both are bored through it). Its near edge stands at
   `stem_keep_r() + PAD_RING_CLEAR` = 15.2 mm off the stem axis, as a **straight** edge: cut to an
   arc about the stem axis it crossed the hole's flare cone at a shallow angle and left a 0.034 mm
   facet, and cut to the keep-out ring itself it sat at distance 0.0000 mm from three window cutters
   and the fuse produced a solid whose shell is closed and whose faces are all valid while the solid
-  itself is not (valid False).
+  itself is not (valid False). f154: the pad is 42.4 x 28.2 mm, not 46.3 x 28.2 - the far edge
+  stands at `SERVO_BRACKET_L / 2 + PAD_EDGE_CLEAR` = 21.65 mm along the tangent from the servo axis
+  instead of at `PAD_MARGIN`, and `outline_rib_clear()` measures the outline against the lattice's
+  own window walls at the scale being built and picks the size whose edges stand >= `PAD_RIB_CLEAR`
+  (0.3 mm) off any wall they run beside while still covering the bracket - and among those, the
+  shape closest to bracket + margin: round 2 of f154 grew the pad to 29.2 mm to win the clearance and
+  the CR-10 Pro came back with 1 facet under the 0.40 mm nozzle. A wall the outline **crosses** is not
+  a wall it runs beside - the wall segment's endpoints lie on opposite sides of the edge's line - and
+  an outline that crossed nothing could not close. The bracket does not
+  scale and the hull does, so the pad's edges sit at different azimuths at each size (far edge az
+  -6.18 at scale 1, -10.93 at 1.41) and that check has to be made at every size.
 - **Keel and hatch:** the keel is solid only round the fan housing; the fan (motor + 88 mm impeller)
   comes out through the bayonet hatch, whose lug and stop post are an EXCEPTION.
 
@@ -712,7 +740,8 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | thin reading 0.19-0.38 mm all round the stem hole's rim, and adding material does not change it | the hole is bored along the radial line but the skin's normal at the rim is tilted atan((A/B) tan psi) = 13.85 deg, so the ray meets the hole's wall at a graze | flare the hole by `STEM_FLARE` + 1.5 deg so its wall is parallel to the skin normal; a chamfer makes it worse | f086, f117 |
 | thin reading 0.005-0.3 mm where the bulb's dome, the duct tube, the shroud turn or the shaft crosses the seam face; the minimum moves with the mesh deflection and the sample count | the wall map fires one ray per facet along that facet's normal, and every surface of revolution is parallel to the seam face's rays: a facet d from the crossing circle reads d/2 (a corner distance, not a wall) | `GRAZE_DEG` = 10 deg: skip and count a hit whose face meets the ray at less than 10 deg; f151's grazeprobe.py shows a real 0.15 mm wall is still reported | f148, f150, f151 |
 | one facet reads 0.01-0.03 mm and has area 0.000 mm2 | degenerate mesh facets from the mesher, whose normal is noise; the 6000-facet stride decides whether one lands in the sample | `MIN_FACET_AREA` 1e-4 mm2: skip them as ray sources and targets; and mesh at 0.03 mm first in make_fcstd.py | f149, f148 |
-| a real 0.027-0.034 mm2 planar face in the STEP at the servo pad's edge, read as 0.033 mm, only at 1.41 | the pad's edge lands beside a lattice rib line at the bigger scale (1.6 mm inside it instead of 3 mm clear), or crosses the stem hole's flare cone at a shallow angle | open item: trim the pad's far edge to `SERVO_BRACKET_L` / 2 + 0.5, or buffer the outline so the edge falls in a window opening. Do not cut the pad to an arc about the stem axis (invalid solid) | f151 |
+| a real 0.027-0.034 mm2 planar face in the STEP at the servo pad's edge, read as 0.033 mm, only at 1.41 | NOT a rib line: `servo_pad()`'s own tool, alone with no lattice and no fuse, carries those faces at BOTH scales - degenerate cap triangles off the tile grid (see 5). What changes with scale is which of them ends over a window opening, where the wall map can see it, instead of buried in the band | `TILE_EDGE` in `skin_cutter()`'s tile grid, plus trimming the pad's far edge to `SERVO_BRACKET_L` / 2 + `PAD_EDGE_CLEAR` and placing the outline with `outline_rib_clear()`. Do not cut the pad to an arc about the stem axis (invalid solid) | f151 found it, f154 fixed it |
+| one sampled facet 0.027-0.055 mm2 whose ray reads 0.03 mm to a face sharing two of its vertices | a degenerate triangle: three near-collinear points, so its normal is noise and the ray leaves it sideways. All three vertices sit at one cap depth, so it is a cap triangle, not a wall | do not let the tiling make one: `TILE_EDGE` keeps `skin_cutter()`'s interior grid lines off the outline's own vertices. `MIN_FACET_AREA` only skips facets under 1e-4 mm2, so a 0.027 mm2 one is a real FAIL | f154 |
 | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
 | the slice reports more solids or a wrong volume | a boolean left a degenerate zero-volume shell in the compound | build() keeps only solids over 1e-3 mm3 and prints how many were dropped | f151 |
 | the .FCStd opens on an empty 3D view, or shows three identical z-fighting solids | the writer stored a PartDesign Body plus base feature (the same brep 3-4 times), no GuiDocument.xml, and the previous release's document label | `CurrentModel/CAD Files/fcstd_doc.py`: one Part::Feature per part, label = file name, hand-written GuiDocument.xml (freecadcmd has no GUI and never writes it) | f073 |
@@ -830,3 +859,17 @@ the branch was parked (its changes may still be inherited by the next task).
   manual is written to be read by section, so a task loads the 60-120 lines for its kind of edit
   instead of 2,500 lines of notes. Differently for the next task: append your line here and update
   the sections your change touched — the checker proves the file is stale, not you.
+- **f154 servo pad far edge — OK** (both slices pass: bench wall min 0.422 mm, CR-10 Pro 0.536 mm,
+  0 facets under the 0.40 mm nozzle at either size, 1 part each, the same 4 joints, 37.7 g and 55.1 g).
+  f151's diagnosis was wrong and the probes that showed it are in `build/f154/`: the 0.033 mm facet is
+  a **degenerate cap triangle of the pad's own tool** (`padonly.py` builds `servo_pad()` alone, no
+  lattice, and finds the same 0.027 mm2 faces at both scales), made because one of `skin_cutter()`'s
+  tile grid lines passed within 0.04 mm of an outline vertex (`tileprobe.py`). Fixed with `TILE_EDGE`;
+  the pad's far edge was also trimmed to `SERVO_BRACKET_L / 2` + `PAD_EDGE_CLEAR`, and
+  `outline_rib_clear()` with `PAD_RIB_CLEAR` is the general 0.3 mm rule, measured against the window
+  outlines `windows()` now caches in `_WIN_OUTLINES`. Worked: reproduce the checker's own ray
+  (`wallpair.py`) before believing the previous task's theory, and build the suspect tool by itself.
+  Differently: a facet that only appears at one scale is not automatically a scale interaction - it
+  can be the same bad facet, exposed at one size and buried at the other. And do not tune a feature's
+  size to satisfy a clearance rule without re-running the wall map: f154's first scoring grew the pad
+  to win 0.3 mm and the CR-10 Pro came back with a facet under the nozzle.
