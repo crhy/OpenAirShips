@@ -1084,8 +1084,8 @@ the branch was parked (its changes may still be inherited by the next task).
 | | before (main 8c3224c, f154) | after (f156) |
 |---|---|---|
 | bench 8T slice | 30.76 cm3 = 38.1 g PLA | 33.76 cm3 = 41.9 g PLA |
-| CR-10 Pro slice (scale 1.41) | 45.08 cm3 = 55.9 g PLA | 48.0 cm3 = 59.5 g PLA |
-| lattice windows, bench | 36 | 41 |
+| CR-10 Pro slice (scale 1.41) | 45.08 cm3 = 55.9 g PLA | 58.38 cm3 = 72.4 g PLA |
+| lattice windows, bench | 36 | 40 (item 3 opens cells the 12 mm band used to close; item 2's keep-out closes others) |
 | solid skin beside a duct seam | 12.00 mm each side (`CREST_BAND`) | 6.0-7.0 mm (`crest_half`), 0 above the bulb |
 | seam junctions the band bites | half solid, half slit | filled whole |
 | servo mount | 42.4 x 28.2 mm rounded rectangle + a separate 9.0 x 2.5 beam, 1190 mm2 | one waisted outline, 2370 mm2, least radius 6.00 mm, bracket footprint 95.4 % covered, bonded area 977 mm2 |
