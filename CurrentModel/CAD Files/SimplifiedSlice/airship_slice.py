@@ -2708,17 +2708,26 @@ def servo_mount_area():
     return (br.intersection(pad_zone).area, SERVO_BRACKET_L, SERVO_BRACKET_W)
 
 
-def _mount_tool(u_from, u_to, depth):
+def _mount_tool(u_from, u_to, depth, inset=0.0):
     """The mount's solid over the part of its footprint between u_from and u_to mm along the
     equator: the same outline, standing from BRACE_OUT (buried in the skin band) to `depth`
-    under the outer face. The two tools overlap so the step between the two depths is inside
-    the mount, not on its face."""
+    under the outer face. `inset` shrinks the piece by that much first, which is how the pad's
+    end is buried INSIDE the beam instead of lying against it: two skin_cutter tools over the
+    same outline at different depths leave side faces that are coplanar to within 0.0002-0.0075
+    mm (their rings are offset along the skin's normal, which fans over psi), and OCC fuses
+    them into a shell - pad.fuse(brace) came out volume 0.0 mm3, 78 faces, isValid False
+    (build/f156/toolprobe.py) - and in the part that becomes a swarm of 0.02-1.9 mm2 sliver
+    faces along the beam's edge, one pair of self-intersecting facets in every mesh of it, and
+    six wall readings of 0.005-0.02 mm (build/f156/faces.py, f203-f225 against f980-f988 at
+    model x 205.5 y 5 z -4.4)."""
     from shapely.geometry import box
     mo = servo_mount_outline()
     if not mo:
         return None
     poly, _pc, to_skin, _g = mo
     piece = poly.intersection(box(u_from, -1e6, u_to, 1e6))
+    if inset:
+        piece = piece.buffer(-inset, quad_segs=8)
     if piece.is_empty or piece.area < 1.0:
         return None
     pts = []
@@ -2765,7 +2774,19 @@ def servo_brace():
         return None
     # the beam end: from just inside the taper (so the step down to BRACE_D is buried in the
     # pad, not left as a face of its own) to the mount's far end inside the crest band
-    tool = _mount_tool(g["u_t1"] - 4.0, g["u_far"] + 1.0, max(2 * T, BRACE_D))
+    # The beam's first 12 mm are inset 0.8 mm inside the outline. The pad tool (PAD_T deep)
+    # and the beam tool (BRACE_D deep) run over the SAME outline, and two skin_cutter tools at
+    # different depths over one outline leave side faces coplanar to within 0.0002-0.0075 mm -
+    # their rings are offset along the skin's normal, which fans over psi - which OCC fuses
+    # into a shell (pad.fuse(brace): volume 0.0 mm3, 78 faces, isValid False,
+    # build/f156/toolprobe.py) and in the part leaves a swarm of 0.02-1.9 mm2 sliver faces
+    # along the beam's edge, one pair of self-intersecting facets in every mesh of it, and six
+    # wall readings of 0.005-0.02 mm (build/f156/faces.py: f203-f225 against f980-f988). Inset
+    # the beam, not the pad, so the outline the eye sees - and the outline the lattice's
+    # keep-out is drawn from - is unchanged over the 1.2 mm of depth the pad occupies.
+    t_a = _mount_tool(g["u_t1"] - 4.0, g["u_t1"] + 8.0, max(2 * T, BRACE_D), inset=0.8)
+    t_b = _mount_tool(g["u_t1"] + 4.0, g["u_far"] + 1.0, max(2 * T, BRACE_D))
+    tool = t_a.fuse(t_b) if (t_a is not None and t_b is not None) else (t_a or t_b)
     if tool is None:
         return None
     print("servo brace: %.1f mm of arc from the ring's end, %s x %.2f mm section, waisted to "
