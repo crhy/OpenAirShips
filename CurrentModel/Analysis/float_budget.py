@@ -17,7 +17,14 @@ NET_LIFT = 1.204 - 0.0838          # g per litre: air minus hydrogen, 20 C, sea 
 MATERIALS = {"PLA": 1.24, "LW-PLA, moderate foam": 0.80, "LW-PLA, full foam": 0.60}
 PLA, PETG = 1.24, 1.27
 FILM_GSM = 11.0                    # 12 um LDPE film, g/m2
-CONFIGS = [("8T", 1.0), ("4T", 1.0), ("8T", 1.9), ("4T", 1.9)]
+CONFIGS = [("8T", 1.0), ("4T", 1.0), ("8T", 1.41), ("4T", 1.41), ("8T", 1.9), ("4T", 1.9)]
+# f152: the CR-10 Pro slice is built with OAS_TAG=CR10Pro ("airship pie slice 1026
+# CR10Pro.step"), not "... x1.41.step". And it has no Propulsion folder of its own, because
+# the fan, thrusters and servos do not scale with the hull: OAS_PART_DIR points
+# hull_volumes.py at the bench parts (see hull_volumes.py).
+PROP = os.path.join(HERE, "..", "CAD Files", "Propulsion")
+EXTRA = {1.41: {"8T": {"OAS_TAG": "CR10Pro", "OAS_PART_DIR": PROP},
+                "4T": {"OAS_TAG": "CR10Pro", "OAS_PART_DIR": os.path.join(PROP, "4T")}}}
 BIG = dict(OAS_VARIANT="4T", OAS_SCALE="3.8", OAS_SLICES="12", OAS_THRUSTER="S", OAS_PIECES="1", OAS_RIB="1.2")
 # self-contained: electronics on board (grams) and battery options (grams, Wh)
 ONBOARD = {"ESC 30 A (the fan peaks at ~25 A)": 7.0, "ESP32 board (drives servos and ESC directly)": 8.0, "3 A BEC": 6.0,
@@ -26,6 +33,13 @@ BATTERIES = [("4S LiPo 1500 mAh", 180.0, 22.2), ("4S 18650 Li-ion 1P (Molicel P2
              ("4S 21700 Li-ion 1P (Molicel P45B)", 300.0, 64.8)]
 FAN_W_MAX = 25.0 * 14.8            # electrical power at full fan thrust
 MANOEUVRE_W, AVIONICS_W = 20.0, 4.0
+
+
+def pick(geos, variant, scale):
+    """One geometry by variant and scale: CONFIGS has grown, so its indexes are no
+    longer a stable way to say 'the bench one' and 'the x1.9 one'."""
+    n = 8 if variant == "8T" else 4
+    return next(g for g in geos if g["n_thr"] == n and abs(g["scale"] - scale) < 1e-9)
 
 
 def geometry(variant, scale, extra=None):
@@ -77,7 +91,7 @@ def budget(g, rho_lw):
 
 
 def main():
-    geos = [geometry(v, s) for v, s in CONFIGS]
+    geos = [geometry(v, s, EXTRA[s][v] if s in EXTRA else None) for v, s in CONFIGS]
     big = geometry("4T", 3.8, {k: v for k, v in BIG.items() if k not in ("OAS_VARIANT", "OAS_SCALE")})
     out = []
     w = out.append
@@ -92,7 +106,9 @@ def main():
     w("  - Lightweight (foaming) PLA: 0.80 g/cm³ with moderate foam, 0.60 with full foam.")
     w("- **Airborne mass:** tethered, so the battery, ESC and controller stay on the bench.")
     w("- **Thrust:** the fan's full thrust with every jet pointing down, from the airflow model (2207 1750 KV on 4S, shrouded fan). The same fan at every size.")
-    w("- **x1.9 (Kobra Max):** only the hull grows. Walls, ribs, fan, ducts, thrusters and servos keep their size.\n")
+    w("- **x1.41 (CR-10 Smart Pro):** the largest single slice that fits its 290 x 290 x 390\n"
+      "  bed with rhY's 5 mm margin (271 x 290 x 206 mm). f152 added it at rhY's request.\n"
+      "- **x1.9 (Kobra Max):** only the hull grows. Walls, ribs, fan, ducts, thrusters and servos keep their size.\n")
     w("| Design | Size | Hull material | Airborne mass | H₂ volume | H₂ lift | Lift ÷ mass | Fan thrust | Lift + thrust − mass |")
     w("|---|---|---|---|---|---|---|---|---|")
     rows = []
@@ -102,7 +118,9 @@ def main():
             printed, hw = budget(g, rho)
             mass = sum(printed.values()) + sum(hw.values())
             lift = g["v_free"] * NET_LIFT
-            size = "bench, 415 mm" if g["scale"] == 1 else f"Kobra Max x{g['scale']:g}, {2 * g['A']:.0f} mm"
+            size = ("bench, 415 mm" if g["scale"] == 1 else
+                    f"CR-10 Pro x{g['scale']:g}, {2 * g['A']:.0f} mm" if g["scale"] in EXTRA else
+                    f"Kobra Max x{g['scale']:g}, {2 * g['A']:.0f} mm")
             name = "8 thrusters" if g["n_thr"] == 8 else "4 thrusters"
             margin = lift + t - mass
             rows.append((name, size, mat, mass, lift, t, margin, printed, hw, g))
@@ -117,7 +135,8 @@ def main():
     w("Lift grows with size³. The thin-walled hull grows much more slowly, because its walls and ribs keep their thickness (measured below between x1 and x1.9). The fan, servos and wiring stay the same.\n")
     w("| Design | Hull material | Floats at scale | Hull diameter |")
     w("|---|---|---|---|")
-    for g1, g2 in ((geos[0], geos[2]), (geos[1], geos[3])):
+    for g1, g2 in ((pick(geos, "8T", 1.0), pick(geos, "8T", 1.9)),
+                   (pick(geos, "4T", 1.0), pick(geos, "4T", 1.9))):
         for mat in ("LW-PLA, moderate foam", "LW-PLA, full foam"):
             rho = MATERIALS[mat]
             h1, h2 = g1["hull_cm3"] * rho, g2["hull_cm3"] * rho
@@ -179,10 +198,27 @@ def main():
     w(f"| **Total** | **{total:.0f}** |")
     w(f"| **Hydrogen lift** | **{lift:.0f}** |\n")
 
-    # details for the headline design
+    # details for the headline designs: the CR-10 Pro 8T in PLA (what rhY asked to
+    # check on 2026-11-18) and the Kobra Max 4T in LW-PLA
+    w("## Mass breakdown: 8 thrusters, CR-10 Pro x1.41, PLA\n")
+    w("The largest slice the CR-10 Smart Pro can print in one piece (271 x 290 x 206 mm on"
+      " its 290 x 290 x 390 bed, f148). f152 added these rows at rhY's request. The brace,"
+      " pad, walls, ribs, joints, ducts and servos do not grow with the hull, so this is"
+      " where printed mass starts to hurt: the hydrogen lift is 1.41^3 = 2.8x the bench"
+      " figure and the hull is nowhere near that.\n")
+    for name, size, mat, mass, lift, t, margin, printed, hw, g in rows:
+        if name == "8 thrusters" and g["scale"] == 1.41 and mat == "PLA":
+            w("| Item | g |")
+            w("|---|---|")
+            for k_, v in list(printed.items()) + list(hw.items()):
+                w(f"| {k_} | {v:.0f} |")
+            w(f"| **Total** | **{mass:.0f}** |")
+            w(f"| **Hydrogen lift** | **{lift:.0f}** |")
+            w(f"| **Fan thrust** | **{t:.0f} gf** |")
+    w("")
     w("## Mass breakdown: 4 thrusters, Kobra Max x1.9, LW-PLA moderate foam\n")
     for name, size, mat, mass, lift, t, margin, printed, hw, g in rows:
-        if name == "4 thrusters" and g["scale"] != 1 and mat == "LW-PLA, moderate foam":
+        if name == "4 thrusters" and g["scale"] == 1.9 and mat == "LW-PLA, moderate foam":
             w("| Item | g |")
             w("|---|---|")
             for k_, v in list(printed.items()) + list(hw.items()):

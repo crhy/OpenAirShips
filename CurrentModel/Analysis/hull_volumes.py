@@ -45,9 +45,13 @@ hull_cm3 = sum(vol[sd] for sd in sides)
 tubes_cm3 = sum(mesh_cm3(t_) for t_ in h.tube_segments()) if h.PIECES else 0.0
 
 parts = {}
+# the fan, thrusters and servos do NOT scale with the hull, so a hull size that has no
+# Propulsion folder of its own (the CR-10 Pro x1.41, f152) reads them from wherever
+# OAS_PART_DIR points - the bench parts, which are the same parts.
+PART_DIR = os.environ.get("OAS_PART_DIR") or p.OUT_DIR
 for n in ("impeller", "fan_hatch", "servo_mount", "stem", "stem_gear", "servo_gear", "thruster_ring") + (
         ("avionics_tray",) if h.PIECES else ()):
-    parts[n] = mesh_cm3(load(os.path.join(p.OUT_DIR, n + ".step")))
+    parts[n] = mesh_cm3(load(os.path.join(PART_DIR, n + ".step")))
 
 # free interior: inside the skin, minus the shaft core, the fan housing, the
 # ducts and the printed material itself

@@ -135,16 +135,32 @@ CELL_CLOSE = 1.0         # f151 item A: mm radius a CLIPPED window's corners are
 NOZZLE = 0.40            # mm, the same nozzle Analysis/check_outputs.py measures the wall map
                          # against: no cut feature this side of it is printable, so a clip that
                          # leaves a window narrower than this is not cut (the cell stays filled).
-BRACE_W = 6.0            # f151 item B, mm: the servo brace's width ALONG THE HULL. rhY at the
-                         #   CR-10 Pro print: "the equator brace isn't thick enough to support the
-                         #   servo bracket" - f150 shipped a RIB (2.0 mm) x 1.72 mm rib, the same
-                         #   section as a lattice web, carrying a 4.3 cm3 bracket epoxied to the
-                         #   skin 100+ mm away. 6.0 x 3.0 mm is 18 mm2 of section, three times the
-                         #   rib the bracket used to hang off, and it is still narrower than the
-                         #   bracket's own 24.2 mm foot, so the bracket's glue area carries it.
-BRACE_D = 3.0            # f151 item B, mm: the brace's depth INWARD FROM THE OUTER SKIN. It stops
-                         #   short of the duct's air by AIR_KEEP at every size (servo_brace() ends
-                         #   it at the stem keep-out ring, where the band is uncut solid).
+BRACE_W = 9.0            # f152: the servo brace's width ALONG THE HULL, mm - sized by
+                         #   Analysis/brace_sizing.py against the loads listed in
+                         #   Analysis/STRUCTURE-ESTIMATES.md (SAFETY_FACTOR = 3 [guess] there,
+                         #   PLA at the LOW end of the FDM range, 20 MPa across the layers).
+                         #   The case that sets it is the servo's stall torque (SG90 1.8 /
+                         #   MG90S 2.2 kg-cm [datasheet]) as a single-failure bound: the
+                         #   bracket's epoxy bond lets go and the brace alone holds the servo.
+                         #   That torque is about the RADIAL axis, so the brace carries it in
+                         #   bending with Z = BRACE_D * BRACE_W^2 / 6: 9.0 x 2.5 gives 33.8 mm3
+                         #   and SF 3.13, where f151's 6.0 x 3.0 gave 18.0 mm3 and SF 1.67 -
+                         #   the same 18-23 mm2 of section, turned the way the load wants it.
+                         #   It stays well inside the bracket's own 24.2 mm foot and inside the
+                         #   pad (28.2 mm up the hull), and the corridor it clears (5.0 mm of
+                         #   arc each side of the equator) is still under a third of the
+                         #   shortest lattice row (17.8 mm at bench), so no cell is dropped.
+BRACE_D = 2.5            # f152: the brace's depth INWARD FROM THE OUTER SKIN, mm. The
+                         #   estimate wants width, not depth: depth only buys Z linearly for
+                         #   the stall case, and 2.5 mm is the floor this task set for itself
+                         #   (the 0.86 mm band plus ~4 extruded lines of rib; f150's 1.72 mm
+                         #   rib - band plus 2 lines - is what rhY rejected as "not thick
+                         #   enough to support the servo bracket"). Nothing may be thinner
+                         #   than 2 perimeters = 0.86 mm anywhere (rule 1). Shallower also
+                         #   stands further off the duct's air than f151's 3.0 mm did.
+                         #   It stops short of the duct's air by AIR_KEEP at every size
+                         #   (servo_brace() ends it at the stem keep-out ring, where the band
+                         #   is uncut solid).
 BRACE_IN = BRACE_D       # kept as a name for the depth the brace reaches under the outer skin
 # f151 item B: the servo bracket itself does NOT scale with the hull (servo_mount.stl is one
 # printed part, 42.3 x 24.2 x 16 mm, 4.3 cm3), so the pad it glues to and the beam that feeds it
@@ -154,8 +170,24 @@ SERVO_BRACKET_L = 42.3   # mm, servo_mount.stl's footprint along the equator (Cu
 SERVO_BRACKET_W = 24.2   #   Files/Propulsion/print/, and its README: epoxied to the INSIDE of the
                          #   skin centred on the 0 8 servo spline hole)
 PAD_MARGIN = 2.0         # mm of solid skin outside the bracket's footprint on every side
-PAD_T = 1.5              # mm of wall under the bracket, COUNTING the skin band: the pad adds
-                         #   PAD_T - T below the band's inner face
+PAD_T = 1.5              # f152: mm of wall under the bracket, COUNTING the skin band: the pad
+                         #   adds PAD_T - T below the band's inner face. Sized by
+                         #   Analysis/brace_sizing.py / STRUCTURE-ESTIMATES.md: the pad's own
+                         #   plate bending under the bracket's foot (the gear separating force
+                         #   at stall + the servo's weight x the handling factor) needs 1.34 mm
+                         #   for an MG90S, 1.21 mm for an SG90, and the bond itself is at SF
+                         #   ~400 in shear, so the PLA under it is what limits, not the epoxy.
+                         #   1.50 is kept - the requirement rounded up, and the value f154
+                         #   already proved through the wall map at both print sizes.
+# f152: the sizing basis of the three parameters above. The generator does not use it -
+# Analysis/brace_sizing.py does, and Analysis/STRUCTURE-ESTIMATES.md explains it - but it
+# lives here, next to the numbers it set, so nobody can re-size the brace or the pad without
+# meeting the factor that sized them. Change it there and rerun brace_sizing.py: the answer
+# moves, and after the first hull is pushed on a scale it should move down.
+SAFETY_FACTOR = 3.0      # [guess, until a physical test] failure load / biggest expected
+                         #   load. 3 because the loads are guesses, FDM PLA varies by ~2x
+                         #   between printers and orientations, and nothing has been tested.
+                         #   See Analysis/STRUCTURE-ESTIMATES.md section 0.
 PAD_CORNER = 4.0         # mm radius the pad's four corners are rounded to
 PAD_EDGE_CLEAR = 0.5     # f154: mm of solid skin past the bracket's own END, on the far side.
                          #   f151 used PAD_MARGIN (2.0) on every side; the far side needs only
@@ -429,8 +461,10 @@ EXCEPTIONS = [
      "epoxied to the INSIDE of the skin centred on the 0 8 spline hole (../Propulsion). The "
      "pad is the wall it glues to - PAD_T = 1.5 mm counting the skin, over the bracket's "
      "footprint + PAD_MARGIN - and the beam is what hangs it off the far duct: BRACE_W x "
-     "BRACE_D = 6.0 x 3.0 mm of section, 18 mm2, against the 2.0 x 1.42 mm lattice-web "
-     "section it had at f150. Neither scales with the hull: the bracket is one printed part."),
+     "BRACE_D = 9.0 x 2.5 mm of section, 22.5 mm2, sized by Analysis/brace_sizing.py against "
+     "Analysis/STRUCTURE-ESTIMATES.md (SAFETY_FACTOR 3) rather than guessed - f151's 6.0 x 3.0 "
+     "was the same material turned the wrong way, and f150's 2.0 x 1.42 lattice-web section is "
+     "what rhY rejected. Neither scales with the hull: the bracket is one printed part."),
 ]
 
 
