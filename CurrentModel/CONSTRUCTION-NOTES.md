@@ -22,14 +22,14 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 0 INDEX: 20-50
 - 1 FRAMES: 51-124
 - 2 GENERATOR MAP: 125-332
-- 3 DESIGN RULES: 333-422
-- 4 JOINTS: 423-480
-- 5 LATTICE AND KEEP-OUTS: 481-558
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 559-631
-- 7 BUILD AND CHECK WORKFLOW: 632-739
-- 8 FAILURE MODES AND FIXES: 740-772
-- 9 rhY's REVIEW HISTORY: 773-793
-- 10 LESSONS LOG: 794-927
+- 3 DESIGN RULES: 333-437
+- 4 JOINTS: 438-495
+- 5 LATTICE AND KEEP-OUTS: 496-573
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 574-646
+- 7 BUILD AND CHECK WORKFLOW: 647-754
+- 8 FAILURE MODES AND FIXES: 755-787
+- 9 rhY's REVIEW HISTORY: 788-808
+- 10 LESSONS LOG: 809-966
 
 Read first, by kind of edit:
 
@@ -419,6 +419,21 @@ without asking.
     and servo holes, and the four joint pegs (which stick out into the neighbouring slice). Boss
     rims stay under the outer face (`RIM_KEEP` 0.40 mm), the brace starts `BRACE_OUT` 0.3 mm under
     it, the duct walls are buried `SKIN_BURY` under it.
+15. **The float problem is decided by the envelope, not by how thin the lattice is.** f155 sized
+    three concepts up to the size where each floats with +150 g and +250 g of margin on rhY's
+    CR-10 Pro bed - today's lattice skin re-pieced for that bed, a semi-rigid frame (meridian
+    battens + latitude rings) with a film envelope, and a pressure envelope with no printed skin
+    at all - in `CurrentModel/Analysis/FLOAT-DESIGN-STUDY.md`, arithmetic in
+    `CurrentModel/Analysis/float_design_study.py`. The lattice needs 1.67 m of hull and 256
+    printed pieces for +250 g; the batten frame needs 2.21 m and ~426 print hours, because
+    battens deep enough not to Euler-buckle under the film's Laplace load come to 1.7 kg; the
+    pressure envelope needs 1.63 m, 47 parts and ~89 h. So do not answer "it is too heavy" by
+    thinning the lattice: the skin is exactly the part that never stops paying (lift ~ a^3,
+    printed skin ~ a^0.8-1.0 measured, FLOAT.md). If a later task goes the film route, what is
+    left printed is the keel tube, the fan housing, the thruster ducts (tapered: 2T at the root,
+    because a duct is a 0.7 m cantilever - an `EXCEPTIONS` entry with this reason) and one duct
+    support ring, and the load path runs through a bonded film-to-keel band that no wall-map
+    checker can see. Rule 1 still holds for every printed member.
 
 ## 4 JOINTS
 
@@ -925,3 +940,27 @@ the branch was parked (its changes may still be inherited by the next task).
   can be the same bad facet, exposed at one size and buried at the other. And do not tune a feature's
   size to satisfy a clearance rule without re-running the wall map: f154's first scoring grew the pad
   to win 0.3 mm and the CR-10 Pro came back with a facet under the nozzle.
+- **f155 float design study - OK.** No model or geometry change: `CurrentModel/Analysis/FLOAT-DESIGN-STUDY.md`
+  and `CurrentModel/Analysis/float_design_study.py` (pure Python + numpy; it imports
+  `float_budget.py` for NET_LIFT, the densities and the film, and reproduces FLOAT.md's x3.8
+  rows to 5 g: 1027 L / 1150 g / +173 g against 1022 / 1145 / +168, so the comparison of shapes
+  is a comparison of shapes). Found: (a) the CR-10 Pro bed forces 16 slices and 256 pieces on the
+  x3.8 lattice build, and that re-piecing alone is +68 g of glue and joint bosses over FLOAT.md's
+  rows; (b) a semi-rigid batten frame is **heavier** than the lattice it replaces - 12 battens and
+  3 rings sized to `SAFETY_FACTOR` 3 against the film's Laplace load (axial N = dp x R x w / 2,
+  Euler over the ring spacing, dp 100 Pa [guess]) is ~0.9 kg at 1.58 m, and a geodesic strut frame
+  is worse again (~850 g of struts before its 42 nodes); (c) the lightest sound ship is a pressure
+  envelope - printed core only (keel tube, fan housing, 4 tapered ducts, one support ring, tray)
+  plus a metallized-PET film held at 200-300 Pa - which floats with **+250 g at 1.63 m hull,
+  1008 g all-up, 1123 L of H2, 47 printed parts, ~89 print hours**, against 1.67 m / 256 parts /
+  143 h for today's skin and 2.21 m / 235 parts / 426 h for the frame. Worked: anchoring every
+  mass on FLOAT.md's rows and every strength on `CurrentModel/Analysis/STRUCTURE-ESTIMATES.md`'s
+  tags, and tagging every new number [measured] / [datasheet] / [guess] the way f152 did. The
+  structure came out of the same maths: keel tube in bending SF 30, duct root under the thruster
+  reaction x 4 SF 15 (but only SF 0.6 with no support ring and 1.1 with a ring at 0.5 a and a T
+  wall - the tapered 2T root is what buys SF 2.3 against a 20 N hand), film in tension SF 6-60.
+  Differently: the two numbers that decide whether any of this is real are not in the CAD at all -
+  the film's grip on the keel rim (the film's Laplace tension at 100 Pa is only 1.3 x the ship's
+  weight, fixed by 200-300 Pa plus a 10 mm bond band) and whether LW-PLA really prints at 0.60
+  g/cm3 (at 0.80 the +250 g margin becomes +149 g). And one 0.1 mm pinhole in a seam leaks 20 L/day
+  of H2, ~100x the whole film's permeation: seal the seams before believing any datasheet.
