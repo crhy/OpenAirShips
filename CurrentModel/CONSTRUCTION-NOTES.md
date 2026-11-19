@@ -413,7 +413,7 @@ without asking.
    before, 58 after.
 10. **No cut boundary may land on a face the part already has.** This is the single most important
     printing rule and it is what every standoff constant exists for: `CREST_EDGE_CLEAR` 0.5,
-    `BRACE_EDGE_CLEAR` 0.5, `PAD_RING_CLEAR` 0.6, `SERVO_WALL` 1.0, `BOSS_INSET` T/2, the guard
+    `BRACE_EDGE_CLEAR` 1.5 (f156: 0.5 left a 0.005 mm sliver of skin between two cut walls five rebuilds running, at five different places within 1.5 mm of the mount), `PAD_RING_CLEAR` 0.6, `SERVO_WALL` 1.0, `BOSS_INSET` T/2, the guard
     solids being strictly looser than the uv clip that made them, `SKIN_TRIM` 0.3 instead of T,
     `OUT_MESH` 1.0, `CUT_OUT` 0.6 clear of the outer face, and since f156 `CUT_FACE_CLEAR` 0.3 -
     the lattice's floor standing off the duct tube's own outer wall face where the lattice now runs
@@ -596,14 +596,16 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   disagreed by up to a millimetre at the seams, keel and bellmouth, so parts of one cut boundary
   arrived at the same place in 3D: 553 face pairs 0.002-0.4 mm apart.
 - **The servo mount's keep-out** (f150/f151 corridor, reshaped by f156 item 2): windows stand
-  `BRACE_EDGE_CLEAR` (0.5 mm) outside the mount's own outline, which is one waisted curve
+  `BRACE_EDGE_CLEAR` (1.5 mm) outside the mount's own outline, which is one waisted curve
   (`servo_mount_outline`) rather than the box `max(RIB, BRACE_W) / 2 + BRACE_EDGE_CLEAR` of arc off
   the equator over `brace_span()`. The box fitted a straight beam; with the ring, waist and bulb
   flare of the new mount a box would leave the pad's corners standing over a cut wall by whatever
   the lattice happened to do. The keep-out is mapped into each cell's own uv frame through that
-  cell's `to_uv`, so it is measured on the skin, not in the mount's frame. **A cell it bites by
-  more than 0.5 % stays solid**, like a seam junction the duct band bites; a graze under that still
-  clips. It first clipped the way the outlet rings do, and that left a cut wall running along the
+  cell's `to_uv`, so it is measured on the skin, not in the mount's frame. **A cell the outline
+  bites by more than 5 % of its own area, or that merely comes within 2 mm of it, stays solid** -
+  the lattice stops 3.5 mm off the mount - like a seam junction the duct band bites; a hairline
+  graze still clips. It first clipped the way the outlet rings do, and that left a cut wall running
+  along the
   mount's own edge: three cells by the bulb flare came out with window walls 0.0087-0.0348 mm apart
   (`build/f156/faces.py`: f110/f120/f142/f143/f145 against f703/f704/f1066/f1067/f1074/f1075 at
   az 16-17 deg, z +-8-9 mm) and the wall map failed the STL on two facets. A keep-out only ever
@@ -686,7 +688,7 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   mm2 footprint where the waisted pad actually covers it (95.4%; the two near corners stand over
   the nose's ellipse, which is what rhY's sketch asks for). f154's `outline_rib_clear()` size
   search is gone: the outline is fixed now and the keep-out is grown from it, so the clearance is
-  `BRACE_EDGE_CLEAR` by construction (measured 0.50 mm at bench).
+  `BRACE_EDGE_CLEAR` by construction (measured 3.71 mm at bench, because the cells beside it are dropped rather than clipped).
 - **Its near edge is still a straight limit, not an arc about the stem axis** — cut to an arc it
   crossed the hole's flare cone at a shallow angle and left a 0.034 mm facet, and cut to the
   keep-out ring itself it sat at distance 0.0000 mm from three window cutters and the fuse produced

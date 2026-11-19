@@ -137,7 +137,7 @@ SERVO_WALL = 1.0         # mm of skin band left round the servo-spline hole: its
                          # (rhY f150 item 2, measured in build/f150/probe1.log). 1.0 mm still
                          # keeps the wall between the Ø8 spline hole and a lattice window over the
                          # 0.40 mm nozzle (Analysis/check_outputs.py NOZZLE) with room to spare.
-BRACE_EDGE_CLEAR = 0.5   # mm the lattice's windows stand OUTSIDE the servo brace's own face and
+BRACE_EDGE_CLEAR = 1.5   # mm the lattice's windows stand OUTSIDE the servo brace's own face and
                          # ends (the same idiom as CREST_EDGE_CLEAR). The brace is BRACE_W wide on
                          # the equator; a window cut that landed exactly on its face would be a cut
                          # boundary on a face that is already there - the sliver issue #36 counts -
