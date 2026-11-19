@@ -1075,7 +1075,7 @@ the branch was parked (its changes may still be inherited by the next task).
   twist along the depth. Next step, in order of cost: probe the pad tool ALONE at the taper
   (`toolprobe.py` already does the fuse) and see whether the fragment is there before the lattice
   is cut; if it is, the mount's tools need a coarser/curvature-aware outline spacing than
-  `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising toward `MOUNT_FILLET_MIN`;
+  `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising toward `MOUNT_FILLET`;
   if it is not, the fragment comes from a lattice cutter and the keep-out rule is still wrong.
   Items 1, 3 and 4 of f156 are measured and clean on their own.
 
