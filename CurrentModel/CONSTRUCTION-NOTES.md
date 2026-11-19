@@ -24,12 +24,12 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 2 GENERATOR MAP: 125-352
 - 3 DESIGN RULES: 353-465
 - 4 JOINTS: 466-523
-- 5 LATTICE AND KEEP-OUTS: 524-620
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 621-705
-- 7 BUILD AND CHECK WORKFLOW: 706-813
-- 8 FAILURE MODES AND FIXES: 814-852
-- 9 rhY's REVIEW HISTORY: 853-874
-- 10 LESSONS LOG: 875-1076
+- 5 LATTICE AND KEEP-OUTS: 524-622
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 623-707
+- 7 BUILD AND CHECK WORKFLOW: 708-815
+- 8 FAILURE MODES AND FIXES: 816-854
+- 9 rhY's REVIEW HISTORY: 855-876
+- 10 LESSONS LOG: 877-1096
 
 Read first, by kind of edit:
 
@@ -1061,11 +1061,29 @@ the branch was parked (its changes may still be inherited by the next task).
   mesher's facet size on a BSpline sweep does follow LinearDeflection (1.25 -> 0.63 mm), which I
   first mis-measured with a filter that selected facets by the very deviation it was reporting.
 
+  NOT FINISHED, and this is the part to read before touching the mount again: the waisted mount
+  does not pass `check_outputs.py` yet. Six rebuilds, and every one ends with 1-2 sampled facets
+  reading 0.005-0.035 mm somewhere within 1.5 mm of the mount's edge - never the same place twice
+  (the beam's edge at u 62, the bulb flare at az 16-17, the taper at az -1 z +-7). Each narrower
+  rule only moved it: clip the cell (fix 1), re-apply the bite after `POLY_CLOSE` (fix 2), butt
+  the beam's two pieces instead of overlapping them (fix 4), drop a cell the outline bites by 5 %
+  (fix 3), drop a cell that merely comes within 2 mm of it (fix 5), `BRACE_EDGE_CLEAR` 0.5 -> 1.5
+  (fix 6) - and fix 5 and fix 6 changed nothing measurable, which is the tell: the last pair is
+  the pad tool's own inner face (r 206.23-206.39 = `PAD_T` 1.5 under the outer face) against a face
+  at r 205.93-205.99, 1.78-1.84 mm down, which is no depth the generator asks for. It is a fragment
+  of the boolean, at the taper, where the outline's concave waist makes the tool's 1 mm side facets
+  twist along the depth. Next step, in order of cost: probe the pad tool ALONE at the taper
+  (`toolprobe.py` already does the fuse) and see whether the fragment is there before the lattice
+  is cut; if it is, the mount's tools need a coarser/curvature-aware outline spacing than
+  `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising toward `MOUNT_FILLET_MIN`;
+  if it is not, the fragment comes from a lattice cutter and the keep-out rule is still wrong.
+  Items 1, 3 and 4 of f156 are measured and clean on their own.
+
 ## Summary: f156 before / after
 
 | | before (main 8c3224c, f154) | after (f156) |
 |---|---|---|
-| bench 8T slice | 30.76 cm3 = 38.1 g PLA | 32.4 cm3 = 40.2 g PLA |
+| bench 8T slice | 30.76 cm3 = 38.1 g PLA | 33.76 cm3 = 41.9 g PLA |
 | CR-10 Pro slice (scale 1.41) | 45.08 cm3 = 55.9 g PLA | 48.0 cm3 = 59.5 g PLA |
 | lattice windows, bench | 36 | 41 |
 | solid skin beside a duct seam | 12.00 mm each side (`CREST_BAND`) | 6.0-7.0 mm (`crest_half`), 0 above the bulb |
@@ -1075,4 +1093,4 @@ the branch was parked (its changes may still be inherited by the next task).
 | outer-surface flushness over the mount | +0.000 mm proud of the hull ellipse (11,562 points) | +0.000 mm proud |
 | duct bore in the print STL | facets 1.25 mm on a side, 0.0154 mm inside the true R 12 tube | facets ~0.7 mm, ~0.005 mm inside |
 | mesh | 0.03 mm / 0.1 rad, 115,658 facets, 9.7 MB | 0.015 mm / 0.05 rad, ~205,000 facets, 17.5 MB (cap 90 MB) |
-| wall minimum, bench / CR-10 Pro | 0.42 mm / 0.44 mm | see gates/f156-check.txt |
+| wall minimum, bench / CR-10 Pro | 0.42 mm / 0.44 mm | 0.005 mm at 2 facets by the mount's taper - NOT YET PASSING, see section 10 f156 |
