@@ -2106,6 +2106,14 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     # that thin standing in the hole. Ribs (RIB = 2.0 mm) and the webs between
     # windows are far wider, so nothing structural moves.
     poly = poly.buffer(-POLY_CLOSE).buffer(POLY_CLOSE)
+    # ... but erode-then-dilate pushes the boundary back OUT past any keep-out edge it was
+    # clipped to, by up to POLY_CLOSE. Measured on f156 item 2's mount: the closing put a
+    # window's wall 0.005 mm off the servo beam's own face at u 61.8, v -5.0 - one pair of
+    # self-intersecting facets in the mesh and six facets reading a 0.005 mm wall (the only
+    # self-intersection in the whole part at any deflection, at model x 205.9 y 7.3 z -4.4,
+    # build/f156/selfint.py). Put the protected skin back after the closing, not before it.
+    for b_ in bitten:
+        poly = poly.difference(b_)
     parts = [g for g in getattr(poly, "geoms", [poly]) if g.geom_type == "Polygon" and g.area > 6.0]
     if not parts:
         return None
@@ -2799,7 +2807,10 @@ def servo_pad():
     if tool is None:
         return None
     mo = servo_mount_outline()
-    d, at = outline_rib_clear(mo[1], skin_frame(math.asin(max(-1.0, min(1.0, OUT_Z / B))),
+    # measure the mount's OWN outline, not the keep-out grown from it: the lattice's walls
+    # lie on the grown boundary by construction, so measuring that prints 0.00 mm and looks
+    # like a violation (f156: it sent a whole rebuild chasing a fault that was not there).
+    d, at = outline_rib_clear(mo[0], skin_frame(math.asin(max(-1.0, min(1.0, OUT_Z / B))),
                                                 math.radians(g["az_s"]))[0])
     print("servo pad: ring %.1f mm across, nose tip %.2f mm from the near seam's stem axis, "
           "bond %.0f mm2, lattice-wall clearance %.2f mm%s"
