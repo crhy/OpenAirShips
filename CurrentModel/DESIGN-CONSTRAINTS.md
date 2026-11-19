@@ -14,11 +14,12 @@ These rules come from the design owner. Don't trade any of them away for weight 
 - **The ducts never get smaller** (Ø24 mm bore, ending in a Ø32 bulb and a Ø22 stem; Ø34 on the 4-thruster bench and Kobra Max builds). Only their walls are thinned, to the printable minimum.
 
 ## Outside shape
-- **The hull's outside is a smooth ellipsoid (207.765 × 104 mm semi-axes).** The pipes and ducts run inside it. Only the thruster stems and servo gear hubs pass through round holes in the skin, and only the 5 joint pegs per slice stick out, into the neighbouring slice.
+- **The hull's outside is a smooth ellipsoid (207.765 × 104 mm semi-axes).** The pipes and ducts run inside it. Only the thruster stems and servo gear hubs pass through round holes in the skin, and only the 4 joint pegs per slice stick out, into the neighbouring slice - and their bosses stay under the outer skin, so the ellipsoid stays smooth.
 
 ## Weight and printing (Prusa MK3S+, 0.4 mm nozzle)
 - **Walls are 0.86 mm** (2 perimeters of 0.45 mm at 0.2 mm layers). That's the minimum that prints airtight, and nothing structural is thinner. Ribs are 2.0 mm wide.
 - **Anything that isn't structurally essential is hollow.** The skin is two columns of large oval cells, laid out on the curved skin. Every junction is a hollow window, so every web between windows is 2.0 mm wide and nothing is thicker. The seam junctions stop short of a continuous 1 mm edge strip, so the seams stay contiguous.
+  - **Two exceptions, both where hardware or load asks for them:** the skin stays solid in a ring round each thruster outlet (the bearing sleeve's own footprint, and a ring round the servo-spline hole), and along the equator, where a 2.0 mm rib one skin band deep runs from the servo mount to the far duct as the **servo brace**. The lattice is *clipped* to both, never dropped whole for them.
 - **No decks in the bench model.** The only floor is the fan-housing ceiling.
 - **8 slices plug together**, with pegs on the +22.5° seam and holes on the −22.5° seam. The 8-thruster hull uses 8 identical slices. The 4-thruster hull alternates 4 left and 4 right slices, each pair closing one duct.
 - **Scaling up keeps the walls thin.** A bigger hull grows its outline and lattice cells, but not its wall and rib thickness, so hydrogen volume (size³) outgrows printed mass (about size^1.3). Never scale the STL uniformly.
