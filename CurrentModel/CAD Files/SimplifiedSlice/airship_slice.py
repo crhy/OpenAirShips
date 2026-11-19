@@ -1817,18 +1817,36 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     # In this uv frame the band is a straight u-strip (u = (azimuth - theta) * x0 is the
     # perpendicular distance from the seam plane), so the clip is exact and the lattice simply
     # stops at the band's edge - the cells keep their rib lines, they are re-flowed around it.
+    on_seam = abs(abs(theta) - th_half) < 1e-9      # a junction laid out ON a seam plane
+    band_bit = 0.0
     for s_ in duct_seams():
         u_c = (math.radians(s_) - theta) * x0
         # the band only runs the duct's own height (crest_psi_range): above the duct's
         # end there is no air under the skin, so the lattice runs to the seam there too
         v_c = sorted((sgn * (crest_psi_range()[0] - psi) * ds,
                       sgn * (crest_psi_range()[1] - psi) * ds))
-        bite = box(u_c - (CREST_BAND + MIN_WEB - CREST_EDGE_CLEAR), v_c[0],
-                   u_c + (CREST_BAND + MIN_WEB - CREST_EDGE_CLEAR), v_c[1])
+        half = crest_half(psi) + MIN_WEB - CREST_EDGE_CLEAR
+        if half <= 0.0:
+            continue          # no band here at all (above the duct's run)
+        bite = box(u_c - half, v_c[0], u_c + half, v_c[1])
+        before = poly.area
         poly = poly.difference(bite)
+        band_bit += before - poly.area if not poly.is_empty else before
         if poly.is_empty:
             return None
         bitten.append(bite)
+    # f156 item 1 (rhY at the print, crop 11: "Diamond on the central band is half filled.
+    # Let's fill it all the way."): a junction laid out ON A SEAM whose cell the duct band
+    # bites is filled WHOLE, both halves, symmetric about the seam plane.
+    # What rhY saw: the junction diamond at a seam is one cell shared by the two slices, and
+    # the band's u-strip took its inner part while its outer part stayed an open window - a
+    # diamond solid on one half and a slit on the other. The seam plane already cuts this
+    # cell, and rule 8 (rhY f118 item 4) is that a cell an EDGE cuts stays filled "for
+    # strength": the band's edge is an edge of the lattice too. So the whole diamond stays
+    # solid skin. Junctions at a seam ABOVE the duct's run are untouched - the band does not
+    # bite them and they stay open, as f151 opened them.
+    if on_seam and band_bit > 1e-9:
+        return None
         # f151 item A: the crest band is a BOUNDARY of the lattice, not a bite out of a cell.
         # The column's outer edge IS the band's edge (column_bounds takes outer = crest_half =
         # CREST_BAND), so the solid skin over the duct is not part of any cell - the ovals are
