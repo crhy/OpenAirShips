@@ -138,13 +138,16 @@ from that file at this commit. Variant switches are environment variables, read 
   `ROWS_ABOVE_EQ` 239.
 - Cutter geometry: `SKIN_MARGIN` 178, `CUT_OUT` 186, `CUT_IN` 194, `CUT_MESH` 199, `RING_WELD` 211,
   `OUT_MESH` 222, `TILE_EDGE` 244 (f154).
-- Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `CUT_FACE_CLEAR` 102 (f156), `SERVO_WALL` 133,
-  `BRACE_EDGE_CLEAR` 140, `BRACE_OUT` 146, `CREST_BAND` 419.
-- Servo brace and pad: `BRACE_W` 169, `BRACE_D` 184, `BRACE_IN` 195, `SERVO_BRACKET_L` 200,
-  `SERVO_BRACKET_W` 201, `PAD_MARGIN` 203, `PAD_T` 204, `PAD_CORNER` 222, `PAD_EDGE_CLEAR` 223
-  (f154), `PAD_RIB_CLEAR` 231 (f154), `PAD_RING_CLEAR` 242, and the waisted mount's own outline
-  constants `MOUNT_RING` 109, `MOUNT_BULGE` 114, `MOUNT_FILLET` 116, `MOUNT_CAP` 120,
-  `MOUNT_TAPER` 124, `MOUNT_FLARE` 125, `MOUNT_END` 126, `MOUNT_AIR_MARGIN` 132 (f156 item 2).
+- Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `CUT_FACE_CLEAR` 102 (f156), `SERVO_WALL` 129,
+  `BRACE_EDGE_CLEAR` 136 (f158: 1.5 -> 2.5), `MOUNT_KEEP` 142, `SEAM_JUNCTION_OPEN` 142,
+  `BRACE_OUT` 152, `CREST_BAND` 419.
+- Servo brace and pad: `BRACE_W` 175, `BRACE_D` 190, `BRACE_IN` 201, `SERVO_BRACKET_L` 206,
+  `SERVO_BRACKET_W` 207, `PAD_MARGIN` 209, `PAD_T` 210 (f158: it is now `max(2 * T, BRACE_D)` —
+  the mount has ONE depth), `PAD_CORNER` 233, `PAD_EDGE_CLEAR` 234
+  (f154), `PAD_RIB_CLEAR` 242 (f154), `PAD_RING_CLEAR` 256 (f158: 0.6 -> 2.5), and the mount's own outline
+  constants `MOUNT_RING` 109, `MOUNT_BLEND` 114 (f158: ring, blend, cap - f156's flare, bulb,
+  fillet and end constants are gone), `MOUNT_CAP` 124,
+  `MOUNT_AIR_MARGIN` 128 (f156 item 2).
 - Fan housing and shaft: `FLOOR_Z` 74, `INTAKE_R` 76, `EYE_R` 251, `IMP_TIP_R` 252, `SHAFT_R` 257,
   `SHROUD_RC` 258, `NOZZLE_L` 259, `SHROUD_GAP` 260, `HATCH_R` 264, `HATCH_WALL_TOP` 265,
   `LUG_R` 266, `LUG_Z` 267, `LUG_HALF` 268, `POST` 269.
@@ -279,15 +282,18 @@ Ducts, outlets, brace:
 - `brace_span` 2503 — the azimuths the servo beam runs between, along the equator. Still what
   `Analysis/brace_sizing.py` measures its span with (conservative: the waisted mount supports the
   beam's first half). f156 item 2: clip_window no longer uses it — the keep-out is the outline.
-- `mount_geom` 2528 / `mount_half_w` / `mount_ring_pts` / `servo_mount_outline` 2649 — the mount's
-  one waisted outline in the uv frame centred on the spline hole: nose, ring, taper, beam, flare,
-  cap. Its far end is bisected against the duct's air (`AIR_KEEP` + `MOUNT_AIR_MARGIN`).
-  servo_pad(), servo_brace(), clip_window().
-- `servo_mount_area` 2703 — the bonded area (the bracket's footprint where the pad covers it) and
+- `mount_geom` 2554 / `mount_half_w` 2627 / `mount_ring_pts` 2642 / `servo_mount_outline` 2669 —
+  the mount's one outline in the uv frame centred on the spline hole: elliptical nose, the ring
+  under the bracket, ONE cosine blend, the strip on the equator to its buried end face. Its far end
+  is bisected against the duct's air (`AIR_KEEP` + `MOUNT_AIR_MARGIN`).
+  servo_brace(), clip_window(), servo_mount_area().
+- `servo_mount_area` 2706 — the bonded area (the bracket's footprint where the ring covers it) and
   the load's footprint, for `Analysis/brace_sizing.py --check`.
-- `servo_brace` 2723 — the beam and bulb-flare end of that outline, `BRACE_W` x `BRACE_D` deep.
-  build().
-- `servo_pad` 2768 — the ring end of the same outline, `PAD_T` counting the band. build().
+- `_mount_tool` 2727 / `servo_brace` 2753 — the whole mount as ONE `skin_cutter` tool over ONE
+  outline at ONE depth, `max(2 * T, BRACE_D)`: ring, blend and `BRACE_W` x `BRACE_D` strip. build().
+- `servo_pad` 2807 — since f158 a no-op that returns None: the pad is the RING end of the same one
+  tool, and a second tool over the same outline at a second depth is what made the sliver (see 8).
+  build() still fuses the two names one after the other.
 - `stem_and_servo_holes` 2536 — the flared stem hole and the servo spline hole, in the OUTLET frame
   (stem on +x, servo at y = `SERVO_T`): comparing them to slice-frame shapes without rotating is a
   probe bug f150 hit. build().
@@ -341,9 +347,11 @@ Pieces, pose, output:
    window's own faces can sit on a tangent the plain boolean will not resolve (f151 at scale 1.41:
    plain -0.006 mm3, fuzzy 629.1 mm3, which is the whole band under it).
 4. Fuse the joint bosses and sleeves, intersected with the envelope.
-5. Fuse `servo_brace()` then `servo_pad()`, **one after the other**: they overlap by 117 mm3 and
-   fusing them as one compound breaks the body (45,679 mm3 in 2 solids, 307 faces instead of
-   8,399 — f151's fuse probe).
+5. Fuse `servo_brace()` (the whole mount: one tool, one outline, one depth) and then
+   `servo_pad()`, which returns None. f156 fused the pad and the beam **one after the other**
+   because they overlapped by 117 mm3 and fusing them as one compound broke the body (45,679 mm3 in
+   2 solids, 307 faces instead of 8,399 — f151's fuse probe); f158 has nothing left to fuse, which
+   is the point.
 6. Fuse the duct walls, then cut the bore, then cut the stem hole (so the brace's tip ends buried
    in the solid band round the bearing boss), then the servo hole.
 7. Cut the holes, fuse the pegs, cut the hatch hole, then clean().
@@ -405,15 +413,35 @@ without asking.
    full cell is an open window." That is why `MIN_WEB` is 0.0. Solid skin stays only where it must:
    the duct's air walls, the crest band, the outlet rings sized to the hardware, the joint bosses,
    the stem bearing.
+   **f158 R1 asked to narrow it for cells by the ducts** — rhY 2026-11-19 (crop 12): "The half
+   diamonds by the ducts need to be emptied for weight. Clip them by the ducts and the other
+   clearance and open them up, instead of filling them all", reversing f156 item 1 of the same
+   review ("Diamond on the central band is half filled. Let's fill it all the way"). The clip is
+   implemented — `clip_window` clips the junction by the band a `RIB` further out than a cell's,
+   and what is left outside crest_half(psi) becomes a clipped window — and it is **shipped
+   closed**: `SEAM_JUNCTION_OPEN` is False, because at 1.41 the opened window beside the mount's
+   plate left a chain of 0.3-1.5 mm2 faces at r 289-291, az -19.7..-21, z 14-21, a 0.0248 mm face
+   pair and four self-intersecting facet pairs at every mesh deflection (`build/f158/facesf158.py`,
+   `selfint-cr10.log`). So the seam junction a duct band bites stays filled whole: the band's edge
+   is the duct's wall, rule 2 (no window over a duct) and `crest_keepout()` never budge, and the
+   weight R3 wanted came out of the mount and the equator cells instead. Flip the constant and
+   read those logs first: the 1.5 mm of clearance the mount's plate wants beside a clipped window
+   is the part that is not right yet.
 9. **A cell a keep-out trims is cut clipped, not dropped** (f151, rhY 2026-11-18: the middle of the
    slice was "an hourglass of solid skin"). The lattice's own bounds clip a cell; the keep-outs bite
    it; a cell that keeps >= `MIN_KEEP` (0.50) of **its own area inside those bounds** is cut as
    cell-minus-keep-outs with corners rounded to `CELL_CLOSE`; below that it stays solid, and
    anything under `MIN_OPEN_AREA` (20 mm2) is a crescent, not a window. Bench slice: 36 windows
-   before, 58 after.
+   before, 58 after; f156's fills took it back to 40 and f158 opens them again (57 at bench, 62 at
+   1.41), with the servo mount's own keep-out running by the `MOUNT_KEEP` (0.6) variant of the same
+   rule — see 5.
+   **A cell a solid feature covers WHOLLY is still cut** (f158): the feature's own plate closes
+   the window, the lattice's wall stands `BRACE_EDGE_CLEAR` off the plate's face, and not cutting
+   it is solid skin the feature could not use — which is what f156's +2.5 cm3 of skin at bench
+   bought.
 10. **No cut boundary may land on a face the part already has.** This is the single most important
     printing rule and it is what every standoff constant exists for: `CREST_EDGE_CLEAR` 0.5,
-    `BRACE_EDGE_CLEAR` 1.5 (f156: 0.5 left a 0.005 mm sliver of skin between two cut walls five rebuilds running, at five different places within 1.5 mm of the mount), `PAD_RING_CLEAR` 0.6, `SERVO_WALL` 1.0, `BOSS_INSET` T/2, the guard
+    `BRACE_EDGE_CLEAR` 2.5 (f156 raised it 0.5 -> 1.5 when a 0.005 mm sliver of skin between two cut walls showed at five places within 1.5 mm of the mount; f158's clipped windows beside the strip wanted 2.5, and it left 0.024-0.08 mm face chains at 1.5 - `build/f158/faces-seam.log`), `PAD_RING_CLEAR` 2.5 (f154 set 0.6, and at 1.41 that 0.6 mm corridor between the stem ring's clipped window wall and the mount's nose face filled with the same chain), `SERVO_WALL` 1.0, `BOSS_INSET` T/2, the guard
     solids being strictly looser than the uv clip that made them, `SKIN_TRIM` 0.3 instead of T,
     `OUT_MESH` 1.0, `CUT_OUT` 0.6 clear of the outer face, and since f156 `CUT_FACE_CLEAR` 0.3 -
     the lattice's floor standing off the duct tube's own outer wall face where the lattice now runs
@@ -595,30 +623,31 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   `to_skin`. Laying a polygon out on the tangent plane and putting it back with the unrolled map
   disagreed by up to a millimetre at the seams, keel and bellmouth, so parts of one cut boundary
   arrived at the same place in 3D: 553 face pairs 0.002-0.4 mm apart.
-- **The servo mount's keep-out** (f150/f151 corridor, reshaped by f156 item 2): windows stand
-  `BRACE_EDGE_CLEAR` (1.5 mm) outside the mount's own outline, which is one waisted curve
+- **The servo mount's keep-out** (f150/f151 corridor, waisted by f156 item 2, re-flowed by f158):
+  windows stand `BRACE_EDGE_CLEAR` (2.5 mm since f158; f156 shipped 1.5) outside the mount's own outline, which is one curve
   (`servo_mount_outline`) rather than the box `max(RIB, BRACE_W) / 2 + BRACE_EDGE_CLEAR` of arc off
-  the equator over `brace_span()`. The box fitted a straight beam; with the ring, waist and bulb
-  flare of the new mount a box would leave the pad's corners standing over a cut wall by whatever
-  the lattice happened to do. The keep-out is mapped into each cell's own uv frame through that
-  cell's `to_uv`, so it is measured on the skin, not in the mount's frame. **A cell the outline
-  bites by more than 5 % of its own area, or that merely comes within 2 mm of it, stays solid** -
-  the lattice stops 3.5 mm off the mount - like a seam junction the duct band bites; a hairline
-  graze still clips. It first clipped the way the outlet rings do, and that left a cut wall running
-  along the
-  mount's own edge: three cells by the bulb flare came out with window walls 0.0087-0.0348 mm apart
+  the equator over `brace_span()`. The box fitted a straight beam; with a ring and a strip a box
+  would leave the ring's corners standing over a cut wall by whatever the lattice happened to do.
+  The keep-out is mapped into each cell's own uv frame through that cell's `to_uv`, so it is
+  measured on the skin, not in the mount's frame. Three cases (`clip_window`): **a cell the grown
+  outline covers WHOLLY is cut as an ordinary window** — the mount's own plate closes it and its
+  side faces stay `BRACE_EDGE_CLEAR` from every cut wall; **a cell the outline CROSSes is a clipped
+  window**; a cell is filled only when the mount takes >= `MOUNT_KEEP` (0.6) of its own area,
+  because what is left then is a crescent, not a window.
+  f156's two rules — fill any cell the outline bites by more than 5 %, fill any cell that merely
+  came within 2 mm of it — are **gone**: they were chasing the coincident-face sliver, they did not
+  remove it (f156's own fixes 5 and 6 "changed nothing measurable"), and they cost a column of
+  solid skin along the equator and the mass rhY R3 marks. The sliver's real cause was one outline
+  built at two depths, not the clipped windows (see 8): f158 builds the mount as ONE tool at ONE
+  depth, and the clipped windows then measure 1.45 mm of skin off the mount's face at bench, which
+  is what `BRACE_EDGE_CLEAR` asks for.
+  What the fills were protecting against is real: two cells clipped by the SAME curve leave their
+  walls ON that curve, and the boolean resolves the zero-thickness rib between them at 0.01-0.03 mm
   (`build/f156/faces.py`: f110/f120/f142/f143/f145 against f703/f704/f1066/f1067/f1074/f1075 at
-  az 16-17 deg, z +-8-9 mm) and the wall map failed the STL on two facets. A keep-out only ever
-  removes area from a window, so the rib between two clipped cells is wider than the layout's
-  `RIB`, never thinner - but two cells clipped by the SAME curve leave their walls ON that curve,
-  and the boolean resolves the zero-thickness rib between them at 0.01-0.03 mm.
-  **The bite also has to be re-applied after the last `POLY_CLOSE` erode-dilate**, not only before
-  it: the closing pushes the boundary back out past any edge it was clipped to, by up to
-  `POLY_CLOSE`, and with the mount's 0.5 mm corridor that put a window's wall 0.005 mm off the
-  servo beam's own face - one pair of self-intersecting facets and six thin-wall readings, the only
-  self-intersection in the whole part at any deflection (`build/f156/selfint.py`, model
-  x 205.9 y 7.3 z -4.4). With the bite re-applied the mount's own outline stands 0.436 mm off the
-  nearest parallel wall at bench (`build/f156/clearprobe.py`).
+  az 16-17 deg, z +-8-9 mm). Hence clipping to the outline GROWN by `BRACE_EDGE_CLEAR`, so the two
+  walls of one clip are 3 mm apart and never 0, and `POLY_CLOSE`'s erode-dilate being undone by the
+  bite again (`build/f156/clearprobe.py`: the mount's own outline stands 0.436 mm off the nearest
+  parallel wall at bench with the bite re-applied, 0.005 mm without it).
 
 ## 6 DUCTS, BULB, STEM, SERVO, BRACE
 
@@ -646,34 +675,39 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   4.3 cm3) epoxied to the INSIDE of the skin centred on the Ø8 spline hole, which sits `SERVO_T`
   (36 mm bench, 44 mm large) along the tangent from the seam, on the equator. There is no servo
   boss in the slice: the only material there is the pad.
-- **Servo mount** (`servo_mount_outline`, `mount_geom`, `servo_brace`, `servo_pad`): one waisted
-  solid rib on the inside of the skin, in the uv frame centred on the Ø8 spline hole — an
-  elliptical nose (`MOUNT_CAP` 9.0 x `MOUNT_RING` 13.0), the wide ring round the hole, a cosine
-  taper (`MOUNT_TAPER` 26) down to the beam's own width `BRACE_W` / 2, a straight beam, a cosine
-  flare (`MOUNT_FLARE` 16) out to `MOUNT_BULGE` 10.0, and a rounded cap (`MOUNT_FILLET` 6.0). The
-  ring end is `servo_pad` at `PAD_T` 1.5 deep, the beam and flare end `servo_brace` at `BRACE_D`
-  2.5 deep; the two overlap so the step between the depths is inside the mount, and the beam's
-  first 12 mm stand 0.8 mm INSIDE the outline (see the shell-fuse warning below). 2370 mm2 of
-  footprint at bench (`build/f156/mountshape.py`), least radius of curvature 6.00 mm, largest kink
-  between neighbouring outline points 7.5 deg.
+- **Servo mount** (`servo_mount_outline`, `mount_geom`, `mount_half_w`, `mount_ring_pts`,
+  `servo_brace`, `_mount_tool`): one solid rib on the inside of the skin, in the uv frame centred
+  on the Ø8 spline hole — an elliptical nose (`MOUNT_CAP` 9.0 x `MOUNT_RING` 13.0), the wide RING
+  under the bracket's footprint (its straight side stops 21.65 mm along the equator =
+  `SERVO_BRACKET_L / 2 + PAD_EDGE_CLEAR`, so it covers the bracket's whole 42.3 x 24.2 mm foot),
+  ONE cosine blend (`MOUNT_BLEND` 26) down to the strip's own width `BRACE_W` / 2, and a straight
+  strip of that width on to `u_far`, where its end face is buried in the uncut skin. 2129 mm2 of
+  footprint at bench (`build/f158/mountshape.py`), least radius over the visible outline 6.23 mm.
+  It is ONE tool (`_mount_tool`) at ONE depth, `max(2 * T, BRACE_D)` = 2.5 mm under the outer face
+  from `BRACE_OUT` 0.3: the whole mount is one parallel surface of the hull, so there is no step
+  and no ridge on the inside (f158, rhY: "no straight segment, no step, no ridge"), and the pad's
+  plate is 2.5 mm, not `PAD_T` 1.5.
 
   f156 item 2 (rhY at the CR-10 Pro print: "Brace around the servo looks stupid and isn't flush
   with the outer hull ellipse", and his sketch of a ring round the hole flowing into the beam on
-  one side and the duct bulb on the other, "fillet radius >= 5 mm, no corners"). f151-f154's mount
-  was a rounded rectangle under the bracket plus a separate square-ended beam meeting it at a
-  step. Flushness was never the fault: `check_flush.py` measures the outer surface of both the old
-  and the new mount against the hull's own ellipse and gets +0.000 mm maximum deviation over
-  11,562 points — `skin_cutter` builds every tool from the skin's own surface. What was wrong was
-  the silhouette.
+  one side and the duct bulb on the other, "fillet radius >= 5 mm, no corners") built a waisted pad
+  with a bulb flare and a rounded cap; f158 (rhY, crops 13/14: "a weird vestigial equatorial brace
+  that sticks out inside and does not perfectly conform to the AirShip's outer hull ellipse", "The
+  servo mount is a compact ring round the spline hole blended into that strip, not a big waisted
+  pad") took the flare, the bulb and the cap out again: they stood 2 mm past the skin's inner face
+  on a step, and their flare crossed the lattice diagonally. Flushness was never the fault —
+  `check_flush.py` measures the outer surface against the hull's own ellipse and gets +0.000 mm
+  maximum deviation over 11,562 points for either shape, because `skin_cutter` builds every tool
+  from the skin's own surface. What was wrong was the silhouette and the mass.
 - **The mount's far end is set by the duct's air, not by the seam.** `mount_geom` bisects `u_far`
   out to the largest value whose end face, at `BRACE_D` deep, still keeps `AIR_KEEP` +
   `MOUNT_AIR_MARGIN` of wall to the duct's air: 116.67 mm along the tangent at bench, 10.51 mm
   inside the far seam's plane, 1.12 mm to the air. Its end face stands inside the far stem
-  keep-out ring's disc (10.51 of 14.60 mm), so it is buried in uncut skin; the flare's two corners
-  fall outside that disc and sit on the skin the mount's own keep-out leaves uncut. f150/f151's
-  warning stands: ending the beam at `CREST_BAND` (12 mm of arc) put its tip inside the stem hole's
-  flare (13.93 mm at the outer face) and build()'s stem-hole cut sliced the tip into a sliver
-  standing inside the hole's swept volume.
+  keep-out ring's disc (10.51 of 14.60 mm), so it is buried in uncut skin. f150/f151's warning
+  stands: ending the beam at `CREST_BAND` (12 mm of arc) put its tip inside the stem hole's flare
+  (13.93 mm at the outer face) and build()'s stem-hole cut sliced the tip into a sliver standing
+  inside the hole's swept volume. f156's bulb flare put two of its corners OUTSIDE that disc, on
+  skin its own keep-out left uncut — one more reason the flare is gone.
 - **Beam section unchanged, and still the sizing that sets it** (`Analysis/brace_sizing.py`, rule
   11, `Analysis/STRUCTURE-ESTIMATES.md`): `BRACE_W` 9.0 mm along the hull x `BRACE_D` 2.5 mm deep
   from the outer skin = 22.5 mm2, starting `BRACE_OUT` 0.3 mm under the outer face. The load that
@@ -683,18 +717,21 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   carries it with `Z = BRACE_D * BRACE_W^2 / 6`: 33.8 mm3 and SF 3.13 at 9.0 x 2.5, against 18.0
   mm3 and SF 1.67 at f151's 6.0 x 3.0. `brace_sizing.py --check` now reads the mount's own
   footprint out of the generator instead of a hardcoded rectangle, and reports the whole mount:
-  beam SF 3.13, pad plate SF 3.25 (`PAD_T` 1.5 against a 1.44 mm requirement for the MG90S), bond
+  beam SF 3.13, pad plate SF 9.02 (`PAD_T` = `max(2 * T, BRACE_D)` 2.5 against a 1.44 mm requirement
+  for the MG90S; f156 read 3.25 with the pad at 1.5), bond
   shear SF 314 against the PLA, peel SF 916, over a bonded area of 977 mm2 — the bracket's 1024
-  mm2 footprint where the waisted pad actually covers it (95.4%; the two near corners stand over
+  mm2 footprint where the ring actually covers it (95.4%; the two near corners stand over
   the nose's ellipse, which is what rhY's sketch asks for). f154's `outline_rib_clear()` size
   search is gone: the outline is fixed now and the keep-out is grown from it, so the clearance is
-  `BRACE_EDGE_CLEAR` by construction (measured 3.71 mm at bench, because the cells beside it are dropped rather than clipped).
+  `BRACE_EDGE_CLEAR` by construction (measured 1.45 mm at bench — the cells beside the strip are
+  clipped, not dropped, and the strip's own end corner is the one point that comes closer than the
+  grown boundary).
 - **Its near edge is still a straight limit, not an arc about the stem axis** — cut to an arc it
   crossed the hole's flare cone at a shallow angle and left a 0.034 mm facet, and cut to the
   keep-out ring itself it sat at distance 0.0000 mm from three window cutters and the fuse produced
   a solid whose shell is closed and whose faces are all valid while the solid itself is not
   (`isValid` False, build/f151/gen-8T.log). The nose's tip stands at `stem_keep_r() +
-  PAD_RING_CLEAR` = 15.20 mm off the near stem axis; the rest of the ellipse falls away from the
+  PAD_RING_CLEAR` off the near stem axis; the rest of the ellipse falls away from the
   ring faster than the ring does.
 - A note for whoever re-shapes it: `skin_cutter()` offsets its rings along the surface **normal**,
   which fans out over psi — harmless for a window, wrong for a rib 1.42 mm deep and 2 mm wide,
@@ -843,7 +880,13 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | one sampled facet 0.027-0.055 mm2 whose ray reads 0.03 mm to a face sharing two of its vertices | a degenerate triangle: three near-collinear points, so its normal is noise and the ray leaves it sideways. All three vertices sit at one cap depth, so it is a cap triangle, not a wall | do not let the tiling make one: `TILE_EDGE` keeps `skin_cutter()`'s interior grid lines off the outline's own vertices. `MIN_FACET_AREA` only skips facets under 1e-4 mm2, so a 0.027 mm2 one is a real FAIL | f154 |
 | a fused rib's own face sits 0.005 mm off a lattice window's wall: one pair of self-intersecting facets at any deflection, and a handful of 0.005-0.02 mm wall readings, all at one spot | `clip_window()`'s last act is an erode-dilate by `POLY_CLOSE`, and that closes the boundary back OUT across a keep-out edge it had been clipped to | re-subtract the keep-out polygons after the closing (`bitten`), then take the largest part | f156 |
 | the generator prints "lattice-wall clearance 0.00 mm" for the servo mount and a rebuild is spent on it | `outline_rib_clear` was handed the outline grown by `BRACE_EDGE_CLEAR`: the lattice's walls lie on that boundary by construction, so it reads 0.00 mm always | measure the feature's OWN outline against the walls (`mo[0]`, not `mo[1]`); the real number is 0.436 mm at bench | f156 |
-| the pad and the beam of one feature fuse to a SHELL (volume 0.0 mm3, isValid False) when probed alone, and in the real part leave a swarm of 0.02-1.9 mm2 faces along one edge, one self-intersecting facet pair at every deflection, and 0.005 mm wall readings | two `skin_cutter` tools over the SAME outline at DIFFERENT depths: their rings are offset along the skin's normal, which fans over psi, so their side faces are coplanar to 0.0002-0.0075 mm rather than coincident, and the boolean cannot close them | inset the deeper tool inside the outline where they overlap (`_mount_tool(..., inset=0.8)`): the outline the eye sees and the keep-out is drawn from is unchanged, the step is inside the mount. Probe the feature's tools alone before building: `build/f156/toolprobe.py` | f156 |
+| the pad and the beam of one feature fuse to a SHELL (volume 0.0 mm3, isValid False) when probed alone, and in the real part leave a swarm of 0.02-1.9 mm2 faces along one edge, one self-intersecting facet pair at every deflection, and 0.005 mm wall readings | two `skin_cutter` tools over the SAME outline at DIFFERENT depths: their rings are offset along the skin's normal, which fans over psi, so their side faces are coplanar to 0.0002-0.0075 mm rather than coincident, and the boolean cannot close them | **one tool over one outline at one depth** (`_mount_tool(max(2 * T, BRACE_D))`, f158). f156's answer - inset the deeper tool 0.8 mm inside the outline where they overlap - only MOVED the sliver (it followed the pad tool's own inner face, r 206.23-206.39 mm, wherever that was), and the step between the two depths is itself a feature rhY marked ("no step, no ridge"). Probe a feature's tools alone before building: `build/f156/toolprobe.py` | f156, fixed f158 |
+| the wall map fails the STL with 0.005-0.05 mm readings in a band under the mount, and six rebuilds of standoffs, clips and fills move it without removing it | the mount was ONE outline built as TWO tools at TWO depths (above); the fills then tried to hide it by removing the clipped windows beside it | take the real cause out: one tool, one depth. Then put the fills back: f158 deleted "fill a cell the outline bites by > 5 %" and "fill a cell within 2 mm of it", cut any cell the mount covers wholly, and the wall map passes at 0.357 mm (1 facet of 5550 under the nozzle) where f156 read 0.007 mm at 8 facets | f156, fixed f158 |
+| a rebuild is spent because a filled cell is wanted "for strength" and the print comes back heavier than the task before it | a keep-out that FILLS instead of CLIPPING removes lattice windows, and a lattice window is where the mass already is: f156's fills cost +2.5 cm3 of skin at bench, +7 cm3 at CR-10 Pro | a keep-out may only ever REMOVE area from a window (clip it), never add skin; when a solid feature needs a wall under it, build the wall as the feature and let the lattice cut under it | f156 (rhY: "the weight is too much"), f158 |
+| 0.01 mm wall readings and a chain of 0.05-2 mm2 Plane faces 0.024-0.08 mm apart, at 1.41 only, along the mount's nose and along its strip (r 289-291, az -19..-21, z -13..-21) | a corridor the cut walls share: 0.6 mm between the stem ring's clipped window wall and the mount's own nose face (`PAD_RING_CLEAR`), and 1.5 mm between a clipped window's wall and the mount's side face (`BRACE_EDGE_CLEAR`) - at the bigger print a cutter's cap tile lands in that corridor and the boolean resolves it into slivers | widen the corridor: `PAD_RING_CLEAR` 0.6 -> 2.5 and `BRACE_EDGE_CLEAR` 1.5 -> 2.5 (measured at 1.41: the mesh stopped self-intersecting at every deflection, `build/f158/cr10-r6.log`). The bench print never showed it, which is why the standoffs were raised only after a 1.41 rebuild (`build/f158/faces-seam.log`) |
+| a clipped window's wall 0.013 mm off the mount's own side face, mid-strip (r 290, z 4, az -6: the blend where the ring narrows into the strip) | the lattice keep-out clip maps the mount's grown ring through each cell's own uv map and resamples it as a polyline, so the clip boundary wanders ~0.01 mm off the curve `BRACE_EDGE_CLEAR` is meant to measure | grow the clip by 0.1 mm (`poly.buffer(BRACE_EDGE_CLEAR + 0.1, ...)` in `_mount_shape`): it can only over-clear a window, never eat into the standoff | f158 |
+| opening the seam junctions (f158 R1) makes a self-intersecting mesh at EVERY mesh deflection at 1.41, plus a swarm of 0.0001-1.5 mm2 faces around r 290, az -19..-22, z 14-21 and a 0.30 mm wall at the seam | the junction and the two ovals beside it are clipped by the SAME crest-band bite box, so their inner walls are one and the same face: a rib of zero width, which the boolean closes into a knife edge | a junction's bite stands `RIB` further out of the band than a cell's (`if others: half += RIB` in the band loop of `clip_window`) - the same distance a junction keeps from its ovals everywhere else. It only showed at 1.41: the bench cells happened to land clear of the tangent. R1 still ships closed (`SEAM_JUNCTION_OPEN` False): with the margin in, the opened window left the same face chain beside the mount's plate | f158 |
+| 0.01 mm wall readings mid-strip at 1.41 (r 290, z 4-7, az -6..-8) with nothing wrong on the bench | `clip_window` maps the mount's outline through EACH cell's uv map; the strip runs the whole width of the lattice, so a cell 60-100 mm along the equator maps the strip's far end far outside itself, where that map folds | intersect the mapped bite with a box ONE CELL WIDTH around the cell before using it (a fixed 4.5 mm margin swallows it for long thin cells and the window census drops 57 -> 8) | f158 |
 | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
 | the slice reports more solids or a wrong volume | a boolean left a degenerate zero-volume shell in the compound | build() keeps only solids over 1e-3 mm3 and prints how many were dropped | f151 |
 | the .FCStd opens on an empty 3D view, or shows three identical z-fighting solids | the writer stored a PartDesign Body plus base feature (the same brep 3-4 times), no GuiDocument.xml, and the previous release's document label | `CurrentModel/CAD Files/fcstd_doc.py`: one Part::Feature per part, label = file name, hand-written GuiDocument.xml (freecadcmd has no GUI and never writes it) | f073 |
@@ -873,6 +916,7 @@ lattice or the outlet: the current shapes are answers to specific complaints.
 | 2026-11-18 | the trade-off itself | "Lighter is better but we need it to be structurally solid. These are competing requests... we are going to have to do some educated guesses." | a documented load estimate and SAFETY_FACTOR sizing the pad and beam | f152 |
 | 2026-11-18 | the scattered knowledge | "Make sure Strata makes note of all AirShip construction details so that future edits are faster and easier." | this manual, AGENTS.md, and the checker that keeps them honest | f153 |
 | 2026-11-19 | the f154 print, four crops | "Diamond on the central band is half filled. Let's fill it all the way."; "Brace around the servo looks stupid and isn't flush with the outer hull ellipse" with a sketch of a waisted ring round the hole flowing into the beam and into the duct bulb, fillet radius >= 5 mm, no corners; "Too much material on the outer hull near the duct. There should only be duct and lattice, no extra material"; wavy streaks on the INSIDE of the duct tube | seam junctions the duct band bites are filled whole; one waisted mount outline (`servo_mount_outline`); `crest_half()` measures the band beside each duct instead of `CREST_BAND`; the mesh deflection tightened to the finest clean mesh | f156 |
+| 2026-11-19 | the f156 print, outside and inside, four more crops | "The half diamonds by the ducts need to be emptied for weight. Clip them by the ducts and the other clearance and open them up, instead of filling them all." (R1, reversing item 1 of the same review); "The equator is all wrong, with filled ovoids, diamonds, and a weird vestigial equatorial brace that sticks out inside and does not perfectly conform to the AirShip's outer hull ellipse. Make it look like this" + "NO filled ovoid cells and NO filled diamonds" + "only as big as SF 3 needs", "no straight segment, no step, no ridge", "The servo mount is a compact ring round the spline hole blended into that strip, not a big waisted pad" (R2); "the weight is now too much: we will need to shave it down 10 grams" (R3, a hard 60 g gate on the CR-10 Pro slice); and A: "The coincident or near-coincident faces that leave sliver walls and break the solid under the servo mount - find the two faces within 0.3 mm of each other there and remove the cause per section 8" | the mount is ONE `skin_cutter` tool at ONE depth (`_mount_tool`, `PAD_T` = `max(2 * T, BRACE_D)`), so there is no second side wall to leave coplanar to the first: bench wall min 0.007 -> 0.357 mm and the gate passes; the outline is ring + one blend + a `BRACE_W` strip (2129 mm2, not 2370, no bulb flare, no cap); seam junctions the crest band bites are clipped and opened again; a cell the mount covers wholly is cut, and the "bite > 5 %" / "within 2 mm" fills are deleted (`MOUNT_KEEP` 0.6 takes their place) | f158 |
 
 ## 10 LESSONS LOG
 
@@ -1036,7 +1080,7 @@ the branch was parked (its changes may still be inherited by the next task).
   different kinds of fix, and three of them were "the rule was right, the number behind it was
   measured at the wrong place". (1) A seam junction the duct band bites was cut as an outer piece
   with the band's clip running through it, so the diamond was half filled: `clip_window()` now
-  fills such a junction whole (`band_bit`). (2) The servo mount was a rounded rectangle plus a
+  fills such a junction whole. (2) The servo mount was a rounded rectangle plus a
   square-ended beam: one waisted outline now (`servo_mount_outline`), least radius 6.00 mm, and
   `check_flush.py` proves the flushness was never the problem — the old mount's outer surface was
   already on the hull ellipse to +0.000 mm over 11,562 points, because `skin_cutter` builds every
@@ -1075,7 +1119,7 @@ the branch was parked (its changes may still be inherited by the next task).
   twist along the depth. Next step, in order of cost: probe the pad tool ALONE at the taper
   (`toolprobe.py` already does the fuse) and see whether the fragment is there before the lattice
   is cut; if it is, the mount's tools need a coarser/curvature-aware outline spacing than
-  `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising toward `MOUNT_FILLET`;
+  `OUT_MESH` 1.0 mm, or the waist's least radius (6.00 mm) needs raising past 5 mm;
   if it is not, the fragment comes from a lattice cutter and the keep-out rule is still wrong.
   Fix 7 already answered half of that: making the whole mount ONE depth (`max(2 * T, BRACE_D)`
   under the pad instead of `PAD_T`) did not remove the sliver, it MOVED it - the thin blob went
@@ -1084,6 +1128,49 @@ the branch was parked (its changes may still be inherited by the next task).
   how `skin_cutter` closes the tool's inner end when the outline has a concave waist, not at the
   keep-out. Fix 7 is reverted.
   Items 1, 3 and 4 of f156 are measured and clean on their own.
+  **f156's last paragraph was wrong, and fix 7 was right the first time.** The doubled cap was not
+  in `skin_cutter`: it was the second `skin_cutter` over the same outline at a second depth, and
+  "fix 7 reverted" put the pair back. f158 built the mount as one tool at one depth and the thin
+  blobs at r 204-206 went with it - bench wall min 0.007 -> 0.357 mm, `--thin-report` now lists one
+  blob, 0 mm2, at r 33 z -64 az -22 (the keel sleeve, not the mount). See f158 below.
+- **f158 mount sliver, weight, duct band — OK.** A: the two faces within 0.3 mm of each other under
+  the mount are the two side walls of ONE outline built as TWO `skin_cutter` tools at TWO depths
+  (0.0003-0.008 mm apart, chains at r 205.9-206.4); the cause is gone by making the mount one tool
+  at one depth (`_mount_tool(max(2 * T, BRACE_D))`), not by another standoff. R2: the mount is a
+  compact ring (`MOUNT_RING` 13 under the bracket's whole foot) blended into a `BRACE_W` strip on
+  the equator - no flare, no bulb, no cap, no step - 2129 mm2 instead of 2370, least visible radius
+  6.23 mm, and its outline's two long edges now run along the lattice's own equator rib instead of
+  crossing the cells diagonally. R1: seam junctions the crest band bites are clipped and opened
+  again (f156 item 1 reversed); `crest_half()` is 5.93 mm beside the tube and 6.82 beside the bulb
+  at bench, 0 above it, measured against the cutter's floor 1.16 mm under the skin. B: the fills
+  that chased the sliver are deleted - a cell the mount covers wholly is cut, a cell it crosses is
+  clipped, `MOUNT_KEEP` 0.6 fills only what would be a crescent - and the mount's mass is one depth
+  instead of two.
+
+  Worked: `build/f158/mountshape.py` (the outline's area, least radius, bond coverage and the
+  window census, no CAD built, 2 minutes) before any rebuild; `build/f158/regionmass.py` (freecadcmd
+  box-booleans on the STEP: grams by region - equator, by-duct, rest - which is how the 10 g was
+  aimed at the right regions instead of guessed away); keeping f156's STLs and STEP in the scratch
+  folder so before/after is a measurement, not a recollection; the bench rebuild as the cheap test
+  (4 min) before the CR-10 Pro one.
+  Two faults the cheap census could not see, because both are only at 1.41 (rule: **run the bigger
+  print, the bench can pass while the scale that rhY prints on fails**) -
+  (i) opening the seam junctions clipped them with the crest band's bite box, the SAME box the two
+  ovals beside them are clipped with, so the rib between a junction and its neighbours had zero
+  width: a swarm of 0.0001-1.5 mm2 faces at r 290, az -19..-22, z 14-21, a self-intersecting mesh
+  at every deflection, a 0.30 mm wall at the seam. A junction's bite now stands `RIB` further out
+  of the band than a cell's, which is the distance a junction keeps from its ovals everywhere else.
+  (ii) `clip_window` maps the mount's outline through each cell's own uv map, and the strip runs the
+  whole width of the lattice: a cell 60-100 mm along the equator maps the strip's far end far
+  outside itself, where that map folds, and the bite's edge wanders 0.01 mm off a wall (r 290,
+  z 4-7, az -6..-8). The mapped bite is now intersected with a box one CELL WIDTH around the cell -
+  and the margin has to be a length, not a constant: a fixed 4.5 mm swallowed the bite for the long
+  thin cells and the window census fell 57 -> 8, which is the tell to read immediately.
+  Differently: the fill rules were never a fix - f156's own log says fixes 5 and 6 "changed nothing
+  measurable", and they cost 7 cm3 at CR-10 Pro; a task that ends with "NOT FINISHED, six rebuilds"
+  should have ended by probing the one tool that owns the face. And `freecadcmd` takes every
+  command-line argument as a file to RUN, so a probe that wants paths must read them from the
+  environment (`STEPS=`), or it dies as "Unknown extension".
 
 ## Summary: f156 before / after
 
@@ -1100,3 +1187,17 @@ the branch was parked (its changes may still be inherited by the next task).
 | duct bore in the print STL | facets 1.25 mm on a side, 0.0154 mm inside the true R 12 tube | facets ~0.7 mm, ~0.005 mm inside |
 | mesh | 0.03 mm / 0.1 rad, 115,658 facets, 9.7 MB | 0.015 mm / 0.05 rad, ~205,000 facets, 17.5 MB (cap 90 MB) |
 | wall minimum, bench / CR-10 Pro | 0.42 mm / 0.44 mm | 0.005 mm at 2 facets by the mount's taper - NOT YET PASSING, see section 10 f156 |
+
+## Summary: f158 before / after
+
+| | before (f156, parked) | after (f158) |
+|---|---|---|
+| bench 8T slice | 33.76 cm3 = 41.9 g PLA | 30.97 cm3 = 38.4 g PLA |
+| CR-10 Pro slice (scale 1.41) | 58.38 cm3 = 72.4 g PLA | SEE run below |
+| wall minimum, bench / CR-10 Pro | 0.007 mm (8 facets) / 0.005 mm — FAILS | 0.357 mm (1 facet) / SEE run |
+| lattice windows, bench | 40 | 52 |
+| servo mount | one waisted outline, 2370 mm2, two depths (pad 1.5 / beam 2.5), bulb flare + rounded cap | ring + one blend + `BRACE_W` strip, 2129 mm2, ONE depth 2.5, no flare / bulb / cap |
+| mass by region, bench (equator / by-duct / rest) | 4.72 / 11.20 / 16.87 cm3 | 5.18 / 10.22 / 14.49 cm3 |
+| seam junctions the band bites | filled whole | clipped to crest_half + `RIB`, opened |
+| worst SF of the mount | beam 3.13, pad plate 3.25, bond 314, peel 916 | beam 3.13, pad plate 9.02, bond 314, peel 916 (`brace_sizing.py --check` PASS) |
+| outer-surface flushness over the mount | +0.000 mm | +0.000 mm (unchanged) |
