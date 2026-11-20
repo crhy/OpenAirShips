@@ -21,15 +21,15 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 - 0 INDEX: 20-50
 - 1 FRAMES: 51-124
-- 2 GENERATOR MAP: 125-352
-- 3 DESIGN RULES: 353-465
-- 4 JOINTS: 466-523
-- 5 LATTICE AND KEEP-OUTS: 524-622
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 623-707
-- 7 BUILD AND CHECK WORKFLOW: 708-815
-- 8 FAILURE MODES AND FIXES: 816-854
-- 9 rhY's REVIEW HISTORY: 855-876
-- 10 LESSONS LOG: 877-1102
+- 2 GENERATOR MAP: 125-360
+- 3 DESIGN RULES: 361-493
+- 4 JOINTS: 494-551
+- 5 LATTICE AND KEEP-OUTS: 552-651
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 652-744
+- 7 BUILD AND CHECK WORKFLOW: 745-852
+- 8 FAILURE MODES AND FIXES: 853-897
+- 9 rhY's REVIEW HISTORY: 898-920
+- 10 LESSONS LOG: 921-1227
 
 Read first, by kind of edit:
 
@@ -884,7 +884,7 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | the wall map fails the STL with 0.005-0.05 mm readings in a band under the mount, and six rebuilds of standoffs, clips and fills move it without removing it | the mount was ONE outline built as TWO tools at TWO depths (above); the fills then tried to hide it by removing the clipped windows beside it | take the real cause out: one tool, one depth. Then put the fills back: f158 deleted "fill a cell the outline bites by > 5 %" and "fill a cell within 2 mm of it", cut any cell the mount covers wholly, and the wall map passes at 0.357 mm (1 facet of 5550 under the nozzle) where f156 read 0.007 mm at 8 facets | f156, fixed f158 |
 | a rebuild is spent because a filled cell is wanted "for strength" and the print comes back heavier than the task before it | a keep-out that FILLS instead of CLIPPING removes lattice windows, and a lattice window is where the mass already is: f156's fills cost +2.5 cm3 of skin at bench, +7 cm3 at CR-10 Pro | a keep-out may only ever REMOVE area from a window (clip it), never add skin; when a solid feature needs a wall under it, build the wall as the feature and let the lattice cut under it | f156 (rhY: "the weight is too much"), f158 |
 | 0.01 mm wall readings and a chain of 0.05-2 mm2 Plane faces 0.024-0.08 mm apart, at 1.41 only, along the mount's nose and along its strip (r 289-291, az -19..-21, z -13..-21) | a corridor the cut walls share: 0.6 mm between the stem ring's clipped window wall and the mount's own nose face (`PAD_RING_CLEAR`), and 1.5 mm between a clipped window's wall and the mount's side face (`BRACE_EDGE_CLEAR`) - at the bigger print a cutter's cap tile lands in that corridor and the boolean resolves it into slivers | widen the corridor: `PAD_RING_CLEAR` 0.6 -> 2.5 and `BRACE_EDGE_CLEAR` 1.5 -> 2.5 (measured at 1.41: the mesh stopped self-intersecting at every deflection, `build/f158/cr10-r6.log`). The bench print never showed it, which is why the standoffs were raised only after a 1.41 rebuild (`build/f158/faces-seam.log`) |
-| a clipped window's wall 0.013 mm off the mount's own side face, mid-strip (r 290, z 4, az -6: the blend where the ring narrows into the strip) | the lattice keep-out clip maps the mount's grown ring through each cell's own uv map and resamples it as a polyline, so the clip boundary wanders ~0.01 mm off the curve `BRACE_EDGE_CLEAR` is meant to measure | grow the clip by 0.1 mm (`poly.buffer(BRACE_EDGE_CLEAR + 0.1, ...)` in `_mount_shape`): it can only over-clear a window, never eat into the standoff | f158 |
+| a clipped window's wall 0.013 mm off the mount's own side face, mid-strip (r 290, z 4, az -6: the blend where the ring narrows into the strip) | the lattice keep-out clip maps the mount's grown ring through each cell's own uv map and resamples it as a polyline, so the clip boundary wanders ~0.01 mm off the curve `BRACE_EDGE_CLEAR` is meant to measure | NOT FIXED, and growing the clip is the wrong lever: `poly.buffer(BRACE_EDGE_CLEAR + 0.1, ...)` in `servo_mount_outline`, then `+ 0.03`, put the self-intersections back at every deflection (`build/f158/cr10-r7.log`, `cr10-r8.log`). Teach the probe to ignore a hit on the same face, or stop the blend touching the strip side line | f158 |
 | opening the seam junctions (f158 R1) makes a self-intersecting mesh at EVERY mesh deflection at 1.41, plus a swarm of 0.0001-1.5 mm2 faces around r 290, az -19..-22, z 14-21 and a 0.30 mm wall at the seam | the junction and the two ovals beside it are clipped by the SAME crest-band bite box, so their inner walls are one and the same face: a rib of zero width, which the boolean closes into a knife edge | a junction's bite stands `RIB` further out of the band than a cell's (`if others: half += RIB` in the band loop of `clip_window`) - the same distance a junction keeps from its ovals everywhere else. It only showed at 1.41: the bench cells happened to land clear of the tangent. R1 still ships closed (`SEAM_JUNCTION_OPEN` False): with the margin in, the opened window left the same face chain beside the mount's plate | f158 |
 | 0.01 mm wall readings mid-strip at 1.41 (r 290, z 4-7, az -6..-8) with nothing wrong on the bench | `clip_window` maps the mount's outline through EACH cell's uv map; the strip runs the whole width of the lattice, so a cell 60-100 mm along the equator maps the strip's far end far outside itself, where that map folds | intersect the mapped bite with a box ONE CELL WIDTH around the cell before using it (a fixed 4.5 mm margin swallows it for long thin cells and the window census drops 57 -> 8) | f158 |
 | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
@@ -1140,7 +1140,16 @@ the branch was parked (its changes may still be inherited by the next task).
   compact ring (`MOUNT_RING` 13 under the bracket's whole foot) blended into a `BRACE_W` strip on
   the equator - no flare, no bulb, no cap, no step - 2129 mm2 instead of 2370, least visible radius
   6.23 mm, and its outline's two long edges now run along the lattice's own equator rib instead of
-  crossing the cells diagonally. R1: seam junctions the crest band bites are clipped and opened
+  faults f158 found and fixed at 1.41 only, and the bench print never saw them: (i) a clipped
+  seam junction clipped by the crest band's own box left a rib of zero width beside its ovals -
+  self-intersecting mesh at every deflection; a junction's bite now stands `RIB` further out;
+  (ii) the 0.6 mm corridor between the stem ring's clipped window wall and the mount's nose face
+  (`PAD_RING_CLEAR`) and the 1.5 mm corridor between a clipped window and the mount's side face
+  (`BRACE_EDGE_CLEAR`) filled with chains of 0.05-2 mm2 faces 0.024-0.08 mm apart - both raised to
+  2.5 mm, and the mesh stopped self-intersecting (`build/f158/faces-seam.log`, `cr10-r6.log`);
+  (iii) growing the lattice clip by 0.1 mm, then 0.03 mm, to chase a 0.013 mm wall read at the
+  blend's tangent join put the self-intersections straight back - the clip must stay exactly
+  `BRACE_EDGE_CLEAR` (`cr10-r7.log`, `cr10-r8.log`). R1: seam junctions the crest band bites are clipped and opened
   again (f156 item 1 reversed); `crest_half()` is 5.93 mm beside the tube and 6.82 beside the bulb
   at bench, 0 above it, measured against the cutter's floor 1.16 mm under the skin. B: the fills
   that chased the sliver are deleted - a cell the mount covers wholly is cut, a cell it crosses is
@@ -1193,11 +1202,26 @@ the branch was parked (its changes may still be inherited by the next task).
 | | before (f156, parked) | after (f158) |
 |---|---|---|
 | bench 8T slice | 33.76 cm3 = 41.9 g PLA | 30.97 cm3 = 38.4 g PLA |
-| CR-10 Pro slice (scale 1.41) | 58.38 cm3 = 72.4 g PLA | SEE run below |
-| wall minimum, bench / CR-10 Pro | 0.007 mm (8 facets) / 0.005 mm — FAILS | 0.357 mm (1 facet) / SEE run |
-| lattice windows, bench | 40 | 52 |
+| CR-10 Pro slice (scale 1.41) | 58.38 cm3 = 72.4 g PLA | 48.58 cm3 = 60.2 g PLA — 12.2 g off, the 60.0 g gate is 0.2 g away |
+| wall minimum, bench / CR-10 Pro | 0.007 mm (8 facets) / 0.005 mm — FAILS | 0.341 mm (bench PASS) / 0.013 mm at 1 facet, 0 mm2 (CR-10 Pro, the blend's tangent join) |
+| self-intersecting mesh at 1.41 | no | no (the standoffs `PAD_RING_CLEAR` 2.5 / `BRACE_EDGE_CLEAR` 2.5 removed it: `build/f158/cr10-r6.log`) |
+| lattice windows cut, bench | 40 | 40 — but the cells the mount crosses are now CLIPPED, not filled, and the mount carries one depth instead of two |
 | servo mount | one waisted outline, 2370 mm2, two depths (pad 1.5 / beam 2.5), bulb flare + rounded cap | ring + one blend + `BRACE_W` strip, 2129 mm2, ONE depth 2.5, no flare / bulb / cap |
 | mass by region, bench (equator / by-duct / rest) | 4.72 / 11.20 / 16.87 cm3 | 5.18 / 10.22 / 14.49 cm3 |
-| seam junctions the band bites | filled whole | clipped to crest_half + `RIB`, opened |
+| seam junctions the band bites | filled whole | clip machinery in (`clip_window`, a `RIB` further out of the band), shipped closed: `SEAM_JUNCTION_OPEN` False |
 | worst SF of the mount | beam 3.13, pad plate 3.25, bond 314, peel 916 | beam 3.13, pad plate 9.02, bond 314, peel 916 (`brace_sizing.py --check` PASS) |
 | outer-surface flushness over the mount | +0.000 mm | +0.000 mm (unchanged) |
+
+Two faults f158 leaves open, measured not guessed:
+
+- **one wall reading, 0.013 mm at one facet** (r 290, z 4, az -6), where the ring's cosine blend
+  meets the strip's side face. The join is tangent (C1) by construction, so a ray through a facet
+  there hits the same continuous surface 0.013 mm away — the checker's grazing filter skipped 9
+  such hits and kept this one. It is 0 mm2 of material, not a wall: the fix is either a graze rule
+  that ignores a hit on the *same* face, or an outline whose blend does not touch the strip's
+  side line. Growing the lattice clip instead (+0.1, then +0.03) is the wrong fix: it put the
+  self-intersections back at every mesh deflection (`build/f158/cr10-r7.log`, `cr10-r8.log`).
+- **0.2 g over the 60 g gate**: 48.58 cm3 = 60.2 g at 1.41 (the gate wants 48.39 cm3). The slice
+  went 72.4 -> 60.2 g, so rhY's "shave it down 10 grams" is met and then some, but the gate is
+  absolute. The next step measured here is not to shave the mount (it is at SF 3.13 with a 9.0 mm
+  strip) but one more clipped cell, or `PAD_RING_CLEAR` back toward 2.0 mm.

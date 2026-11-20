@@ -142,7 +142,7 @@ BRACE_EDGE_CLEAR = 2.5   # mm the lattice's windows stand OUTSIDE the servo brac
 SEAM_JUNCTION_OPEN = False   # f158 R1: open the junction a duct's crest band bites (see
                          #   clip_window). False = shipped closed: at 1.41 it leaves a 0.0248 mm
                          #   pair and 4 self-intersecting facet pairs beside the mount's plate.
-MOUNT_KEEP = 0.5         # f158 B: a cell the servo mount's keep-out CROSSes is a CLIPPED window
+MOUNT_KEEP = 0.6         # f158 B: a cell the servo mount's keep-out CROSSes is a CLIPPED window
                          #   unless the mount takes more than this of it, in which case the cell
                          #   stays filled. A cell the mount covers WHOLLY is cut as an ordinary
                          #   window (the mount's own plate closes it; see clip_window): not cutting
@@ -2746,7 +2746,7 @@ def servo_mount_outline():
     # window's wall 0.013 mm from the mount's own side face mid-strip (r 290, z 4, az -6, the
     # blend where the ring narrows into the strip). Grow the clip by a tenth of a millimetre: it
     # can then only ever over-clear the window, never eat into BRACE_EDGE_CLEAR.
-    _MOUNT = (poly, poly.buffer(BRACE_EDGE_CLEAR + 0.03, quad_segs=16), to_skin, g)
+    _MOUNT = (poly, poly.buffer(BRACE_EDGE_CLEAR, quad_segs=16), to_skin, g)
     return _MOUNT
 
 
