@@ -21,14 +21,14 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 - 0 INDEX: 20-50
 - 1 FRAMES: 51-124
-- 2 GENERATOR MAP: 125-360
-- 3 DESIGN RULES: 361-493
-- 4 JOINTS: 494-551
-- 5 LATTICE AND KEEP-OUTS: 552-651
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 652-744
-- 7 BUILD AND CHECK WORKFLOW: 745-852
-- 8 FAILURE MODES AND FIXES: 853-897
-- 9 rhY's REVIEW HISTORY: 898-920
+- 2 GENERATOR MAP: 361-496
+- 3 DESIGN RULES: 497-554
+- 4 JOINTS: 555-654
+- 5 LATTICE AND KEEP-OUTS: 655-753
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 754-861
+- 7 BUILD AND CHECK WORKFLOW: 862-906
+- 8 FAILURE MODES AND FIXES: 907-929
+- 9 rhY's REVIEW HISTORY: 930-1237
 - 10 LESSONS LOG: 921-1228
 
 Read first, by kind of edit:
@@ -429,7 +429,10 @@ without asking.
    is the part that is not right yet.
 9. **A cell a keep-out trims is cut clipped, not dropped** (f151, rhY 2026-11-18: the middle of the
    slice was "an hourglass of solid skin"). The lattice's own bounds clip a cell; the keep-outs bite
-   it; a cell that keeps >= `MIN_KEEP` (0.50) of **its own area inside those bounds** is cut as
+   it; a cell that keeps >= `MIN_KEEP` (0.50; f158 tried 0.47 for the last 0.2 g and the
+   self-intersections came back at 1.41 - every clipped cell it opened near the mount was another
+   wall grazing the plate) of **its own area inside
+   those bounds** is cut as
    cell-minus-keep-outs with corners rounded to `CELL_CLOSE`; below that it stays solid, and
    anything under `MIN_OPEN_AREA` (20 mm2) is a crescent, not a window. Bench slice: 36 windows
    before, 58 after; f156's fills took it back to 40 and f158 opens them again (57 at bench, 62 at
@@ -699,10 +702,16 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   `check_flush.py` measures the outer surface against the hull's own ellipse and gets +0.000 mm
   maximum deviation over 11,562 points for either shape, because `skin_cutter` builds every tool
   from the skin's own surface. What was wrong was the silhouette and the mass.
-- **The mount's far end is set by the duct's air, not by the seam.** `mount_geom` bisects `u_far`
+- **The mount's far end is set by the duct's air, not by the seam** — except that f158 R3 caps it:
+  the end face now stands `stem_keep_r` + `PAD_RING_CLEAR` inside the far seam, the same limit the
+  near nose uses, which is 6.6 mm shorter and 0.37 g lighter at 1.41. `mount_geom` bisects `u_far`
   out to the largest value whose end face, at `BRACE_D` deep, still keeps `AIR_KEEP` +
   `MOUNT_AIR_MARGIN` of wall to the duct's air: 116.67 mm along the tangent at bench, 10.51 mm
-  inside the far seam's plane, 1.12 mm to the air. Its end face stands inside the far stem
+  inside the far seam's plane, 1.12 mm to the air. **f158 R3 tried shortening it** to `stem_keep_r`
+  + `PAD_RING_CLEAR` inside the seam — 6.6 mm of strip, 0.37 g — and it put the self-intersections
+  back: 17.1 mm inside the seam the end face is OUTSIDE the ring's 14.60 mm disc, so instead of
+  being buried in uncut skin it stands against a clipped window's wall. The end face only belongs
+  *inside* that disc. Its end face stands inside the far stem
   keep-out ring's disc (10.51 of 14.60 mm), so it is buried in uncut skin. f150/f151's warning
   stands: ending the beam at `CREST_BAND` (12 mm of arc) put its tip inside the stem hole's flare
   (13.93 mm at the outer face) and build()'s stem-hole cut sliced the tip into a sliver standing
