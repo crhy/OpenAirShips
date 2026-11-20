@@ -29,7 +29,7 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 7 BUILD AND CHECK WORKFLOW: 745-852
 - 8 FAILURE MODES AND FIXES: 853-897
 - 9 rhY's REVIEW HISTORY: 898-920
-- 10 LESSONS LOG: 921-1227
+- 10 LESSONS LOG: 921-1228
 
 Read first, by kind of edit:
 
