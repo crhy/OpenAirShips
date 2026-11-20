@@ -1203,7 +1203,8 @@ the branch was parked (its changes may still be inherited by the next task).
 |---|---|---|
 | bench 8T slice | 33.76 cm3 = 41.9 g PLA | 30.97 cm3 = 38.4 g PLA |
 | CR-10 Pro slice (scale 1.41) | 58.38 cm3 = 72.4 g PLA | 48.58 cm3 = 60.2 g PLA — 12.2 g off, the 60.0 g gate is 0.2 g away |
-| wall minimum, bench / CR-10 Pro | 0.007 mm (8 facets) / 0.005 mm — FAILS | 0.341 mm (bench PASS) / 0.013 mm at 1 facet, 0 mm2 (CR-10 Pro, the blend's tangent join) |
+| wall minimum, bench / CR-10 Pro | 0.007 mm (8 facets) / 0.005 mm — FAILS | 0.341 mm — bench **PASS** / 0.013 mm at 1 facet, 0 mm2 — CR-10 Pro, the blend's tangent join, still FAIL |
+| checker verdict, bench / CR-10 Pro | FAIL / FAIL | **PASS** (`gates/f158-check.txt`) / FAIL by one 0 mm2 facet and 0.2 g |
 | self-intersecting mesh at 1.41 | no | no (the standoffs `PAD_RING_CLEAR` 2.5 / `BRACE_EDGE_CLEAR` 2.5 removed it: `build/f158/cr10-r6.log`) |
 | lattice windows cut, bench | 40 | 40 — but the cells the mount crosses are now CLIPPED, not filled, and the mount carries one depth instead of two |
 | servo mount | one waisted outline, 2370 mm2, two depths (pad 1.5 / beam 2.5), bulb flare + rounded cap | ring + one blend + `BRACE_W` strip, 2129 mm2, ONE depth 2.5, no flare / bulb / cap |
