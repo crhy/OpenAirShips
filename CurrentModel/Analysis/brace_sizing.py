@@ -158,7 +158,76 @@ def sf_of(bw, bd, gs):
     return worst, wname, wscale
 
 
+def mount_footprint():
+    """(bonded area mm2, load along mm, load across mm) of the servo mount, read from the
+    generator's own outline (f156: the waisted pad + beam, `servo_mount_area`), so the
+    numbers below cannot drift from the shape that is printed. Falls back to f154's
+    rectangle (42.45 x 28.2 mm, 1190 mm2 [measured]) if the generator has no outline yet.
+    The load's footprint is the bracket's, not the mount's: the plate bends under the
+    bracket, and the beam beyond it is sized by case 1 instead."""
+    f = getattr(h, "servo_mount_area", None)
+    if f is not None:
+        return f()
+    return 1190.0, 42.45, 28.2
+
+
+def check():
+    """--check: exit 1 unless the mount as the generator defines it holds SAFETY_FACTOR.
+
+    Three things, all read from the generator's own constants and outline:
+      the beam's worst bending case at either print size (the C4 stall bound is the one
+      that sets BRACE_W), the pad's own plate bending under the bracket's foot, and the
+      bond's shear / peel against the PLA under it (never the epoxy).
+    f156 item 2 reshaped the mount, so this also prints how much bond area is left."""
+    gs = [geom(1.0), geom(1.41)]
+    pad_area, a_pad, b_pad = mount_footprint()
+    ok = True
+    print("--check: the mount as the generator defines it, against SAFETY_FACTOR %.1f" % SAFETY_FACTOR)
+    print("  beam  BRACE_W %.2f x BRACE_D %.2f mm; bonded area %.0f mm2 over the bracket's "
+          "%.1f x %.1f mm footprint" % (h.BRACE_W, h.BRACE_D, pad_area, a_pad, b_pad))
+    sf, cname, cscale = sf_of(h.BRACE_W, h.BRACE_D, gs)
+    zr, zz = sect(h.BRACE_W, h.BRACE_D)
+    print("  1 beam bending, worst of the design cases: SF %5.2f  (%s at OAS_SCALE %.2f)"
+          % (sf, cname, cscale))
+    print("    Z radial-axis %.1f mm3, Z z-axis %.1f mm3" % (zr, zz))
+    ok = ok and sf >= SAFETY_FACTOR
+    j_polar = a_pad * b_pad * (a_pad ** 2 + b_pad ** 2) / 12.0
+    r_max = math.hypot(a_pad / 2, b_pad / 2)
+    pad_req, bond_sf, peel_sf = 0.0, 1e9, 1e9
+    for name, (m_servo, kgcm) in SERVOS.items():
+        stall = kgcm * G * 10.0
+        ft = stall / GEAR_R
+        fsep = ft * math.tan(PRESS_ANGLE)
+        tau = ft / pad_area + stall * r_max / j_polar
+        bond_sf = min(bond_sf, TAU_LOW / tau)
+        p = K_HAND * (m_servo + M_BRACKET + M_SGEAR) / 1000.0 * G + fsep
+        m_mm = p * a_pad / 4.0 / b_pad
+        pad_req = max(pad_req, math.sqrt(6.0 * m_mm / SIG_A))
+        peel = p / (b_pad * 10.0)
+        peel_sf = min(peel_sf, SIG_LOW / peel)
+        print("  2 %-6s pad bending needs %.2f mm of plate (PAD_T %.2f); bond shear %.4f MPa "
+              "-> SF %.0f against the PLA; peel SF %.0f" % (name, pad_req, h.PAD_T, tau,
+                                                            TAU_LOW / tau, SIG_LOW / peel))
+    # t_req was solved with the ALLOWABLE stress (SIG_LOW / SAFETY_FACTOR), so the factor
+    # against actual failure is (PAD_T / t_req)^2 * SAFETY_FACTOR: bending stress goes as 1/t^2.
+    pad_sf = SAFETY_FACTOR * (h.PAD_T / pad_req) ** 2
+    print("  3 pad plate bending: PAD_T %.2f mm against a %.2f mm requirement -> SF against "
+          "failure %.2f" % (h.PAD_T, pad_req, pad_sf))
+    ok = ok and pad_sf >= SAFETY_FACTOR
+    ok = ok and bond_sf >= SAFETY_FACTOR and peel_sf >= SAFETY_FACTOR
+    print("  worst SF of the mount: beam %.2f, pad plate %.2f, bond %.0f, peel %.0f"
+          % (sf, pad_sf, bond_sf, peel_sf))
+    if not ok:
+        print("FAIL: the servo mount does not hold SAFETY_FACTOR %.1f" % SAFETY_FACTOR)
+        return 1
+    print("PASS: the servo mount holds SAFETY_FACTOR %.1f (bonded area %.0f mm2)"
+          % (SAFETY_FACTOR, pad_area))
+    return 0
+
+
 def main():
+    if "--check" in sys.argv:
+        raise SystemExit(check())
     gs = [geom(1.0), geom(1.41)]
     pad_area = 1190.0            # mm2, the f154 footprint 42.45 x 28.2 mm [measured]
     print("=" * 78)

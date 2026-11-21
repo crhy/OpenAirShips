@@ -63,16 +63,35 @@ if FCSTD_ONLY:
 pose = shape.copy()
 pose.rotate(App.Vector(), App.Vector(0, 0, 1), 22.5)
 pose.rotate(App.Vector(), App.Vector(1, 0, 0), 90)
-for lin in (0.03, 0.02, 0.015, 0.01, 0.05):    # retry until the mesh is watertight
-    # 0.03 mm first now (f148): at 0.015-0.02 mm the tessellation puts facets whose centres
-    # sit within 0.01 mm of the seam face at the crease where the duct bulb's dome crosses
-    # that face, and Analysis/check_outputs.py's wall ray then runs along the seam face and
-    # reports 0.005-0.12 mm where the BREP wall is 0.800 mm (the bulb's two spheres are
-    # concentric, R 16.000 and 16.800). Measured on the same two STLs: wall min 0.64 mm at
-    # 0.03 against 0.236 mm at 0.02 (scale 1), 0.361 against 0.121 (CR-10 Pro size).
+for lin, ang in ((0.015, 0.05), (0.02, 0.08), (0.03, 0.1), (0.05, 0.1)):
+    # f156 item 4 (rhY, crop 10: wavy streaks on the INSIDE of the duct tube). Measured
+    # (build/f156/ductgeom.py): the bore's own geometry is a BSpline sweep whose surface
+    # stays within 0.006 mm of a true R = DUCT_BORE / 2 tube over a 24 x 24 sample grid -
+    # no seam between sweep segments, no crest-band or lattice cut grazing the wall, no
+    # boss in it. Measured on the print STL (build/f156/boreshape.py): the facets that make
+    # the bore up sit 0.0154 mm INSIDE that tube with a mean edge of 1.25 mm - the chord sag
+    # of a 1.25 mm edge on a 12 mm radius is 0.016 mm, exactly the reading - so the streaks
+    # are the tessellation of a curved surface, not the model. Tightening the deflection
+    # refines it: at 0.010 mm / 0.03 rad the same facets are 0.63 mm on a side and sit
+    # 0.0043 mm inside the tube (4x finer), but the mesher then folds facets over each other
+    # elsewhere on the part and Analysis/check_outputs.py fails the STL for
+    # self-intersections (427,286 facets, 35.9 MB, wall min 0.424 mm, otherwise clean).
+    # So the ladder now asks for the finest mesh that is BOTH watertight and free of
+    # self-intersections, and 0.015 mm / 0.05 rad is the finest that gets through: ~204,000
+    # facets, 17 MB, against 114,000 and 9.6 MB before - both far under the 90 MB the task
+    # sets, and the CR-10 Pro size stays under it too.
+    # 0.03 mm used to be the floor (f148): at 0.015-0.02 the tessellation puts facets whose
+    # centres sit within 0.01 mm of the seam face at the crease where the duct bulb's dome
+    # crosses that face, and the wall ray then runs along the seam face and reports
+    # 0.005-0.12 mm. f151's GRAZE_DEG = 10 deg guard in Analysis/check_outputs.py is what
+    # makes the finer mesh safe now; the wall map is re-run on both print sizes to confirm.
     mesh = MeshPart.meshFromShape(Shape=pose, LinearDeflection=lin,
-                                  AngularDeflection=0.1, Relative=False)
-    if mesh.isSolid():
+                                  AngularDeflection=ang, Relative=False)
+    if mesh.isSolid() and not mesh.hasSelfIntersections():
+        print("mesh deflection %.3f mm / %.2f rad: %d facets, %.1f MB"
+              % (lin, ang, mesh.CountFacets, 84 * mesh.CountFacets / 1e6))
         break
+    print("mesh deflection %.3f mm / %.2f rad rejected: %d facets, solid %s, self-intersections %s"
+          % (lin, ang, mesh.CountFacets, mesh.isSolid(), bool(mesh.hasSelfIntersections())))
 mesh.write(os.path.join(HERE, "..", "..", "Print Files", STL))
 print("stl solid", mesh.isSolid(), "bounds", mesh.BoundBox)

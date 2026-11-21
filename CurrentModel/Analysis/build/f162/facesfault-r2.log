@@ -1,0 +1,16 @@
+# f162 facesfault.py excerpt on the rebuild-r2 bench step (single-claim junctions, before the
+# shared-end spread fix): region r 190..210 az -26..-14 z -38..-22, MAXD 0.05. The two seam
+# junctions' end walls sat 0.010-0.041 mm apart as Plane chains around r 198.7 z -29.5 az -17..-20
+# (f8211-f8214/f8265 vs the f8306-f8311 chain). The checker read the same spot as PROBLEM walls:
+# "0.010 mm at 3 of 5477 sampled facets", blobs at r 199 z -30 az -20/-18, r 179 z -11 az -22.
+# (Full run truncated; header/banner omitted. Command: STEP=CurrentModel/CAD Files/SimplifiedSlice/
+#  "airship pie slice 1026.step" MAXD=0.05 R0=190 R1=210 AZ0=-26 AZ1=-14 Z0=-38 Z1=-22.)
+0.0225 mm  f8211 (Plane 0.7401 mm2, r 198.82 az -18.55 z -29.53) <-> f8308 (Plane 1.7827 mm2, r 198.74 az -18.70 z -29.51)
+0.0235 mm  f8212 (Plane 1.4186 mm2, r 198.72 az -18.19 z -29.47) <-> f8308 (Plane 1.7827 mm2, r 198.74 az -18.70 z -29.51)
+0.0249 mm  f8212 (Plane 1.4186 mm2, r 198.72 az -18.19 z -29.47) <-> f8307 (Plane 2.6218 mm2, r 198.74 az -17.94 z -29.51)
+0.0251 mm  f8265 (Plane 0.5602 mm2, r 198.79 az -19.83 z -29.34) <-> f8309 (Plane 2.1071 mm2, r 198.74 az -19.38 z -29.51)
+0.0251 mm  f8211 (Plane 0.7401 mm2, r 198.82 az -18.55 z -29.53) <-> f8307 (Plane 2.6218 mm2, r 198.74 az -17.94 z -29.51)
+0.0391 mm  f8213 (Plane 0.7402 mm2, r 198.83 az -17.80 z -29.52) <-> f8307 (Plane 2.6218 mm2, r 198.74 az -17.94 z -29.51)
+0.0401 mm  f8214 (Plane 1.4187 mm2, r 198.73 az -17.45 z -29.45) <-> f8307 (Plane 2.6218 mm2, r 198.74 az -17.94 z -29.51)
+0.0416 mm  f8265 (Plane 0.5602 mm2, r 198.79 az -19.83 z -29.34) <-> f8311 (Plane 0.3019 mm2, r 198.67 az -19.84 z -29.55)
+0.0429 mm  f8214 (Plane 1.4187 mm2, r 198.73 az -17.45 z -29.45) <-> f8306 (Plane 0.9436 mm2, r 198.74 az -17.32 z -29.51)

@@ -1,0 +1,20 @@
+=== OAS_SCALE 1.41 (A 292.95 B 146.64, SEAM_JUNCTION_OPEN True)
+  clip_window outlines: 45 windows, 103685 mm2 open
+    thinnest wall between windows 1.713 mm  ('oval4', 'junc r4 az +22')
+  as cut (96/80 chords): 45 windows, 103595 mm2 open
+    thinnest wall between windows 1.722 mm  ('oval4', 'junc r4 az +22')
+  closest lattice window to the mount's own face 2.495 mm (oval5); BRACE_EDGE_CLEAR 2.50, mount 2682 mm2 grown 3787 mm2
+junc r6 az -22: 445.1 mm2  ring [(6.9, 18.5), (6.9, 18.4), (6.9, 18.4), (6.8, 18.3), (6.8, 18.3), (6.8, 18.2), (6.8, 18.2), (6.7, 18.1), (6.7, 18.1), (6.7, 18.0), (6.7, 18.0), (6.6, 18.0), (6.6, 17.9), (6.5, 17.9)]
+  ribs (psi deg, arc mm): -77.54/-291.5, -67.69/-242.9, -57.30/-194.3, -46.04/-145.8, -33.28/-97.2, -18.12/-48.6, 0.00/0.0, 19.08/51.4, 34.84/102.7, 48.02/153.9, 59.72/205.3, 70.50/256.6, 80.78/307.9
+  r6 az -22: local bbox (-47.4, -46.4, 47.4, 48.8) area 3244.1; after clip_window bbox (0.0, 17.5, 37.8, 48.8)
+  r7 az -22: local bbox (-46.8, -56.1, 46.8, 19.6) area 2356.1; after clip_window bbox (0.0, -36.0, 39.3, 17.1)
+=== OAS_SCALE 1.0 (A 207.76 B 104.00, SEAM_JUNCTION_OPEN True)
+  clip_window outlines: 38 windows, 43772 mm2 open
+    thinnest wall between windows 1.762 mm  ('oval4', 'junc r4 az -22')
+  as cut (96/80 chords): 38 windows, 43732 mm2 open
+    thinnest wall between windows 1.765 mm  ('oval4', 'junc r4 az +22')
+  closest lattice window to the mount's own face 2.500 mm (oval5); BRACE_EDGE_CLEAR 2.50, mount 2080 mm2 grown 2850 mm2
+junc r7 az -22: 149.7 mm2  ring [(0.0, 32.8), (0.0, 32.9), (0.0, 32.9), (0.1, 33.0), (0.1, 33.0), (0.1, 33.1), (0.1, 33.1), (0.2, 33.2), (0.2, 33.2), (0.2, 33.3), (0.2, 33.3), (0.3, 33.4), (0.3, 33.4), (0.4, 33.4)]
+  ribs (psi deg, arc mm): -72.28/-188.2, -63.10/-156.8, -53.38/-125.4, -42.77/-94.1, -30.78/-62.7, -16.61/-31.3, 0.00/0.0, 9.69/17.8, 32.96/68.1, 45.61/102.1, 56.79/136.2, 67.09/170.2, 76.82/204.2
+  r6 az -22: local bbox (-31.6, -30.1, 31.6, 17.6) area 1171.6; after clip_window bbox (nan, nan, nan, nan)
+  r7 az -22: local bbox (-29.3, -18.3, 29.3, 18.0) area 771.7; after clip_window bbox (0.0, -4.3, 24.8, 15.2)
