@@ -137,15 +137,25 @@ BRACE_EDGE_CLEAR = 2.5   # mm the lattice's windows stand OUTSIDE the servo brac
                          # ends (the same idiom as CREST_EDGE_CLEAR). The brace is BRACE_W wide on
                          # the equator; a window cut that landed exactly on its face would be a cut
                          # boundary on a face that is already there - the sliver issue #36 counts -
-                         # so windows stop at BRACE_W / 2 + BRACE_EDGE_CLEAR from the equator and
-                         # the brace's own faces stand BRACE_EDGE_CLEAR inside uncut skin.
-SEAM_JUNCTION_OPEN = True    # f159 R1: open the junction a duct's crest band bites (see
-                         #   clip_window). f158 shipped this False with the machinery in: the
-                         #   junction's bite stands RIB further out of the band than a cell's, so
-                         #   the wall between the opened diamond and its two ovals is a rib, not a
-                         #   line. rhY 2026-11-19 (crop 12): "The half diamonds by the ducts need
-                         #   to be emptied for weight. Clip them by the ducts and the other
-                         #   clearance and open them up, instead of filling them all."
+                          # so windows stop at BRACE_W / 2 + BRACE_EDGE_CLEAR from the equator and
+                          # the brace's own faces stand BRACE_EDGE_CLEAR inside uncut skin.
+MOUNT_EDGE_CLEAR = 0.5       # f162 item 2: mm a cell that sits INSIDE the grown ring but is
+                             # crossed by the mount's OWN edge stands off that edge: the grown
+                             # ring may cover the cell, but the plate (the mount's own outline)
+                             # does not, so the cell is clipped, not cut raw. Same idiom as
+                             # CREST_EDGE_CLEAR, measured against the face the part already has.
+SEAM_JUNCTION_OPEN = False   # f167: SHIP THE SEAM CLOSED. f159 opened the junction a duct's crest
+                         #   band bites (SEAM_JUNCTION_OPEN True) to win grams; f162 measured that
+                         #   claim-once + every wall >= RIB put the printable CR-10 Pro at 60.6 g,
+                         #   0.6 g OVER the 60.0 g gate, and no legal reopen won the +3.5 cm3 spill
+                         #   back (build/f162/rebuild-r1..r7). So the slice that SHIPS ALONE keeps
+                         #   the seam junction a band bites FILLED WHOLE (rule 8's edge rule, as
+                         #   f156 shipped it), and recovers the grams from the mount / equator cells
+                         #   (the f158 weight lever), not by opening the seam.
+                         #   Machinery stays in: the junction's bite stands RIB further out of the
+                         #   band than a cell's, so with the seam open an opened diamond's inner
+                         #   wall would land on the two ovals' shared wall (a rib of zero width, a
+                         #   knife edge, self-intersecting mesh at 1.41 - build/f158/facesf158.py).
 MOUNT_KEEP = 0.6         # f158 B: a cell the servo mount's keep-out CROSSes is a CLIPPED window
                          #   unless the mount takes more than this of it, in which case the cell
                          #   stays filled. A cell the mount covers WHOLLY is cut as an ordinary
@@ -2121,19 +2131,39 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
             bb = poly.bounds
             span = bb[2] - bb[0]
             bite = bite.intersection(box(bb[0] - span, bb[1] - span, bb[2] + span, bb[3] + span))
+            # f162 item 2 (kept by f167): the WHOLLY-UNDER test must ask the PLATE, not the grown
+            # ring. A cell inside the grown ring but crossed by the mount's own edge is cut as an
+            # ordinary window today, and its raw edge - placed by the lattice grid, not by the
+            # mount - can land microns from the mount's face: the 8T build put 0.004-0.010 mm walls
+            # right there (bench-r5: r 205, z 4-7, az -2..+1, two of them the 0.005/0.009 mm facets
+            # check_outputs FAILs on; the mount's side face and the window's wall fan coplanar to
+            # 4 um). Clip it instead: the wall stands MOUNT_EDGE_CLEAR outside the mount's OWN edge,
+            # never on it.
             if bite.is_empty or bite.area < 1.0:
                 pass                # the mount is nowhere near this cell: nothing to clip
-            elif bite.contains(poly):
-                pass                # wholly under the mount's plate: cut the cell normally
             else:
-                before = poly.area
-                poly = poly.difference(bite)
-                if poly.is_empty:
-                    return None
-                if (before - poly.area > MOUNT_KEEP * cell
-                        or poly.area < (1.0 - MIN_KEEP) * cell):
-                    return None    # the mount covers most of this cell: leave it solid
-                bitten.append(bite)
+                uv_a = [to_uv(to_skin_m(u, v)[0]) for u, v in
+                        resample_ring(list(mo[0].exterior.coords)[:-1], OUT_MESH)]
+                act = (Polygon(uv_a).intersection(
+                       box(bb[0] - span, bb[1] - span, bb[2] + span, bb[3] + span))
+                       if len(uv_a) > 3 else None)
+                actg = act.buffer(MOUNT_EDGE_CLEAR, quad_segs=8) if act is not None else None
+                if actg is not None and actg.contains(poly):
+                    pass            # wholly under the plate, every wall clear of its face
+                else:
+                    clipper = actg if bite.contains(poly) else bite
+                    under = bite.contains(poly)   # wholly under the GROWN ring: the mount's
+                    # plate closes what the clip removes, so the cell stays a window (that is
+                    # what f158/f159 cut as an ordinary window); the MOUNT_KEEP fill is for a
+                    # cell the mount's edge really CROSSes, where the crescent left is skin.
+                    before = poly.area
+                    poly = poly.difference(clipper)
+                    if poly.is_empty:
+                        return None
+                    if not under and (before - poly.area > MOUNT_KEEP * cell
+                                      or poly.area < (1.0 - MIN_KEEP) * cell):
+                        return None  # the mount covers most of this cell: leave it solid
+                    bitten.append(clipper)
     # What a clip leaves must still be printable: a window narrower than the nozzle cannot
     # be cut at all, and a crescent left by a ring that nearly covers the cell is the sliver
     # issue #36 counts. So the clipped cell must survive an erosion by NOZZLE and keep
