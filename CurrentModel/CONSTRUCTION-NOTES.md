@@ -21,15 +21,15 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 - 0 INDEX: 20-50
 - 1 FRAMES: 51-124
-- 2 GENERATOR MAP: 125-361
-- 3 DESIGN RULES: 362-510
-- 4 JOINTS: 511-568
-- 5 LATTICE AND KEEP-OUTS: 569-674
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 675-773
-- 7 BUILD AND CHECK WORKFLOW: 774-881
-- 8 FAILURE MODES AND FIXES: 882-928
-- 9 rhY's REVIEW HISTORY: 929-951
-- 10 LESSONS LOG: 952-1341
+- 2 GENERATOR MAP: 125-362
+- 3 DESIGN RULES: 363-514
+- 4 JOINTS: 515-572
+- 5 LATTICE AND KEEP-OUTS: 573-686
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 687-785
+- 7 BUILD AND CHECK WORKFLOW: 786-893
+- 8 FAILURE MODES AND FIXES: 894-942
+- 9 rhY's REVIEW HISTORY: 943-965
+- 10 LESSONS LOG: 966-1424
 
 Read first, by kind of edit:
 
@@ -133,9 +133,10 @@ from that file at this commit. Variant switches are environment variables, read 
 
 - Variant and size: `VARIANT` 51, `SIDE` 52, `FOUR` 53, `N` 54, `LARGE` 55, `PIECES` 56,
   `SCALE` 64, `TAG` 65, `A`/`B` 70, `HALF` 72, `UP` 244.
-- Wall and lattice widths: `T` 71, `RIB` 78, `MIN_WEB` 80 (now 0.0), `POLY_CLOSE` 169,
-  `MIN_OPEN_AREA` 117, `MIN_KEEP` 119, `CELL_CLOSE` 129, `NOZZLE` 135, `OVAL_N` 240,
-  `ROWS_ABOVE_EQ` 239.
+- Wall and lattice widths: `T` 71, `RIB` 78, `MIN_WEB` 80 (now 0.0), `POLY_CLOSE` 279,
+  `MIN_OPEN_AREA` 166, `MIN_KEEP` 168 (f170 swept 0.49/0.47/0.45: a no-op at 1.41 and a mass
+  cost at bench, so it ships at 0.50 - see 10's f170 row), `CELL_CLOSE` 178, `NOZZLE` 184,
+  `OVAL_N` 363, `ROWS_ABOVE_EQ` 362.
 - Cutter geometry: `SKIN_MARGIN` 178, `CUT_OUT` 186, `CUT_IN` 194, `CUT_MESH` 199, `RING_WELD` 211,
   `OUT_MESH` 222, `TILE_EDGE` 244 (f154).
 - Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `CUT_FACE_CLEAR` 102 (f156), `SERVO_WALL` 129,
@@ -445,7 +446,10 @@ without asking.
    slice was "an hourglass of solid skin"). The lattice's own bounds clip a cell; the keep-outs bite
    it; a cell that keeps >= `MIN_KEEP` (0.50; f158 tried 0.47 for the last 0.2 g and the
    self-intersections came back at 1.41 - every clipped cell it opened near the mount was another
-   wall grazing the plate) of **its own area inside
+   wall grazing the plate. **Read the constant off the code, not off this sentence**: `clip_window`
+   fills a cell when `poly.area < (1 - MIN_KEEP) * cell`, so MIN_KEEP is the most a keep-out may
+   TAKE and the value that opens a cell is the HIGH one - f170 measured 0.49/0.47/0.45 fill more
+   cells at bench and change nothing at 1.41) of **its own area inside
    those bounds** is cut as
    cell-minus-keep-outs with corners rounded to `CELL_CLOSE`; below that it stays solid, and
    anything under `MIN_OPEN_AREA` (20 mm2) is a crescent, not a window. Bench slice: 36 windows
@@ -657,6 +661,14 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   (0.5 mm) off the actual edge** — cut as an ordinary window its raw lattice edge landed coplanar
   with the mount's side face, 0.0041-0.010 mm wall at r 205.7-206.2, z 4-7, az -2..+1 on the bench
   slice (`build/f162/facesfault-8t.log`, the 0.005/0.009 mm FAILs in `build/f159/bench-r5.log`).
+  f170 swept `MIN_KEEP` (0.49/0.47/0.45) against this block and ran the census
+  `build/f170/whyfilled.py` (every `return None` in `clip_window` marked, the layout printed at
+  both print sizes): at 1.41 the MIN_KEEP tests fill exactly ONE cell, the equator cell at
+  r 292.9 az 0.00, and it is the `MOUNT_KEEP` 0.6 test that fills it (the mount takes 738.8 of the
+  cell's 1062.2 mm2 = 69.6 %, so no `MIN_KEEP` value opens it), which is why the sweep is a no-op
+  at 1.41 and fills two more small cells at bench. The other 17 cells `clip_window` fills at 1.41
+  are seam junctions: 13 by the f159 rib-wide guard, 4 by `MIN_OPEN_AREA`/the 0.4 * poly test at
+  the keel ribs.
   f156's two rules — fill any cell the outline bites by more than 5 %, fill any cell that merely
   came within 2 mm of it — are **gone**: they were chasing the coincident-face sliver, they did not
   remove it (f156's own fixes 5 and 6 "changed nothing measurable"), and they cost a column of
@@ -918,6 +930,8 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | 0.01 mm wall readings mid-strip at 1.41 (r 290, z 4-7, az -6..-8) with nothing wrong on the bench | `clip_window` maps the mount's outline through EACH cell's uv map; the strip runs the whole width of the lattice, so a cell 60-100 mm along the equator maps the strip's far end far outside itself, where that map folds | intersect the mapped bite with a box ONE CELL WIDTH around the cell before using it (a fixed 4.5 mm margin swallows it for long thin cells and the window census drops 57 -> 8) | f158 |
 | 0.005/0.009 mm walls on the bench slice at r 205, z 4-7, az -2..+1 (f159's `build/f159/bench-r5.log`) after the mount-blend facet was gone | a cell wholly inside the mount's GROWN ring but crossed by its OWN outline was cut as an ordinary window, so the cell's raw lattice edge landed ON the mount's side face - coplanar to 0.0041-0.010 mm (`build/f162/facesfault-8t.log`: window walls f156/f157/f451 against mount faces f544-f548 at X 205.06-206.71) | clip it by the ACTUAL outline (`mo[0]`), standing `MOUNT_EDGE_CLEAR` 0.5 off its face; only a cell wholly inside that grown edge is cut as an ordinary window | f159 found it, f162 fixed it |
 | opening the seam junctions leaves one strip of seam skin cut TWICE - the junctions of the rib above and below share a 492.89 mm2 region (`build/f159/layout.py`: junc r6 & r7 az -22 at 1.41, junc r5 & r6 at 1.0) - and at 1.41 that is where the mesh self-intersects | both seam junctions claimed the same cell between their ribs | a seam junction keeps ONLY the cell above its own rib (an end rib already keeps its one-sided cell), and every claim stands `RIB / 2` off the rib line that ends it: the web between two seam junctions is exactly RIB and the cuts never meet | standing the two halves to MEET on the rib line instead (no setback) leaves 0.010 mm walls at 1.0 and 0.005 mm + eight open edges at 1.41 - each frame chords the rib v-line its own way, 0.010-0.041 mm apart, and one shared azimuth grid (step 0.004 rad) did not fix it (`build/f162/rebuild-r2/r3/r4.log`, `facesfault-r2.log`); the mass cost of claiming once is the SPILL f159's straddling windows opened across the rib line (+3.5 cm3, 44.98 -> 48.50), and no legal variant wins it back (see 10's f162 row) | f159 found it, f162 fixed it |
+| the CR-10 Pro ships 48,849 mm3 = 60.6 g, PASS at wall min 0.696 mm, and 0.6 g cannot be won back from the lattice cells | the open-seam floor is claim-once + every wall >= `RIB`: the last 462 mm3 would have to come from a cell, and at 1.41 the only cell any keep-out fills is the equator cell under the mount, which `MOUNT_KEEP` 0.6 fills (738.8 of 1062.2 mm2); the other 17 filled cells are seam junctions (`build/f170/whyfilled.py`) | nothing legal is left: `MIN_KEEP` 0.49/0.47/0.45 changes no cell at 1.41 (the sweep in `build/f170/sweep.log` opens no cell there and costs grams at bench), opening a seam junction self-intersects at 1.41 (f159), and the standoffs at 2.5 own f158's 0.01 mm chains. Ship 60.6 g, all-PASS, and say so | f170 |
+| sweeping `MIN_KEEP` DOWN is asked for as the mass lever and the mass goes the other way | `clip_window` fills a cell when `poly.area < (1 - MIN_KEEP) * cell` — MIN_KEEP is the most a keep-out may TAKE, so a lower MIN_KEEP fills more cells (at bench 0.49 fills the two cells at 49.5-49.7 % and the 50.0 % one) | move `MIN_KEEP` the other way only if `MOUNT_KEEP` can move with it (the equator cell needs 0.70 and 0.696); otherwise the sweep is a no-op at 1.41 | f170 |
 | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
 | the slice reports more solids or a wrong volume | a boolean left a degenerate zero-volume shell in the compound | build() keeps only solids over 1e-3 mm3 and prints how many were dropped | f151 |
 | the .FCStd opens on an empty 3D view, or shows three identical z-fighting solids | the writer stored a PartDesign Body plus base feature (the same brep 3-4 times), no GuiDocument.xml, and the previous release's document label | `CurrentModel/CAD Files/fcstd_doc.py`: one Part::Feature per part, label = file name, hand-written GuiDocument.xml (freecadcmd has no GUI and never writes it) | f073 |
@@ -1358,3 +1372,53 @@ with and without the mount clip. The levers that remain each break a rule (open 
 at 1.41; narrow `PAD_RING_CLEAR`/`BRACE_EDGE_CLEAR` -> f158's 0.01 mm slivers; shave the brace ->
 SF 3.13). 8T ships clean. `build/f167/{rebuild-r1,rebuild-cr10-committed,diag-nomountclip}.sh`,
 `build/f167/{check-8t,check-cr10,diag,regionmass}.log`.
+
+- **f170 the last 0.6 g from cells, `MIN_KEEP` swept — see below.** Merged f162's open-seam config
+  (claim-once, `RIB / 2`, `MOUNT_EDGE_CLEAR`) and f167's section 10 lessons, then swept `MIN_KEEP`
+  0.50 -> 0.49/0.47/0.45 at 1.41 with f162's `clip_window` in place - the one mass lever f158 had
+  swept BEFORE the clip existed. Nothing moved: the baseline reproduces f162's r5 (48,849 mm3 =
+  60.573 g, PASS wall min 0.696 mm, watertight, no selfint) and 0.49 and 0.47 rebuild it FACET FOR
+  FACET (301,962 facets, same wall min, same 12.45 % thick, `build/f170/sweep.log`). The reason is the
+  sign, not the knob: `clip_window` fills a cell when `poly.area < (1 - MIN_KEEP) * cell`, so
+  `MIN_KEEP` is the MOST a keep-out may take and the value that OPENS a cell is the HIGH one -
+  rule 9's sentence reads it backwards, and f158's "tried 0.47 for the last 0.2 g" is written in
+  that reversed sense. Sweeping DOWN therefore CLOSES cells: at scale 1 the census fills 4 mount-test
+  cells at the shipped 0.50 (pct 6.1/12.4/49.7/49.5, `build/f170/mountcells-1-minkeep050.log`) and
+  SIX at 0.47, the two new ones being the 50.0 % and 52.0 % cells
+  (`build/f170/mountcells-1-minkeep047.log`). At 1.41 `build/f170/whyfilled.py` marks every
+  `return None` in `clip_window` and names the rule that owns each filled cell: 18 of 63 candidates
+  are filled, and the mount's own test owns exactly ONE - the equator cell at psi 0.00 az 0.00
+  r 292.9, where the mount takes 738.8 of the cell's 1062.2 mm2 (69.6 %) - so `MOUNT_KEEP` 0.6
+  fills it and no `MIN_KEEP` value opens it; opening it would need `MIN_KEEP` >= 0.70 AND
+  `MOUNT_KEEP` < 0.696, both forbidden. The other 17 fills are seam junctions (13 by the f159
+  rib-wide guard, 4 under `MIN_OPEN_AREA`), which the task forbids opening and f159/f162 measured
+  self-intersecting at 1.41. So 48,849 mm3 = 60.6 g is the open-seam legal floor, reported rather
+  than broken: no wall thinned, no standoff narrowed, the mount plate and the seam junctions
+  untouched, `SEAM_JUNCTION_OPEN = True` shipped.
+  Worked: `whyfilled.py` BEFORE any rebuild - it names the rule that owns each cell in seconds,
+  against 24 minutes a step; `mountcells.py` printing the `MIN_KEEP` that would open each cell,
+  which is what showed the manual's sign; the sweep's baseline step as a reproduction test (it
+  matched f162's r5 to the facet, so a later step's identical output is a measurement, not a bug).
+  Differently: an inherited manual sentence ("0.47 for the last 0.2 g") is a claim to RE-MEASURE,
+  not a lever to re-plan against, and a "sweep X down" instruction has to be read against the sign
+  in the code before it is run - here the sweep cost 96 minutes of generator time to prove the
+  manual pointed the wrong way. And the CR-10 Pro generator is not the 4-8 minutes section 7
+  implies at bench: one step is 20+ minutes, so a four-value sweep is a 2-hour job and belongs in
+  its own background window with a stamped log, not in a turn.
+
+## Summary: f170 before / after (the last 0.6 g, from cells, never from the seam)
+
+| | before (f162 r5, open, parked) | f167 (closed, parked) | after (f170, shipped) |
+|---|---|---|---|
+| CR-10 Pro 1.41 | 48,849 mm3 = 60.573 g, PASS wall min 0.696 mm, no selfint | 49.74 cm3 = 61.6 g, FAIL 0.005/0.011 mm at r 290.1 z +/-7 az -8 | 48,849 mm3 = 60.573 g, PASS wall min 0.696 mm, open 0, selfint False, 1 part, vs STEP same (`build/f170/sweep.log`) |
+| `MIN_KEEP` 0.49 | 48,849 mm3 = 60.573 g, identical facets | - | same 48,849 mm3, 301,962 facets, wall min 0.696 mm, selfint False - a no-op at 1.41 |
+| `MIN_KEEP` 0.47 / 0.45 | 48,849 mm3 = 60.573 g | - | identical: 48,849 mm3, 301,962 facets, wall min 0.696 mm, selfint False, 1 part |
+| 8T slice, scale 1 | PASS wall min 0.357 mm | PASS wall min 0.484 mm | rebuilt from the shipped open config: PASS, 33,104 mm3, 213,116 facets, wall min 0.357 mm, open 0, selfint False, 1 part, vs STEP same |
+| mass gate <= 48,387 mm3 | 462 mm3 over | 1,353 mm3 over | 462 mm3 over - gate NOT met |
+| cells `clip_window` owns at 1.41 | not counted | not counted | 18 of 63: 1 mount cell (owned by `MOUNT_KEEP` 0.6, 738.8/1062.2 mm2), 13 seam-junction guard, 4 crescents under `MIN_OPEN_AREA` |
+
+f170 did not land under 60.0 g and did not break a rule to explain why: the lever the task names is
+read backwards in this manual, so sweeping `MIN_KEEP` down CLOSES cells (bench: 6 filled at 0.47,
+`build/f170/mountcells-1-minkeep047.log`) and at 1.41 changes nothing, because the only keep-out-owned
+cell there is the mount's and the other 17 are seam junctions. `MIN_KEEP` ships at 0.50 and the floor
+is reported: 48,849 mm3 = 60.6 g, all-PASS, seam open.
