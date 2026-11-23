@@ -21,15 +21,15 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 - 0 INDEX: 20-50
 - 1 FRAMES: 51-124
-- 2 GENERATOR MAP: 125-360
-- 3 DESIGN RULES: 361-496
-- 4 JOINTS: 497-554
-- 5 LATTICE AND KEEP-OUTS: 555-654
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 655-753
-- 7 BUILD AND CHECK WORKFLOW: 754-861
-- 8 FAILURE MODES AND FIXES: 862-906
-- 9 rhY's REVIEW HISTORY: 907-929
-- 10 LESSONS LOG: 930-1280
+- 2 GENERATOR MAP: 125-361
+- 3 DESIGN RULES: 362-510
+- 4 JOINTS: 511-568
+- 5 LATTICE AND KEEP-OUTS: 569-674
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 675-773
+- 7 BUILD AND CHECK WORKFLOW: 774-881
+- 8 FAILURE MODES AND FIXES: 882-928
+- 9 rhY's REVIEW HISTORY: 929-951
+- 10 LESSONS LOG: 952-1341
 
 Read first, by kind of edit:
 
@@ -139,7 +139,8 @@ from that file at this commit. Variant switches are environment variables, read 
 - Cutter geometry: `SKIN_MARGIN` 178, `CUT_OUT` 186, `CUT_IN` 194, `CUT_MESH` 199, `RING_WELD` 211,
   `OUT_MESH` 222, `TILE_EDGE` 244 (f154).
 - Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `CUT_FACE_CLEAR` 102 (f156), `SERVO_WALL` 129,
-  `BRACE_EDGE_CLEAR` 136 (f158: 1.5 -> 2.5), `MOUNT_KEEP` 142, `SEAM_JUNCTION_OPEN` 142,
+  `BRACE_EDGE_CLEAR` 136 (f158: 1.5 -> 2.5), `MOUNT_EDGE_CLEAR` 142 (f162: 0.5, the actual
+  mount edge inside the grown ring), `MOUNT_KEEP` 142, `SEAM_JUNCTION_OPEN` 142 (f162: False -> True),
   `BRACE_OUT` 152, `CREST_BAND` 419.
 - Servo brace and pad: `BRACE_W` 175, `BRACE_D` 190, `BRACE_IN` 201, `SERVO_BRACKET_L` 206,
   `SERVO_BRACKET_W` 207, `PAD_MARGIN` 209, `PAD_T` 210 (f158: it is now `max(2 * T, BRACE_D)` —
@@ -418,15 +419,28 @@ without asking.
    clearance and open them up, instead of filling them all", reversing f156 item 1 of the same
    review ("Diamond on the central band is half filled. Let's fill it all the way"). The clip is
    implemented — `clip_window` clips the junction by the band a `RIB` further out than a cell's,
-   and what is left outside crest_half(psi) becomes a clipped window — and it is **shipped
-   closed**: `SEAM_JUNCTION_OPEN` is False, because at 1.41 the opened window beside the mount's
-   plate left a chain of 0.3-1.5 mm2 faces at r 289-291, az -19.7..-21, z 14-21, a 0.0248 mm face
-   pair and four self-intersecting facet pairs at every mesh deflection (`build/f158/facesf158.py`,
-   `selfint-cr10.log`). So the seam junction a duct band bites stays filled whole: the band's edge
-   is the duct's wall, rule 2 (no window over a duct) and `crest_keepout()` never budge, and the
-   weight R3 wanted came out of the mount and the equator cells instead. Flip the constant and
-   read those logs first: the 1.5 mm of clearance the mount's plate wants beside a clipped window
-   is the part that is not right yet.
+   and what is left outside crest_half(psi) becomes a clipped window — and since f162 it is
+   **shipped open**: `SEAM_JUNCTION_OPEN` is True. What held it closed at f158 (at 1.41 the opened
+   window beside the mount's plate left a chain of 0.3-1.5 mm2 faces at r 289-291, az -19.7..-21,
+   z 14-21, a 0.0248 mm face pair and four self-intersecting facet pairs at every mesh deflection,
+   `build/f158/facesf158.py`, `selfint-cr10.log`) turned out to be a strip of seam skin claimed
+   TWICE — the junction of the rib above and the junction of the rib below each cut the same
+   492.89 mm2 region (`build/f159/layout.py`: junc r6 & r7 az -22 at 1.41; junc r5 & r6 az -22 at
+    1.0). Each strip is now claimed exactly once: a seam junction keeps only the cell ABOVE its own
+    rib, and every claim stands `RIB / 2` off the rib line that ends it — the web between two seam
+    junctions is exactly `RIB` and the two cuts never meet. Standing the two halves to MEET along
+    the rib line instead (no setback at all) was tried and failed at BOTH scales: each junction
+    draws that rib v-line in its own uv frame as its own chord polyline, and the two polylines are
+    0.010-0.041 mm apart (`build/f162/facesfault-r2.log`: face chains f8211-f8214 vs f8306-f8311
+    at r 198.7, z -29.5, az -17..-20), leaving 0.010 mm walls at 1.0 and 0.005 mm walls plus eight
+    open edges (not watertight) at 1.41 — even resampling both junctions' shared ends onto ONE
+    global azimuth grid (step 0.004 rad) did not close them (`build/f162/rebuild-r2/r3/r4.log`). The
+    setback margin itself costs 0.35 cm3 (48.85 vs 48.50 cm3, `rebuild-r1` vs `rebuild-r2`);
+    the REAL cost of claiming once is the spill: f159's junction windows straddled the rib line
+    and opened skin in the strip beyond it (+3.5 cm3, 44.98 -> 48.50), and none of it can be
+    claimed a second time - every two-cut variant came back with 0.005-0.010 mm sliver walls
+    and open edges. The CR-10 Pro floor with claim-once and every wall clean is 60.6 g - see
+    10's f162 row and `build/f162/rebuild-r5/r7.log`.
 9. **A cell a keep-out trims is cut clipped, not dropped** (f151, rhY 2026-11-18: the middle of the
    slice was "an hourglass of solid skin"). The lattice's own bounds clip a cell; the keep-outs bite
    it; a cell that keeps >= `MIN_KEEP` (0.50; f158 tried 0.47 for the last 0.2 g and the
@@ -635,8 +649,14 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
   measured on the skin, not in the mount's frame. Three cases (`clip_window`): **a cell the grown
   outline covers WHOLLY is cut as an ordinary window** — the mount's own plate closes it and its
   side faces stay `BRACE_EDGE_CLEAR` from every cut wall; **a cell the outline CROSSes is a clipped
-  window**; a cell is filled only when the mount takes >= `MOUNT_KEEP` (0.6) of its own area,
-  because what is left then is a crescent, not a window.
+   window**; a cell is filled only when the mount takes >= `MOUNT_KEEP` (0.6) of its own area,
+   because what is left then is a crescent, not a window — and since f162 not when it lies wholly
+   under the grown ring (the fill never fired: r1 vs r5 measured the SAME 48,849 mm3).
+   f162 added the in-between: **a cell wholly
+  inside the GROWN ring but crossed by the mount's OWN outline is clipped too, `MOUNT_EDGE_CLEAR`
+  (0.5 mm) off the actual edge** — cut as an ordinary window its raw lattice edge landed coplanar
+  with the mount's side face, 0.0041-0.010 mm wall at r 205.7-206.2, z 4-7, az -2..+1 on the bench
+  slice (`build/f162/facesfault-8t.log`, the 0.005/0.009 mm FAILs in `build/f159/bench-r5.log`).
   f156's two rules — fill any cell the outline bites by more than 5 %, fill any cell that merely
   came within 2 mm of it — are **gone**: they were chasing the coincident-face sliver, they did not
   remove it (f156's own fixes 5 and 6 "changed nothing measurable"), and they cost a column of
@@ -896,6 +916,8 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | a clipped window's wall 0.013 mm off the mount's own side face, mid-strip (r 290, z 4, az -6: the blend where the ring narrows into the strip) | the lattice keep-out clip maps the mount's grown ring through each cell's own uv map and resamples it as a polyline, so the clip boundary wanders ~0.01 mm off the curve `BRACE_EDGE_CLEAR` is meant to measure | NOT FIXED, and growing the clip is the wrong lever: `poly.buffer(BRACE_EDGE_CLEAR + 0.1, ...)` in `servo_mount_outline`, then `+ 0.03`, put the self-intersections back at every deflection (`build/f158/cr10-r7.log`, `cr10-r8.log`). Teach the probe to ignore a hit on the same face, or stop the blend touching the strip side line | f158 |
 | opening the seam junctions (f158 R1) makes a self-intersecting mesh at EVERY mesh deflection at 1.41, plus a swarm of 0.0001-1.5 mm2 faces around r 290, az -19..-22, z 14-21 and a 0.30 mm wall at the seam | the junction and the two ovals beside it are clipped by the SAME crest-band bite box, so their inner walls are one and the same face: a rib of zero width, which the boolean closes into a knife edge | a junction's bite stands `RIB` further out of the band than a cell's (`if others: half += RIB` in the band loop of `clip_window`) - the same distance a junction keeps from its ovals everywhere else. It only showed at 1.41: the bench cells happened to land clear of the tangent. R1 still ships closed (`SEAM_JUNCTION_OPEN` False): with the margin in, the opened window left the same face chain beside the mount's plate | f158 |
 | 0.01 mm wall readings mid-strip at 1.41 (r 290, z 4-7, az -6..-8) with nothing wrong on the bench | `clip_window` maps the mount's outline through EACH cell's uv map; the strip runs the whole width of the lattice, so a cell 60-100 mm along the equator maps the strip's far end far outside itself, where that map folds | intersect the mapped bite with a box ONE CELL WIDTH around the cell before using it (a fixed 4.5 mm margin swallows it for long thin cells and the window census drops 57 -> 8) | f158 |
+| 0.005/0.009 mm walls on the bench slice at r 205, z 4-7, az -2..+1 (f159's `build/f159/bench-r5.log`) after the mount-blend facet was gone | a cell wholly inside the mount's GROWN ring but crossed by its OWN outline was cut as an ordinary window, so the cell's raw lattice edge landed ON the mount's side face - coplanar to 0.0041-0.010 mm (`build/f162/facesfault-8t.log`: window walls f156/f157/f451 against mount faces f544-f548 at X 205.06-206.71) | clip it by the ACTUAL outline (`mo[0]`), standing `MOUNT_EDGE_CLEAR` 0.5 off its face; only a cell wholly inside that grown edge is cut as an ordinary window | f159 found it, f162 fixed it |
+| opening the seam junctions leaves one strip of seam skin cut TWICE - the junctions of the rib above and below share a 492.89 mm2 region (`build/f159/layout.py`: junc r6 & r7 az -22 at 1.41, junc r5 & r6 at 1.0) - and at 1.41 that is where the mesh self-intersects | both seam junctions claimed the same cell between their ribs | a seam junction keeps ONLY the cell above its own rib (an end rib already keeps its one-sided cell), and every claim stands `RIB / 2` off the rib line that ends it: the web between two seam junctions is exactly RIB and the cuts never meet | standing the two halves to MEET on the rib line instead (no setback) leaves 0.010 mm walls at 1.0 and 0.005 mm + eight open edges at 1.41 - each frame chords the rib v-line its own way, 0.010-0.041 mm apart, and one shared azimuth grid (step 0.004 rad) did not fix it (`build/f162/rebuild-r2/r3/r4.log`, `facesfault-r2.log`); the mass cost of claiming once is the SPILL f159's straddling windows opened across the rib line (+3.5 cm3, 44.98 -> 48.50), and no legal variant wins it back (see 10's f162 row) | f159 found it, f162 fixed it |
 | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
 | the slice reports more solids or a wrong volume | a boolean left a degenerate zero-volume shell in the compound | build() keeps only solids over 1e-3 mm3 and prints how many were dropped | f151 |
 | the .FCStd opens on an empty 3D view, or shows three identical z-fighting solids | the writer stored a PartDesign Body plus base feature (the same brep 3-4 times), no GuiDocument.xml, and the previous release's document label | `CurrentModel/CAD Files/fcstd_doc.py`: one Part::Feature per part, label = file name, hand-written GuiDocument.xml (freecadcmd has no GUI and never writes it) | f073 |
@@ -1280,3 +1302,40 @@ What worked:
   clearances were measured against, and at the bench it put an opened junction's wall 0.007 mm off
   the servo strip's own side face (`build/f159/bench-r4.log`): section 8's rule that a cut boundary
   may never land on a face the part already has.
+
+- **f162 the double claim, the junction setback, the spill skin — see below.** f159's R1
+  shipped the junctions open but its claim was double: the strip of seam skin between two ribs was
+  cut TWICE, shared as a 492.89 mm2 region by the junctions of the rib above and the rib below
+  (`build/f159/layout.py`), and that is where the 1.41 mesh self-intersected. f162 claimed each
+  strip once - a seam junction keeps only the cell above its own rib - and first tried meeting the
+  two halves ON the rib line, with no setback. That failed on walls at both scales: 0.010 mm at 1.0
+  (3 of 5477 sampled facets, blobs r 199 z -30 az -20/-18) and 0.005 mm at 12 facets plus eight
+  open edges, not watertight, at 1.41 (`build/f162/rebuild-r2.log`): each junction chords the rib
+  v-line in its own uv frame, and the two polylines sit 0.010-0.041 mm apart
+  (`build/f162/facesfault-r2.log`: f8211-f8214 vs f8306-f8311 at r 198.7, z -29.5, az -17..-20).
+  Resampling both junctions' shared ends onto ONE global azimuth grid (step 0.004 rad) failed the
+  same way (`build/f162/rebuild-r3/r4.log`) - two uv maps of one coordinate line are not one
+  polyline, however you grid them; the rib end must STAND CLEAR (`RIB / 2`, the web between two
+  seam junctions exactly RIB), not meet. What cost the grams was NOT the setback (meet vs
+  setback: 0.35 cm3) and NOT any fill - the `MOUNT_KEEP` fill never fired under the plate
+  (r1 vs r5: the SAME 48,849 mm3). It is the SPILL: f159's junction windows straddled the rib
+  line, so each strip opened ~2.6 cm3 of skin beyond it, into the next strip - and claiming
+  that skin twice is what cut the same opening twice and self-intersected. Claim-once killed
+  the spill: +3.5 cm3, 44.98 -> 48.50 (double vs meet, `rebuild-r2.log`). Dead ends, measured:
+  a MOUNT_GRAZE test to reopen the mount's crossed cells found ZERO cells that may open at
+  1.41 (`build/f162/layout-f159mount.log` probe) and put the coplanar 0.005 mm facet back at
+  1.0 (`build/f162/rebuild-r6.log`: r 205.1 z 4.5 az 0.1); `PAD_RING_CLEAR` 2.5 -> 2.0 (f159's
+  named lever) gained no mass (48,875 mm3) and brought the 0.008 mm face chain back at BOTH
+  scales - f158's reason for 2.5 stands. The legal floor: 48.85 cm3 = 60.6 g, 8T PASS wall min
+  0.357 mm, CR-10 Pro PASS wall min 0.696 mm, no selfint (`build/f162/rebuild-r5.log`, r7
+  reproduces) - 0.6 g over the 60.0 g gate, which was measured on the double-claimed spill.
+
+## Summary: f162 before / after
+
+| | before (f159, merged) | after (f162) |
+|---|---|---|
+| CR-10 Pro slice (scale 1.41) | 44.98 cm3 = 55.8 g (`build/f159/cr10-r4.log`) but the seam strip was double-claimed - its spill skin opened twice - and the 1.41 mesh self-intersected (`build/f159/selfint.log`) | 48.85 cm3 = 60.6 g, PASS wall min 0.696 mm, no selfint, watertight - 0.6 g over the 60.0 g gate (`build/f162/rebuild-r5.log`) |
+| 8T slice (scale 1.0) | FAIL: 0.005/0.009 mm walls at r 205, z 4-7, az -2..+1 (`build/f159/bench-r5.log`) - the mount's grown edge | PASS: clip the crossed cell `MOUNT_EDGE_CLEAR` 0.5 off the actual edge (rebuild-r5 wall min 0.357 mm) |
+| seam strip between two ribs | claimed twice, a 492.89 mm2 region cut by both junctions, plus ~2.6 cm3 of spill skin across the rib line | claimed once, the web between two seam junctions exactly `RIB` |
+| mass levers tried | - | fill-skip under the plate: neutral; graze-reopen: zero legal candidates (probe), coplanar wall back at 1.0 (r6); `PAD_RING_CLEAR` 2.0: no gain, 0.008 mm chain (r6) |
+

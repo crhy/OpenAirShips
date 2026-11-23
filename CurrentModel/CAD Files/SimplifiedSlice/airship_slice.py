@@ -139,6 +139,11 @@ BRACE_EDGE_CLEAR = 2.5   # mm the lattice's windows stand OUTSIDE the servo brac
                          # boundary on a face that is already there - the sliver issue #36 counts -
                          # so windows stop at BRACE_W / 2 + BRACE_EDGE_CLEAR from the equator and
                          # the brace's own faces stand BRACE_EDGE_CLEAR inside uncut skin.
+MOUNT_EDGE_CLEAR = 0.5       # f162 item 2: mm a cell that sits INSIDE the grown ring but is
+                             # crossed by the mount's OWN edge stands off that edge: the grown
+                             # ring may cover the cell, but the plate (the mount's own outline)
+                             # does not, so the cell is clipped, not cut raw. Same idiom as
+                             # CREST_EDGE_CLEAR, measured against the face the part already has.
 SEAM_JUNCTION_OPEN = True    # f159 R1: open the junction a duct's crest band bites (see
                          #   clip_window). f158 shipped this False with the machinery in: the
                          #   junction's bite stands RIB further out of the band than a cell's, so
@@ -2121,19 +2126,41 @@ def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
             bb = poly.bounds
             span = bb[2] - bb[0]
             bite = bite.intersection(box(bb[0] - span, bb[1] - span, bb[2] + span, bb[3] + span))
+            # f162 item 2: the WHOLLY-UNDER test must ask the PLATE, not the grown ring. A
+            # cell inside the grown ring but crossed by the mount's own edge is cut as an
+            # ordinary window today, and its raw edge - placed by the lattice grid, not by
+            # the mount - can land microns from the mount's face: the 8T build put 0.004-
+            # 0.010 mm walls right there (bench-r5: r 205, z 4-7, az -2..+1, two of them
+            # the 0.005/0.009 mm facets check_outputs FAILs on; the mount's side face and
+            # the window's wall fan coplanar to 4 um). Clip it instead: the wall stands
+            # MOUNT_EDGE_CLEAR outside the mount's OWN edge, never on it.
             if bite.is_empty or bite.area < 1.0:
                 pass                # the mount is nowhere near this cell: nothing to clip
-            elif bite.contains(poly):
-                pass                # wholly under the mount's plate: cut the cell normally
             else:
-                before = poly.area
-                poly = poly.difference(bite)
-                if poly.is_empty:
-                    return None
-                if (before - poly.area > MOUNT_KEEP * cell
-                        or poly.area < (1.0 - MIN_KEEP) * cell):
-                    return None    # the mount covers most of this cell: leave it solid
-                bitten.append(bite)
+                uv_a = [to_uv(to_skin_m(u, v)[0]) for u, v in
+                        resample_ring(list(mo[0].exterior.coords)[:-1], OUT_MESH)]
+                act = (Polygon(uv_a).intersection(
+                       box(bb[0] - span, bb[1] - span, bb[2] + span, bb[3] + span))
+                       if len(uv_a) > 3 else None)
+                actg = act.buffer(MOUNT_EDGE_CLEAR, quad_segs=8) if act is not None else None
+                if actg is not None and actg.contains(poly):
+                    pass            # wholly under the plate, every wall clear of its face
+                else:
+                    clipper = actg if bite.contains(poly) else bite
+                    under = bite.contains(poly)   # wholly under the GROWN ring: the mount's
+                    # plate closes what the clip removes, so the cell stays a window (that is
+                    # what f158/f159 cut as an ordinary window); the MOUNT_KEEP fill is for a
+                    # cell the mount's edge really CROSSes, where the crescent left is skin.
+                    # Leaving it solid under the plate is +3.5 cm3 of skin at 1.41, and the
+                    # CR-10 Pro's 60 g gate is the difference (build/f162/rebuild-r1.log).
+                    before = poly.area
+                    poly = poly.difference(clipper)
+                    if poly.is_empty:
+                        return None
+                    if not under and (before - poly.area > MOUNT_KEEP * cell
+                                      or poly.area < (1.0 - MIN_KEEP) * cell):
+                        return None  # the mount covers most of this cell: leave it solid
+                    bitten.append(clipper)
     # What a clip leaves must still be printable: a window narrower than the nozzle cannot
     # be cut at all, and a crescent left by a ring that nearly covers the cell is the sliver
     # issue #36 counts. So the clipped cell must survive an erosion by NOZZLE and keep
@@ -2230,6 +2257,28 @@ def junction(psi, theta, ovals, keep_side=0, rows=None):
         region = region.intersection(box(-reach, vv[0], reach, vv[1]))
         if region.is_empty:
             return None
+        # f162 item 3: claim the seam strip exactly once. On a seam plane the ovals stop
+        # CREST_BAND short of it, so the strip of skin the seam runs through is ONE
+        # connected region, and clipping a junction to its two rows let the junction of the
+        # rib above and the junction of the rib below claim the same strip: build/f159/
+        # layout.py measured junc r6 & r7 az -22 sharing 492.89 mm2 at 1.41 (and r5 & r6 at
+        # 1.0) - the same opening cut twice, and at 1.41 that is where the mesh self-
+        # intersected. A seam junction now keeps only the cell ABOVE its own rib (an end
+        # rib keeps its one-sided cell), and stands RIB / 2 off each rib line that ends
+        # it, so the web between two seam junctions is RIB wide and no two cut boundaries
+        # touch. Each strip is then claimed once, and the strip under the first rib is the
+        # first rib's own cell.
+        if abs(abs(theta) - lattice_band()[2]) < 1e-9:
+            if (rows[0] - psi) * (rows[1] - psi) < -1e-12:
+                v_up = sgn * (rows[1] - psi) * ds
+                m1 = RIB / 2.0 * (1.0 if v_up > 0 else -1.0)
+                v0, v1 = sorted((m1, v_up - m1))
+            else:
+                far = vv[1] if abs(vv[0]) < 1e-9 else vv[0]
+                v0, v1 = sorted((0.0, far - (RIB / 2.0 if far > 0 else -RIB / 2.0)))
+            region = region.intersection(box(-reach, v0, reach, v1))
+            if region.is_empty:
+                return None
     if keep_side:
         cut_line = box(-reach, -reach, reach, reach).intersection(
             box(-reach, RIB / 2, reach, reach) if keep_side * sgn > 0 else box(-reach, -reach, reach, -RIB / 2))
