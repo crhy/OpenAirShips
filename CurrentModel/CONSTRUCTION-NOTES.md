@@ -1339,3 +1339,22 @@ What worked:
 | seam strip between two ribs | claimed twice, a 492.89 mm2 region cut by both junctions, plus ~2.6 cm3 of spill skin across the rib line | claimed once, the web between two seam junctions exactly `RIB` |
 | mass levers tried | - | fill-skip under the plate: neutral; graze-reopen: zero legal candidates (probe), coplanar wall back at 1.0 (r6); `PAD_RING_CLEAR` 2.0: no gain, 0.008 mm chain (r6) |
 
+
+## Summary: f167 before / after (ship the seam CLOSED, under 60 g)
+
+| | before (f162, parked, seam open) | after (f167, seam CLOSED) |
+|---|---|---|
+| CR-10 Pro slice, 1.41 | 48.85 cm3 = 60.6 g (open), parked | 49.74 cm3 = 61.6 g, 1.6 g over the 60.0 g gate |
+| seam junctions | open, `SEAM_JUNCTION_OPEN` True | closed, `SEAM_JUNCTION_OPEN` False, filled whole |
+| wall min, CR-10 Pro | (open) blend facet gone | 0.005 / 0.011 mm at r 290.1, z +/-7, az -8 (ring-blend tangent, closed config) |
+| 8T slice | f159 FAIL at r 205 | PASS, wall min 0.484 mm, no selfint |
+
+f167 resumed f159 (kept `resample_ring`), kept f162's `MOUNT_EDGE_CLEAR` mount clip, and shipped the
+seam CLOSED as issue #36 asks. It did NOT pass the gate, and the reason is the model, not a bug:
+closing the seam restores the duct-junction skin (22.0 g of the 61.6 g, `regionmass.py`), and
+`resample_ring` costs ~+1.1 cm3 at 1.41 over f158's closed 60.2 g, so the closed model is 61.6 g.
+The r 290.1 blend facet is the pair `resample_ring` only clears in the open config, and it is present
+with and without the mount clip. The levers that remain each break a rule (open the seam -> self-int
+at 1.41; narrow `PAD_RING_CLEAR`/`BRACE_EDGE_CLEAR` -> f158's 0.01 mm slivers; shave the brace ->
+SF 3.13). 8T ships clean. `build/f167/{rebuild-r1,rebuild-cr10-committed,diag-nomountclip}.sh`,
+`build/f167/{check-8t,check-cr10,diag,regionmass}.log`.
