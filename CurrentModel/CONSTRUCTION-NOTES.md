@@ -27,9 +27,9 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 5 LATTICE AND KEEP-OUTS: 555-654
 - 6 DUCTS, BULB, STEM, SERVO, BRACE: 655-753
 - 7 BUILD AND CHECK WORKFLOW: 754-861
-- 8 FAILURE MODES AND FIXES: 862-906
-- 9 rhY's REVIEW HISTORY: 907-929
-- 10 LESSONS LOG: 930-1280
+- 8 FAILURE MODES AND FIXES: 862-907
+- 9 rhY's REVIEW HISTORY: 908-930
+- 10 LESSONS LOG: 931-1313
 
 Read first, by kind of edit:
 
@@ -896,7 +896,8 @@ Symptom as the checker or the generator reports it | cause | fix | task that fou
 | a clipped window's wall 0.013 mm off the mount's own side face, mid-strip (r 290, z 4, az -6: the blend where the ring narrows into the strip) | the lattice keep-out clip maps the mount's grown ring through each cell's own uv map and resamples it as a polyline, so the clip boundary wanders ~0.01 mm off the curve `BRACE_EDGE_CLEAR` is meant to measure | NOT FIXED, and growing the clip is the wrong lever: `poly.buffer(BRACE_EDGE_CLEAR + 0.1, ...)` in `servo_mount_outline`, then `+ 0.03`, put the self-intersections back at every deflection (`build/f158/cr10-r7.log`, `cr10-r8.log`). Teach the probe to ignore a hit on the same face, or stop the blend touching the strip side line | f158 |
 | opening the seam junctions (f158 R1) makes a self-intersecting mesh at EVERY mesh deflection at 1.41, plus a swarm of 0.0001-1.5 mm2 faces around r 290, az -19..-22, z 14-21 and a 0.30 mm wall at the seam | the junction and the two ovals beside it are clipped by the SAME crest-band bite box, so their inner walls are one and the same face: a rib of zero width, which the boolean closes into a knife edge | a junction's bite stands `RIB` further out of the band than a cell's (`if others: half += RIB` in the band loop of `clip_window`) - the same distance a junction keeps from its ovals everywhere else. It only showed at 1.41: the bench cells happened to land clear of the tangent. R1 still ships closed (`SEAM_JUNCTION_OPEN` False): with the margin in, the opened window left the same face chain beside the mount's plate | f158 |
 | 0.01 mm wall readings mid-strip at 1.41 (r 290, z 4-7, az -6..-8) with nothing wrong on the bench | `clip_window` maps the mount's outline through EACH cell's uv map; the strip runs the whole width of the lattice, so a cell 60-100 mm along the equator maps the strip's far end far outside itself, where that map folds | intersect the mapped bite with a box ONE CELL WIDTH around the cell before using it (a fixed 4.5 mm margin swallows it for long thin cells and the window census drops 57 -> 8) | f158 |
-| the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
+ | CR-10 Pro at 1.41 ships 1.6 g over the 60 g gate AND still reads 0.005-0.011 mm at r 290.1, z +/-7, az -8 with the seam CLOSED (`SEAM_JUNCTION_OPEN` False) | closing the seam puts the 22 g duct-junction skin back (`regionmass.py`: duct only 35.7 % of the slice), and `resample_ring` makes a clip boundary hug the true curve - ~+1.1 cm3 at 1.41 over f158's 60.2 g. The r 290.1 reading is the mount ring-blend tangent pair that `resample_ring` only removes in the OPEN config; it is there with AND without the `MOUNT_EDGE_CLEAR` clip, so the mount is not the cause | NOT fixed, and the levers left all break a task rule: open the seam (self-int at 1.41, f159), narrow `PAD_RING_CLEAR`/`BRACE_EDGE_CLEAR` back to 2.0 (puts f158's 0.01 mm wall readings back), or shave the SF-3.13 brace. Ship closed, document the miss | f167 |
+ | the fused body comes out in 2 solids and loses the lattice (307 faces instead of 8,399) | two tools that overlap were fused as one compound | fuse them one after the other, or pre-fused | f151 |
 | the slice reports more solids or a wrong volume | a boolean left a degenerate zero-volume shell in the compound | build() keeps only solids over 1e-3 mm3 and prints how many were dropped | f151 |
 | the .FCStd opens on an empty 3D view, or shows three identical z-fighting solids | the writer stored a PartDesign Body plus base feature (the same brep 3-4 times), no GuiDocument.xml, and the previous release's document label | `CurrentModel/CAD Files/fcstd_doc.py`: one Part::Feature per part, label = file name, hand-written GuiDocument.xml (freecadcmd has no GUI and never writes it) | f073 |
 | the generator dies with `ModuleNotFoundError: No module named 'shapely'` | the venv lacked shapely and the repo declared no requirements | shapely 2.2.0 is in the cadquery venv now; there is still no requirements.txt in the repo | f072, f073 |
@@ -1278,5 +1279,35 @@ What worked:
   dilate it by `RIB / 2` and compare, and leave the junction FILLED when that closing would change
   the region. Closing it and keeping the result is the wrong fix - it moves a boundary the other
   clearances were measured against, and at the bench it put an opened junction's wall 0.007 mm off
-  the servo strip's own side face (`build/f159/bench-r4.log`): section 8's rule that a cut boundary
-  may never land on a face the part already has.
+   the servo strip's own side face (`build/f159/bench-r4.log`): section 8's rule that a cut boundary
+   may never land on a face the part already has.
+
+## Summary: f162 before / after (mount in-between clip)
+
+| | before (f159) | after (f162, parked) |
+|---|---|---|
+| 8T wall min | 0.005 / 0.009 mm at r 205, z 4-7, az -2..+1 (FAIL) | cleared by the in-between clip |
+| `clip_window` and the mount | a cell wholly inside the grown mount ring is CLIPPED raw, so a lattice edge lands coplanar on the mount's side face | the PLATE outline `mo[0]` stood `MOUNT_EDGE_CLEAR` 0.5 mm off the mount's own outline (`act` = `mo[0]`, grown to `actg`) clips such a cell, so its lattice edge never sits on that face |
+| CR-10 Pro mass, 1.41 | 45.92 cm3 = 56.9 g (open) | 48.85 cm3 = 60.6 g (open + claim-once), parked |
+
+The mount clip is **mass-neutral at 1.41** (proven twice: f162, and f167's
+`build/f167/diag-nomountclip.sh` gives an identical 49.714 cm3 with and without it).
+
+## Summary: f167 before / after (ship the seam CLOSED, under 60 g)
+
+| | before (f162, parked, seam open) | after (f167, seam CLOSED) |
+|---|---|---|
+| CR-10 Pro slice, 1.41 | 48.85 cm3 = 60.6 g (open), parked | 49.74 cm3 = 61.6 g, 1.6 g over the 60.0 g gate |
+| seam junctions | open, `SEAM_JUNCTION_OPEN` True | closed, `SEAM_JUNCTION_OPEN` False, filled whole |
+| wall min, CR-10 Pro | (open) blend facet gone | 0.005 / 0.011 mm at r 290.1, z +/-7, az -8 (ring-blend tangent, closed config) |
+| 8T slice | f159 FAIL at r 205 | PASS, wall min 0.484 mm, no selfint |
+
+f167 resumed f159 (kept `resample_ring`), kept f162's `MOUNT_EDGE_CLEAR` mount clip, and shipped the
+seam CLOSED as issue #36 asks. It did NOT pass the gate, and the reason is the model, not a bug:
+closing the seam restores the duct-junction skin (22.0 g of the 61.6 g, `regionmass.py`), and
+`resample_ring` costs ~+1.1 cm3 at 1.41 over f158's closed 60.2 g, so the closed model is 61.6 g.
+The r 290.1 blend facet is the pair `resample_ring` only clears in the open config, and it is present
+with and without the mount clip. The levers that remain each break a rule (open the seam -> self-int
+at 1.41; narrow `PAD_RING_CLEAR`/`BRACE_EDGE_CLEAR` -> f158's 0.01 mm slivers; shave the brace ->
+SF 3.13). 8T ships clean. `build/f167/{rebuild-r1,rebuild-cr10-committed,diag-nomountclip}.sh`,
+`build/f167/{check-8t,check-cr10,diag,regionmass}.log`.
