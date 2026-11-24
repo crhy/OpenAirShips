@@ -19,17 +19,18 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 ## 0 INDEX
 
-- 0 INDEX: 20-50
-- 1 FRAMES: 51-124
-- 2 GENERATOR MAP: 125-332
-- 3 DESIGN RULES: 333-437
-- 4 JOINTS: 438-495
-- 5 LATTICE AND KEEP-OUTS: 496-573
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 574-646
-- 7 BUILD AND CHECK WORKFLOW: 647-754
-- 8 FAILURE MODES AND FIXES: 755-787
-- 9 rhY's REVIEW HISTORY: 788-808
-- 10 LESSONS LOG: 809-966
+- 0 INDEX: 20-51
+- 1 FRAMES: 52-125
+- 2 GENERATOR MAP: 126-333
+- 3 DESIGN RULES: 334-438
+- 4 JOINTS: 439-496
+- 5 LATTICE AND KEEP-OUTS: 497-574
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 575-647
+- 7 BUILD AND CHECK WORKFLOW: 648-755
+- 8 FAILURE MODES AND FIXES: 756-788
+- 9 rhY's REVIEW HISTORY: 789-809
+- 10 LESSONS LOG: 810-981
+- 11 CHECKS — CAD, not STL: 982-1020
 
 Read first, by kind of edit:
 
@@ -964,3 +965,56 @@ the branch was parked (its changes may still be inherited by the next task).
   weight, fixed by 200-300 Pa plus a 10 mm bond band) and whether LW-PLA really prints at 0.60
   g/cm3 (at 0.80 the +250 g margin becomes +149 g). And one 0.1 mm pinhole in a seam leaks 20 L/day
   of H2, ~100x the whole film's permeation: seal the seams before believing any datasheet.
+
+- **c02 CAD checker + fixed views — OK.** Wrote `CurrentModel/Analysis/check_cad.py`
+  (B-rep checks on the STEP: solids, outer shells, BRepCheck, sliver faces, short
+  edges, hairline face gaps, internal faces) and `CurrentModel/Analysis/render_views.py`
+  (six fixed views, hidden lines off, 1200 px PNGs, close-up boxes from the
+  `SERVO_T` / `DUCT_BULB` constants). The CR10Pro STEP fails: 8663 sliver faces,
+  4988 short edges, 6032 hairline gaps, 86 internal faces — see
+  `CurrentModel/Analysis/CAD-CHECK.md`. Worked: the bbox-gap sweep (a bbox gap is a
+  lower bound on the face distance) plus skipping shared-edge neighbours cut 26k
+  candidate pairs; forked chunk workers with a SIG_DFL alarm survive
+  `BRepExtrema`'s hangs and segfaults on this model's BSpline soup. Differently:
+  the mesh checker (check_outputs.py) says PASS while the B-rep is full of slivers —
+  check the CAD before tessellating, every task, section 11.
+
+## 11 CHECKS — CAD, not STL
+
+New rule (rhY 2026-11-23): work on the CAD, not the STL. From now on every
+AirShip task edits the CAD script, regenerates the STEP, and gates on
+`CurrentModel/Analysis/check_cad.py` plus the renders in
+`CurrentModel/Analysis/renders/`; STLs are exported only at the end. The mesh
+checkers (section 7.2) stay as the print-time gate, but a B-rep sliver or an
+internal face survives the fuse long before a tessellation can see it, so the
+CAD check runs first.
+
+The CAD checker:
+
+    /home/rhy/.venvs/cadquery/bin/python -I CurrentModel/Analysis/check_cad.py \
+        "CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 CR10Pro.step" \
+        --json CurrentModel/Analysis/build/c02/check.json
+
+Exits 1 with one line per failure and prints counts plus the worst 10 locations
+per check. It checks the STEP's B-rep for: more than one solid; more than one
+outer shell; an invalid shape (BRepCheck_Analyzer); faces under 1.0 mm2 (sliver
+walls); edges under 0.2 mm (pinched seams); pairs of faces closer than 0.2 mm
+but not touching (hairline gaps and seam cracks, measured with BRepExtrema on
+the pairs whose bounding boxes come within 0.2 mm); and faces with material on
+both sides (0.05 mm along +/- the surface normal is inside the solid twice — a
+face two solids shared before the fuse). The first run on the CR10Pro STEP
+(2026-11-23): 8663 sliver faces, 4988 short edges, 6032 hairline gaps, 86
+internal faces — the point is to catch these today, see
+`CurrentModel/Analysis/CAD-CHECK.md`.
+
+The fixed views:
+
+    /home/rhy/.venvs/cadquery/bin/python -I CurrentModel/Analysis/render_views.py \
+        "CurrentModel/CAD Files/SimplifiedSlice/airship pie slice 1026 CR10Pro.step" \
+        CurrentModel/Analysis/renders
+
+Six views: iso front, iso back, top, side, and close-ups of the servo mount and
+the duct bulb. The close-up boxes come from the `SERVO_T` spline-hole centre and
+the `DUCT_BULB` dome centre in `CurrentModel/CAD Files/SimplifiedSlice/airship_slice.py`,
+rotated onto the slice's seam; the views are CadQuery SVG exports with hidden
+lines off, converted to 1200 px PNGs with rsvg-convert. The CAD is never modified.
