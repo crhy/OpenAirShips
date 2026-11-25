@@ -31,6 +31,7 @@ PARAMS = {
     "DUCT_BORE": 24.0,     # thruster duct bore (R9)
     "SKIN_BITE": 0.30,     # the bore breaks the outer skin by this much (R9)
     "DUCT_BULB": 32.0,     # bulb bore at the stem end (R9)
+    "STEM_HOLE": 25.4,     # bearing stem hole through the boss (R9)
     "BOSS_R": 14.0,        # bearing sleeve outer radius (R9)
     "BOSS_LEN": 12.0,      # bearing sleeve length (R9)
     "DUCT_MOUTH_R": 58.5,  # duct mouth radius, just past the plenum wall (R9)
@@ -112,11 +113,15 @@ def make_geo(S):
         return pts
 
     def meridian_wire(d0, d1):
-        """Closed polygon wire: outer offset + inner offset + two end segments."""
+        """Closed polygon wire: outer offset + inner offset + two end segments.
+        2 deg steps (chord dip ~0.01 mm, clear of the 0.2 mm hairline gate) and
+        truncated at +-88 deg: the pole is closed by a flat land instead of an
+        on-axis segment, which made degenerate cone faces (issue #36 internal
+        faces)."""
         a = [cq.Vector(r, 0, z) for (r, z)
-             in [skin_pt(u, d0) for u in range(-90, 91, 3)]]
+             in [skin_pt(u, d0) for u in range(-88, 89, 2)]]
         b = [cq.Vector(r, 0, z) for (r, z)
-             in [skin_pt(u, d1) for u in range(90, -91, -3)]]
+             in [skin_pt(u, d1) for u in range(88, -89, -2)]]
         return cq.Wire.makePolygon(a + b + [a[0]])
 
     def band(d0, d1):
@@ -165,7 +170,8 @@ def make_geo(S):
         return cq.Workplane("XY").workplane(offset=z0).circle(r).extrude(z1 - z0).findSolid()
 
     return dict(A=A, B=B, HALF=HALF, skin_pt=skin_pt, nrm=nrm, to3=to3,
-                band=band, spheroid=spheroid, meridian_wire=meridian_wire, sector_band=sector_band,
+                band=band, spheroid=spheroid, meridian_wire=meridian_wire,
+                sector_band=sector_band, revolve_wire=revolve_wire,
                 pie=pie, clip_wedge=clip_wedge,
                 cyl_between=cyl_between, cyl_z=cyl_z)
 
@@ -247,7 +253,9 @@ def part_joints(G):
             rib = common(rib, G["cyl_z"](2 * A, zc - rib_w, zc + rib_w))
             out.append(rib)
             if seam > 0:  # boss + peg protrude past the +seam face
-                th0 = G["HALF"] - math.degrees(8.0 / A)
+                # start 2 mm outside the rib's a0 edge: a cap buried inside
+                # the rib survives the fuse as an internal face (issue #36)
+                th0 = G["HALF"] - math.degrees(12.0 / A)
                 p1 = G["to3"]((boss_r, zc), th0)
                 p2 = G["to3"]((boss_r, zc), G["HALF"] + math.degrees(PARAMS["BOSS_L"] / A))
                 p3 = G["to3"]((boss_r, zc), G["HALF"] + math.degrees((PARAMS["BOSS_L"] + PARAMS["PEG_L"]) / A))
@@ -272,14 +280,7 @@ def window_cutter(G, u0, u1, th0, th1):
     ht = math.radians(th1 - th0) / 2 * G["A"] * math.cos(ur) - PARAMS["WEB"] / 2
     if hu < 1.0 or ht < 1.0:
         return None
-    c = min(2.0, 0.4 * hu, 0.4 * ht)
-    if c * PARAMS["T"] < 1.4:
-        c = 0.0
-    if c == 0.0:
-        pts2 = [(-hu, -ht), (hu, -ht), (hu, ht), (-hu, ht)]
-    else:
-        pts2 = [(-hu + c, -ht), (hu - c, -ht), (hu, -ht + c), (hu, ht - c),
-                (hu - c, ht), (-hu + c, ht), (-hu, ht - c), (-hu, -ht + c)]
+    pts2 = [(-hu, -ht), (hu, -ht), (hu, ht), (-hu, ht)]
     wp = cq.Workplane(cq.Plane(P, xDir=e_u, normal=n))
     return wp.moveTo(*pts2[0]).polyline(pts2[1:]).close() \
         .extrude(PARAMS["T"] + 1.2).translate(n * (-0.6)).findSolid()
@@ -299,7 +300,8 @@ def lattice_cutters(G):
     dth_pad = math.degrees(PARAMS["SERVO_BRACKET_L"] / 2 / A)
     cutters = []
     u = -40.0
-    while u <= 46.0:   # above this the azimuthal cell width < CELL: solid apex
+    while u <= 38.0:   # above this the window walls graze the curved skin and
+        # the checker reads hairline gaps; the cap above stays solid
         ur = math.radians(u)
         arc_u = math.hypot(A * math.sin(ur), G["B"] * math.cos(ur))
         zc, rc = G["B"] * math.sin(ur), A * math.cos(ur)
@@ -329,8 +331,11 @@ def hole_cutters(G):
         p = lambda r: G["to3"]((r, 0.0), seam)
         out.append(G["cyl_between"](p(PARAMS["DUCT_MOUTH_R"] - 0.5), p(A - 28.0), rb))
         out.append(G["cyl_between"](p(A - 28.0), p(axis_r + rb + 1.0), PARAMS["DUCT_BULB"] / 2))
+        # the bearing stem hole through the boss plug (R9)
+        out.append(G["cyl_between"](p(A - 40.0 - 1.0), p(A - 28.0 + 0.5),
+                                    PARAMS["STEM_HOLE"] / 2))
     th_pad = G["HALF"] - math.degrees(PARAMS["SERVO_T"] / A)
-    out.append(G["cyl_between"](G["to3"](G["skin_pt"](0.0, -0.5), th_pad),
+    out.append(G["cyl_between"](G["to3"](G["skin_pt"](0.0, -1.2), th_pad),
                                 G["to3"](G["skin_pt"](0.0, PARAMS["PAD_T"] + 1.0), th_pad),
                                 PARAMS["SERVO_HOLE"] / 2))
     out.append(G["cyl_z"](PARAMS["HATCH_R"], -G["B"] - 2, -G["B"] + 10.0))
