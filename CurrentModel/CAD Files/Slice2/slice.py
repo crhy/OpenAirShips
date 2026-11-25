@@ -29,7 +29,7 @@ PARAMS = {
     "PLENUM_R": 60.5,      # plenum outer wall radius (R8)
     "HATCH_R": 47.0,       # keel hatch opening for the 88 mm impeller (R8)
     "DUCT_BORE": 24.0,     # thruster duct bore (R9)
-    "SKIN_BITE": 0.02,     # the bore breaks the outer skin by this much (R9)
+    "SKIN_BITE": 0.30,     # the bore breaks the outer skin by this much (R9)
     "DUCT_BULB": 32.0,     # bulb bore at the stem end (R9)
     "BOSS_R": 14.0,        # bearing sleeve outer radius (R9)
     "BOSS_LEN": 12.0,      # bearing sleeve length (R9)
@@ -46,8 +46,8 @@ PARAMS = {
     "BOSS_L": 5.0,         # joint boss protrusion (R12)
     "PEG_D": 3.0,          # peg diameter (R12)
     "PEG_L": 3.6,          # peg length (R12)
-    "JOINT_FIT": 0.25,     # clearance per side; >= 0.2 so check_cad sees no
-                           # hairline (deviation from R13's 0.15, see SLICE2.md)
+    "JOINT_FIT": 0.30,     # clearance per side; chord-aware so check_cad sees
+                           # no hairline (deviation from R13's 0.15, see SLICE2.md)
     "WEB": 1.2,            # minimum lattice web (R28)
     "LAND": 1.2,           # minimum land from rim/keel (R28)
     "CELL": 11.2,          # lattice pitch (window 10.0 + web 1.2)
@@ -270,9 +270,16 @@ def window_cutter(G, u0, u1, th0, th1):
     arc_u = math.hypot(G["A"] * math.sin(ur), G["B"] * math.cos(ur))
     hu = math.radians(u1 - u0) / 2 * arc_u - PARAMS["WEB"] / 2
     ht = math.radians(th1 - th0) / 2 * G["A"] * math.cos(ur) - PARAMS["WEB"] / 2
+    if hu < 1.0 or ht < 1.0:
+        return None
     c = min(2.0, 0.4 * hu, 0.4 * ht)
-    pts2 = [(-hu + c, -ht), (hu - c, -ht), (hu, -ht + c), (hu, ht - c),
-            (hu - c, ht), (-hu + c, ht), (-hu, ht - c), (-hu, -ht + c)]
+    if c * PARAMS["T"] < 1.4:
+        c = 0.0
+    if c == 0.0:
+        pts2 = [(-hu, -ht), (hu, -ht), (hu, ht), (-hu, ht)]
+    else:
+        pts2 = [(-hu + c, -ht), (hu - c, -ht), (hu, -ht + c), (hu, ht - c),
+                (hu - c, ht), (-hu + c, ht), (-hu, ht - c), (-hu, -ht + c)]
     wp = cq.Workplane(cq.Plane(P, xDir=e_u, normal=n))
     return wp.moveTo(*pts2[0]).polyline(pts2[1:]).close() \
         .extrude(PARAMS["T"] + 1.2).translate(n * (-0.6)).findSolid()
@@ -292,7 +299,7 @@ def lattice_cutters(G):
     dth_pad = math.degrees(PARAMS["SERVO_BRACKET_L"] / 2 / A)
     cutters = []
     u = -40.0
-    while u <= 56.0:   # above this the azimuthal cell width < CELL: solid apex
+    while u <= 46.0:   # above this the azimuthal cell width < CELL: solid apex
         ur = math.radians(u)
         arc_u = math.hypot(A * math.sin(ur), G["B"] * math.cos(ur))
         zc, rc = G["B"] * math.sin(ur), A * math.cos(ur)
@@ -309,7 +316,7 @@ def lattice_cutters(G):
                 cutters.append(window_cutter(G, u - du / 2, u + du / 2,
                                              thc - step / 2, thc + step / 2))
         u += du
-    return cutters
+    return [c for c in cutters if c is not None]
 
 
 def hole_cutters(G):
