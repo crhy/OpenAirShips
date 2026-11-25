@@ -114,14 +114,12 @@ def make_geo(S):
 
     def meridian_wire(d0, d1):
         """Closed polygon wire: outer offset + inner offset + two end segments.
-        2 deg steps (chord dip ~0.01 mm, clear of the 0.2 mm hairline gate) and
-        truncated at +-88 deg: the pole is closed by a flat land instead of an
-        on-axis segment, which made degenerate cone faces (issue #36 internal
-        faces)."""
+        The pole is closed on-axis (arc-closed poles fail the OCC revolve,
+        a03 round 4; the +-88 flat land gave slivers, round 2)."""
         a = [cq.Vector(r, 0, z) for (r, z)
-             in [skin_pt(u, d0) for u in range(-88, 89, 2)]]
+             in [skin_pt(u, d0) for u in range(-90, 91, 3)]]
         b = [cq.Vector(r, 0, z) for (r, z)
-             in [skin_pt(u, d1) for u in range(88, -89, -2)]]
+             in [skin_pt(u, d1) for u in range(90, -91, -3)]]
         return cq.Wire.makePolygon(a + b + [a[0]])
 
     def band(d0, d1):
@@ -331,8 +329,9 @@ def hole_cutters(G):
         p = lambda r: G["to3"]((r, 0.0), seam)
         out.append(G["cyl_between"](p(PARAMS["DUCT_MOUTH_R"] - 0.5), p(A - 28.0), rb))
         out.append(G["cyl_between"](p(A - 28.0), p(axis_r + rb + 1.0), PARAMS["DUCT_BULB"] / 2))
-        # the bearing stem hole through the boss plug (R9)
-        out.append(G["cyl_between"](p(A - 40.0 - 1.0), p(A - 28.0 + 0.5),
+        # the bearing stem hole through the boss plug (R9); ends exactly at
+        # the bore step so the two coaxial bores share the step face
+        out.append(G["cyl_between"](p(A - 40.0 - 1.0), p(A - 28.0),
                                     PARAMS["STEM_HOLE"] / 2))
     th_pad = G["HALF"] - math.degrees(PARAMS["SERVO_T"] / A)
     out.append(G["cyl_between"](G["to3"](G["skin_pt"](0.0, -1.2), th_pad),

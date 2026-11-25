@@ -29,8 +29,8 @@ Everything below is measured unless it says otherwise, and the task that measure
 - 7 BUILD AND CHECK WORKFLOW: 648-755
 - 8 FAILURE MODES AND FIXES: 756-788
 - 9 rhY's REVIEW HISTORY: 789-809
-- 10 LESSONS LOG: 810-981
-- 11 CHECKS — CAD, not STL: 982-1020
+- 10 LESSONS LOG: 810-1002
+- 11 CHECKS — CAD, not STL: 1003-1041
 
 Read first, by kind of edit:
 
@@ -978,6 +978,27 @@ the branch was parked (its changes may still be inherited by the next task).
   `BRepExtrema`'s hangs and segfaults on this model's BSpline soup. Differently:
   the mesh checker (check_outputs.py) says PASS while the B-rep is full of slivers —
   check the CAD before tessellating, every task, section 11.
+
+- **a03 light+strong+FEA — partial.** First real FEA of Slice2:
+  `CurrentModel/Analysis/fea_slice.py` (gmsh 4.15.2 venv -> C3D10 -> CalculiX
+  2.23 from the FreeCAD flatpak, `flatpak run --filesystem=host --command=ccx
+  org.freecad.FreeCAD <job>`), results in `CurrentModel/Analysis/FEA.md`:
+  min SF = 2.65 on a02-8T (92.5 g), governed by L6 (10 N ring break-out at the
+  duct root), not by the servo loads — so mass must come out of the skin
+  lattice, not the duct root. ccx gotchas: needs explicit `*STATIC` (else it
+  assembles and exits silently rc=0), `*NODE PRINT` is broken (use `*NODE FILE`
+  + ASCII .frd, ` -1` records: node in cols 3-12, 12-char value fields),
+  `*DLOAD` wants `ELSET,GRAV,...`, gmsh 10-node tets swap the last two midside
+  columns vs C3D10 and their curved midsides must be projected to straight
+  edge midpoints or every Jacobian goes negative. CAD: round 3 (lattice cap
+  38, square windows, spline cutter 1.2 deep, STEM_HOLE 25.4, boss p1 outside
+  the rib) cut CR10Pro failures 218 -> 154 and zeroed slivers at both scales;
+  still fails (37 short / 98 hairline / 19 internal). The 14 internal faces at
+  the poles are the on-axis meridian closure's cone chain: a +-88 flat land
+  gives slivers and an arc-closed tip fails the OCC revolve (StdFail_NotDone)
+  — the on-axis chain is currently the least-bad option. Differently: next
+  task should strengthen the duct root (L6) before any mass reduction, and
+  attack the top-row window tangent-plane hairlines (0.043-0.19 mm gaps).
 
 ## 11 CHECKS — CAD, not STL
 

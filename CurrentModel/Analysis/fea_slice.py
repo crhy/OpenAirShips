@@ -28,11 +28,11 @@ conservative for local stress). Reports per case: max von Mises + the 5 most
 stressed locations, max deflection, SF; and the slice mass.
 """
 import argparse
-import importlib.util
 import json
 import math
 import os
 import subprocess
+import struct
 import sys
 import time
 
@@ -40,19 +40,23 @@ import numpy as np
 
 ALLOWABLE = 50.0 / 3.0          # MPa: yield 50, x 1/3 layer-line weakness
 E, NU, RHO = 3500.0, 0.36, 1.24e-9
-G = 9810.0                      # mm/s2
+G_GRAV = 9810.0                 # mm/s2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 
 
 def load_params():
-    spec = importlib.util.spec_from_file_location(
-        "slice_params", os.path.join(REPO, "CurrentModel", "CAD Files",
-                                     "Slice2", "slice.py"))
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
-    return m.PARAMS
+    """Read the PARAMS dict out of slice.py without importing it (that file
+    needs cadquery; this script runs in the fea venv)."""
+    import ast
+    src = open(os.path.join(REPO, "CurrentModel", "CAD Files", "Slice2",
+                            "slice.py")).read()
+    for node in ast.parse(src).body:
+        if isinstance(node, ast.Assign) and getattr(node.targets[0], "id",
+                                                    "") == "PARAMS":
+            return ast.literal_eval(node.value)
+    raise RuntimeError("PARAMS not found in slice.py")
 
 
 # ---------------------------------------------------------------- meshing
@@ -70,24 +74,44 @@ def mesh(step, size, jobdir):
     gmsh.model.mesh.setOrder(2)          # 10-node tets
     nn, nc, _ = gmsh.model.mesh.getNodes()
     nc = nc.reshape(-1, 3)
-    ids, elemTypes, elemTags, elemNodeTags = gmsh.model.mesh.getElements()
-    tets = [i for i, t in enumerate(elemTypes) if t == 24]
+    elemTypes, elemTags, elemNodeTags = gmsh.model.mesh.getElements()
+    tets = [i for i, t in enumerate(elemTypes) if t == 11]
     if not tets:
         raise RuntimeError("no 10-node tets in the mesh")
     conn = elemNodeTags[tets[0]].reshape(-1, 10)
+    # gmsh midside order (12,23,13,14,34,24) -> CalculiX C3D10 (12,23,13,14,24,34)
+    conn = conn[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 8]]
     # gmsh node tags -> 0-based index
     nidx = {int(t): i for i, t in enumerate(nn)}
     conn = np.array([[nidx[int(t)] for t in row] for row in conn])
-    # surface elements (for PRES loads): type 2 = 6-node tri
-    tris = [i for i, t in enumerate(elemTypes) if t == 2]
+    # fix inverted tets: negative corner volume -> swap v1<->v2 (and the
+    # midside pairs that follow: m13<->m23, m14<->m24)
+    p = nc.astype(float)
+    a, b, c, d = (p[conn[:, k]] for k in (0, 1, 2, 3))
+    sgn = np.einsum("ij,ij->i", b - a, np.cross(c - a, d - a))
+    bad = np.where(sgn <= 0)[0]
+    if len(bad):
+        conn[bad][:, [0, 1]] = conn[bad][:, [1, 0]]
+        conn[bad][:, [5, 6]] = conn[bad][:, [6, 5]]
+        conn[bad][:, [7, 8]] = conn[bad][:, [8, 7]]
+    # CalculiX C3D10 assumes straight edges: put midside nodes at the exact
+    # edge midpoints, else the Jacobian can go negative on curved skins.
+    for mid, (i, j) in zip((4, 5, 6, 7, 8, 9),
+                           ((0, 1), (1, 2), (0, 2), (0, 3), (1, 3), (2, 3))):
+        nc[conn[:, mid]] = (nc[conn[:, i]] + nc[conn[:, j]]) / 2.0
+    # surface elements (for PRES loads): type 9 = 6-node tri (order 2)
+    tris = [i for i, t in enumerate(elemTypes) if t == 9]
     surf = None
     if tris:
         sconn = elemNodeTags[tris[0]].reshape(-1, 6)
         surf = np.array([[nidx[int(t)] for t in row] for row in sconn])
-    vol = gmsh.model.getVolume(3, 1)[0] if gmsh.model.getEntities(3) else None
+    vol = 0.0
+    p = nc
+    a, b, c, d = (p[conn[:, k]] for k in (0, 1, 2, 3))
+    vol = abs(np.einsum("ij,ij->i", a - d, np.cross(b - d, c - d))).sum() / 6.0
     gmsh.write(os.path.join(jobdir, "mesh.msh"))
     gmsh.finalize()
-    return nc.astype(float), conn.astype(int), surf
+    return nc.astype(float), conn.astype(int), surf, vol
 
 
 # ------------------------------------------------------- node-set geometry
@@ -161,80 +185,90 @@ def node_sets(nc, P, S):
 
 
 # ------------------------------------------------------------- input deck
-def write_inp(job, nc, conn, surf, sets, geo, P, S, cases):
+def write_inp(job, nc, conn, surf, sets, geo, P, S, case):
     A, B, HALF, th_pad = geo
-    lines = ["*HEADING", "Slice2 FEA %s S=%.2f" % (job, S),
+    lines = ["*HEADING", "Slice2 FEA %s S=%.2f case %s" % (job, S, case),
              "*NODE"]
     for i, p in enumerate(nc):
         lines.append("%d,%.5f,%.5f,%.5f" % (i + 1, p[0], p[1], p[2]))
     lines.append("*ELEMENT, TYPE=C3D10, ELSET=ALL")
     for i, c in enumerate(conn):
         lines.append("%d,%s" % (i + 1, ",".join(str(v + 1) for v in c)))
+    pres_sets = {}
+    if case == "L8" and surf is not None:
+        for nm in ("plenum_ceil", "plenum_wall", "shaft_wall"):
+            mask = np.all(np.isin(surf, sets[nm][:, None]), axis=1)
+            sel = np.where(mask)[0]
+            if len(sel):
+                pres_sets[nm.upper()] = sel
+        lines.append("*ELEMENT, TYPE=C3D6")
+        for i, c in enumerate(surf):
+            lines.append("%d,%s" % (len(conn) + i + 1,
+                                    ",".join(str(v + 1) for v in c)))
+        for nm, sel in pres_sets.items():
+            lines.append("*ELSET, ELSET=%s" % nm)
+            for chunk in _chunks(sel + len(conn) + 1):
+                lines.append(",".join(str(v) for v in chunk))
     lines += ["*NLGEOM, NO",
               "*MATERIAL, NAME=PLA", "*ELASTIC", "%.1f, %.3f" % (E, NU),
               "*DENSITY", "%.4e" % RHO,
               "*SOLID SECTION, ELSET=ALL, MATERIAL=PLA"]
-    # nsets written explicitly
+    lines.append("*NSET, NSET=NALL")
+    for chunk in _chunks(np.arange(1, len(nc) + 1)):
+        lines.append(",".join(str(v) for v in chunk))
     for nm in sets:
+        if len(sets[nm]) == 0:
+            continue
         lines.append("*NSET, NSET=%s" % nm.upper())
         for chunk in _chunks(sets[nm] + 1):
             lines.append(",".join(str(v) for v in chunk))
-    # surface element sets for PRES (triangles on the plenum faces)
-    pres_sets = {}
-    if surf is not None:
-        for nm in ("plenum_ceil", "plenum_wall", "shaft_wall"):
-            mask = np.all(np.isin(surf, sets[nm][:, None]), axis=1)
-            sel = np.where(mask)[0] + 1
-            if len(sel):
-                pres_sets[nm.upper()] = sel
     lines.append("*STEP")
+    lines.append("*STATIC")
+    lines.append("0., 1., 1., 1.")
     lines.append("*BOUNDARY")
     for nm in ("SEAM_P", "SEAM_M"):
         lines.append("%s,1,6,0.0" % nm)
-    for c in cases:
-        if c == "L1":
-            _nload(lines, sets, "PAD", np.array([0, 0, -0.92]))
-        elif c == "L3":
-            e_th = np.array([-math.sin(math.radians(th_pad)),
-                             math.cos(math.radians(th_pad)), 0.0])
-            e_r = np.array([math.cos(math.radians(th_pad)),
-                            math.sin(math.radians(th_pad)), 0.0])
-            _nload(lines, sets, "SPLINE", 12.0 * e_th - 4.4 * e_r)
-        elif c == "L2":
-            e_th = np.array([-math.sin(math.radians(th_pad)),
-                             math.cos(math.radians(th_pad)), 0.0])
-            top = sets["spline"][nc[sets["spline"], 2] > 0]
-            bot = sets["spline"][nc[sets["spline"], 2] <= 0]
-            F = 215.8 / 8.0
-            _nload(lines, {"t": top}, "T", F * e_th)
-            _nload(lines, {"b": bot}, "B", -F * e_th)
-        elif c == "L4":
-            for nm in ("SLEEVE_P", "SLEEVE_M"):
-                sgn = 1 if nm.endswith("P") else -1
-                da = np.array([math.cos(math.radians(sgn * HALF)),
-                               math.sin(math.radians(sgn * HALF)), 0.0])
-                _nload(lines, sets, nm, 0.75 * da)
-        elif c == "L6":
-            for nm in ("RING_P", "RING_M"):
-                sgn = 1 if nm.endswith("P") else -1
-                da = np.array([math.cos(math.radians(sgn * HALF)),
-                               math.sin(math.radians(sgn * HALF)), 0.0])
-                _nload(lines, sets, nm, -10.0 * da)
-        elif c == "L7":
-            lines.append("*DLOAD")
-            lines.append("GRAV, %.1f, 0., 0., -1." % (20 * G))
-        elif c == "L8":
-            if not pres_sets:
-                raise RuntimeError("no plenum surface elements for L8")
-            lines.append("*DLOAD")
-            for nm in pres_sets:
-                lines.append("%s,PRES,%.4e" % (nm, 1.9e-3))
+    if case == "L1":
+        _nload(lines, sets, "PAD", np.array([0, 0, -0.92]))
+    elif case == "L3":
+        e_th = np.array([-math.sin(math.radians(th_pad)),
+                         math.cos(math.radians(th_pad)), 0.0])
+        e_r = np.array([math.cos(math.radians(th_pad)),
+                        math.sin(math.radians(th_pad)), 0.0])
+        _nload(lines, sets, "SPLINE", 12.0 * e_th - 4.4 * e_r)
+    elif case == "L2":
+        e_th = np.array([-math.sin(math.radians(th_pad)),
+                         math.cos(math.radians(th_pad)), 0.0])
+        top = sets["spline"][nc[sets["spline"], 2] > 0]
+        bot = sets["spline"][nc[sets["spline"], 2] <= 0]
+        F = 215.8 / 8.0
+        _nload(lines, {"t": top}, "T", F * e_th)
+        _nload(lines, {"b": bot}, "B", -F * e_th)
+    elif case == "L4":
+        for nm in ("SLEEVE_P", "SLEEVE_M"):
+            sgn = 1 if nm.endswith("P") else -1
+            da = np.array([math.cos(math.radians(sgn * HALF)),
+                           math.sin(math.radians(sgn * HALF)), 0.0])
+            _nload(lines, sets, nm, 0.75 * da)
+    elif case == "L6":
+        for nm in ("RING_P", "RING_M"):
+            sgn = 1 if nm.endswith("P") else -1
+            da = np.array([math.cos(math.radians(sgn * HALF)),
+                           math.sin(math.radians(sgn * HALF)), 0.0])
+            _nload(lines, sets, nm, -10.0 * da)
+    elif case == "L7":
+        lines.append("*DLOAD")
+        lines.append("ALL,GRAV,%.1f,0.,0.,-1." % (20 * G_GRAV))
+    elif case == "L8":
+        if not pres_sets:
+            raise RuntimeError("no plenum surface elements for L8")
+        lines.append("*DLOAD")
+        for nm in pres_sets:
+            lines.append("%s,PRES,%.4e" % (nm, 1.9e-3))
     lines.append("*NODE FILE")
-    lines.append("S, E")
-    lines.append("*NODE OUTPUT")
-    lines.append("U")
+    lines.append("U, S")
     lines.append("*END STEP")
-    return "\n".join(lines) + "\n", len(conn), pres_sets
+    return "\n".join(lines) + "\n"
 
 
 def _chunks(a, n=16):
@@ -243,7 +277,7 @@ def _chunks(a, n=16):
 
 
 def _nload(lines, sets, nm, total):
-    idx = sets[nm]
+    idx = sets[nm.lower()]
     if len(idx) == 0:
         raise RuntimeError("empty node set %s" % nm)
     f = total / len(idx)
@@ -266,46 +300,28 @@ def run_ccx(jobdir, job):
 
 
 def parse_frd(path):
-    """Return [{'u': {node: [3]}, 's': {node: vm}}] per result step."""
-    steps = []
-    step = {}
+    """Parse CalculiX ASCII .frd: {'u': {node:[3]}, 's': {node: vm}}."""
+    step = {"u": {}, "s": {}}
     field = None
-    with open(path) as fh:
-        for ln in fh:
-            if ln.startswith("    1"):
-                continue
-            if ln.startswith("-4"):
-                parts = ln.split()
-                field = parts[2] if len(parts) > 2 else ""
-                if field == "DISP":
-                    if "s" in step:
-                        steps.append(step)
-                    step = {"u": {}}
-                elif field == "STRESS":
-                    step["s"] = {}
-                else:
-                    if "s" in step:
-                        steps.append(step)
-                    step = {}
-                    field = None
-                continue
-            if ln.startswith("-5") or field is None or not step:
-                continue
-            if ln.startswith("-1"):
-                v = [float(t) for t in ln[80:].split()]
-                nid = int(ln[8:23])
-                if field == "DISP":
-                    step["u"][nid] = v[:3]
-                elif field == "STRESS":
-                    xx, yy, zz, yz, xz, xy = v[:6]
-                    vm = math.sqrt(max(0.0, 0.5 * ((xx - yy) ** 2 +
-                                                   (yy - zz) ** 2 +
-                                                   (zz - xx) ** 2) +
-                                       yz * yz + xz * xz + xy * xy))
-                    step["s"][nid] = vm
-    if "s" in step:
-        steps.append(step)
-    return steps
+    with open(path, "rb") as fh:
+        for raw in fh:
+            ln = raw.decode("latin-1").rstrip("\n")
+            if ln.startswith(" -4"):
+                field = ln[3:].split()[0]
+            elif ln.startswith(" -1") and field in ("DISP", "STRESS"):
+                nid = int(ln[3:13])
+                body = ln[13:]
+                vals = [float(body[j:j + 12]) for j in range(0, len(body), 12)
+                        if body[j:j + 12].strip()]
+                if field == "DISP" and len(vals) >= 3:
+                    step["u"][nid] = vals[:3]
+                elif field == "STRESS" and len(vals) >= 6:
+                    xx, yy, zz, xy, yz, zx = vals[:6]
+                    step["s"][nid] = math.sqrt(
+                        max(0.0, 0.5 * ((xx - yy) ** 2 + (yy - zz) ** 2 +
+                                        (zz - xx) ** 2) +
+                        yz * yz + zx * zx + xy * xy))
+    return step
 
 
 # ------------------------------------------------------------------ main
@@ -313,7 +329,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("step")
     ap.add_argument("--size", type=float, default=1.5)
-    ap.add_argument("--cases", default="L1,L2,L3,L4,L6,L7,L8")
+    ap.add_argument("--cases", default="L1,L2,L3,L4,L6,L7")
     ap.add_argument("--jobdir", default=os.path.join(REPO, "CurrentModel",
                                                      "Analysis", "build",
                                                      "fea"))
@@ -326,24 +342,21 @@ def main():
     job = os.path.splitext(os.path.basename(args.step))[0]
     t0 = time.time()
 
-    import cadquery as cq
-    shp = cq.importers.importStep(args.step).val()
-    vol = shp.Volume()
-    bb = shp.BoundingBox()
-    S = bb.xmax / P["A"] if bb.xmax > 0 else 1.0
-    mass = vol * 1.24e-3
-    print("# %s: vol %.0f mm3 mass %.1f g bbox x[%.1f,%.1f] S~%.3f" %
-          (job, vol, mass, bb.xmin, bb.xmax, S))
-
-    cache = os.path.join(args.jobdir, "%s_nodes.npz" % job)
+    cache = os.path.join(args.jobdir, "%s_%d_%d_nodes.npz" %
+                         (job, int(os.path.getsize(args.step)),
+                          int(os.path.getmtime(args.step))))
     if args.skip_mesh and os.path.exists(cache):
         z = np.load(cache)
         nc, conn, surf = z["nc"], z["conn"], z["surf"]
+        vol = float(z["vol"])
     else:
-        nc, conn, surf = mesh(os.path.abspath(args.step), args.size,
-                              args.jobdir)
-        np.savez_compressed(cache, nc=nc, conn=conn,
+        nc, conn, surf, vol = mesh(os.path.abspath(args.step), args.size,
+                                   args.jobdir)
+        np.savez_compressed(cache, nc=nc, conn=conn, vol=vol,
                             surf=surf if surf is not None else np.zeros((0, 6), int))
+    S = nc[:, 0].max() / P["A"]
+    mass = vol * 1.24e-3
+    print("# %s: vol %.0f mm3 mass %.1f g S~%.3f" % (job, vol, mass, S))
     print("# mesh: %d nodes, %d tets (%.0fs)" % (len(nc), len(conn),
                                                  time.time() - t0))
 
@@ -351,55 +364,37 @@ def main():
     for nm in sorted(sets):
         print("  set %-12s %6d nodes" % (nm, len(sets[nm])))
     cases = args.cases.split(",")
-    inp, ntet, pres = write_inp(job, nc, conn, surf, sets, geo, P, S, cases)
-    # renumber: tets 1..ntet, surface tris ntet+1.. : patch the *ELSET lines
-    # (we wrote tets first; tris were never written -> write them now)
-    if surf is not None and pres:
-        extra = ["*ELEMENT, TYPE=C3D6"]
-        for i, c in enumerate(surf):
-            extra.append("%d,%s" % (ntet + i + 1,
-                                    ",".join(str(v + 1) for v in c)))
-        elsets = []
-        for nm, sel in pres.items():
-            elsets.append("*ELSET, ELSET=%s" % nm)
-            for chunk in _chunks(sel + ntet):
-                elsets.append(",".join(str(v) for v in chunk))
-        inp = inp.replace("*NLGEOM, NO",
-                          "\n".join(extra) + "\n" + "\n".join(elsets) +
-                          "\n*NLGEOM, NO")
-    with open(os.path.join(args.jobdir, job + ".inp"), "w") as fh:
-        fh.write(inp)
-    print("# wrote %s.inp (%.0fs)" % (job, time.time() - t0))
-
-    out = run_ccx(args.jobdir, job)
-    print("# ccx done (%.0fs)" % (time.time() - t0))
-    steps = parse_frd(os.path.join(args.jobdir, job + ".frd"))
-    if len(steps) != len(cases):
-        print("# WARNING: %d result steps for %d cases" %
-              (len(steps), len(cases)))
     report = {"step": args.step, "mass_g": mass, "vol_mm3": vol,
               "scale": S, "allowable_MPa": ALLOWABLE, "cases": []}
-    print("\n%-6s %10s %10s %8s   top-5 von Mises locations (x,y,z mm)" %
+    print("\n%-6s %10s %10s %8s   top von Mises locations (x,y,z mm)" %
           ("case", "maxVM", "maxU", "SF"))
-    for name, st in zip(cases, steps):
+    for case in cases:
+        inp = write_inp(job, nc, conn, surf, sets, geo, P, S, case)
+        jfile = os.path.join(args.jobdir, "%s_%s.inp" % (job, case))
+        with open(jfile, "w") as fh:
+            fh.write(inp)
+        run_ccx(args.jobdir, "%s_%s" % (job, case))
+        st = parse_frd(os.path.join(args.jobdir, "%s_%s.frd" %
+                                    (job, case)))
+        if not st["s"]:
+            raise RuntimeError("no results for case %s" % case)
         nids = np.array(list(st["s"].keys()))
         vm = np.array(list(st["s"].values()))
         u = np.array([st["u"][n] for n in nids])
         umax = float(np.max(np.linalg.norm(u, axis=1)))
-        k = int(np.argmax(vm))
         order = np.argsort(-vm)[:5]
-        locs = [(round(nids[i], 0), round(vm[i], 2),
+        locs = [(round(vm[i], 2),
                  tuple(round(v, 1) for v in nc[int(nids[i]) - 1]))
                 for i in order]
-        sf = ALLOWABLE / vm[k] if vm[k] > 1e-9 else float("inf")
-        report["cases"].append({"case": name, "maxVM_MPa": float(vm[k]),
+        sf = ALLOWABLE / vm[order[0]] if vm[order[0]] > 1e-9 else 1e9
+        report["cases"].append({"case": case, "maxVM_MPa": float(vm[order[0]]),
                                 "maxU_mm": umax, "SF": float(sf),
                                 "top5": locs})
         print("%-6s %10.3f %10.3f %8.2f   %s" %
-              (name, vm[k], umax, sf,
-               " ".join("(%.0f,%.0f,%.0f):%.2f" % (l[2][0], l[2][1],
-                                                   l[2][2], l[1])
-                        for l in locs[:3])))
+              (case, vm[order[0]], umax, sf,
+               " ".join("(%.0f,%.0f,%.0f):%.2f" % (l[1][0], l[1][1],
+                                                   l[1][2], l[0])
+                        for l in locs[:3])), flush=True)
     minsf = min(c["SF"] for c in report["cases"])
     print("\nmin SF = %.2f  (allowable %.2f MPa, mesh %.1f mm, %d tets)" %
           (minsf, ALLOWABLE, args.size, len(conn)))
