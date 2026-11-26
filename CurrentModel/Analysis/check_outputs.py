@@ -273,9 +273,11 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
     step = max(1, nfac // samples)
     P = [(p.x, p.y, p.z) for p in pts]
     cen, nor, fac_area = {}, {}, {}
+    facet_vertices = [frozenset(f) for f in facets]
     grid = {}
     tiny = 0
     graze = 0
+    edge_adjacent = 0
     for i, f in enumerate(facets):
         a, b, c = (P[f[0]], P[f[1]], P[f[2]])
         ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
@@ -295,7 +297,7 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
                         []).append(i)
 
     reach = int(max_depth / cell) + 1
-    hits = []                      # (facet, wall thickness) for facets with a hit
+    hits = []                      # (facet, wall thickness, hit facet, incidence) for hits
     d2max = max_depth * max_depth
     for i in range(0, nfac, step):
         if nor.get(i) is None:
@@ -306,11 +308,21 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
         dx, dy, dz = -n[0], -n[1], -n[2]
         kx, ky, kz = int(ox // cell), int(oy // cell), int(oz // cell)
         best = None
+        best_j = None
+        best_incidence = None
         for gx in range(kx - reach, kx + reach + 1):
             for gy in range(ky - reach, ky + reach + 1):
                 for gz in range(kz - reach, kz + reach + 1):
                     for j in grid.get((gx, gy, gz), ()):
                         if j == i:
+                            continue
+                        # A ray leaving a triangle beside a crease can cross the
+                        # neighbouring triangle within a few microns of their
+                        # common edge.  That is a surface corner, not the wall
+                        # behind the sampled face.  A genuine opposite wall does
+                        # not share a mesh edge with the face being measured.
+                        if len(facet_vertices[i].intersection(facet_vertices[j])) >= 2:
+                            edge_adjacent += 1
                             continue
                         cc = cen[j]
                         ex, ey, ez = cc[0] - ox, cc[1] - oy, cc[2] - oz
@@ -338,23 +350,33 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
                         t = (e2[0] * q[0] + e2[1] * q[1] + e2[2] * q[2]) / det
                         if t > 0.005 and t <= max_depth and (best is None or t < best):
                             # f151: reject a hit whose face runs nearly along the ray - see
-                            # GRAZE_DEG. The hit triangle's own normal is e1 x e2.
+                            # GRAZE_DEG. The hit triangle's own normal is e1 x e2. A real
+                            # opposite wall also has to face the ray: on an oriented closed
+                            # mesh the ray enters through the sampled outward face and exits
+                            # through a face whose outward normal points along the ray. Using
+                            # abs(dot) here admitted same-facing neighbour triangles on a
+                            # finely tessellated curved face. Edge-adjacent triangles are
+                            # rejected above as well: at a sharp blend their normals can be
+                            # opposed even though they are two sides of the same surface edge.
                             hx, hy, hz = (e1[1] * e2[2] - e1[2] * e2[1],
                                           e1[2] * e2[0] - e1[0] * e2[2],
                                           e1[0] * e2[1] - e1[1] * e2[0])
                             hl = math.sqrt(hx * hx + hy * hy + hz * hz)
-                            if hl > 1e-12 and (abs(dx * hx + dy * hy + dz * hz) / hl
-                                               < math.sin(math.radians(GRAZE_DEG))):
+                            incidence = ((dx * hx + dy * hy + dz * hz) / hl
+                                         if hl > 1e-12 else 0.0)
+                            if incidence < math.sin(math.radians(GRAZE_DEG)):
                                 graze += 1
                                 continue
                             best = t
+                            best_j = j
+                            best_incidence = incidence
         if best is not None:
-            hits.append((i, best))
+            hits.append((i, best, best_j, best_incidence))
     if not hits:
         return {"sampled": 0}
 
-    vals = sorted(t for _, t in hits)
-    hit_area = sum(fac_area[i] for i, _ in hits)
+    vals = sorted(t for _, t, _, _ in hits)
+    hit_area = sum(fac_area[i] for i, _, _, _ in hits)
     out = {"sampled": len(vals), "min": round(vals[0], 3),
            "median": round(vals[len(vals) // 2], 3),
            "underNozzle": sum(1 for t in vals if t < NOZZLE),
@@ -362,11 +384,12 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
            "nominal": NOMINAL_WALL, "thickAt": round(THICK_AT, 3),
            "tinySkipped": tiny,
            "grazeSkipped": graze,
+           "edgeAdjacentSkipped": edge_adjacent,
            "hitArea": round(hit_area, 1)}
 
     # thick material: group the facets over THICK_AT into blobs
-    thick = [(i, t) for i, t in hits if t > THICK_AT]
-    out["thinFacets"] = sum(1 for _, t in hits if t < NOMINAL_WALL - 0.25)
+    thick = [(i, t) for i, t, _, _ in hits if t > THICK_AT]
+    out["thinFacets"] = sum(1 for _, t, _, _ in hits if t < NOMINAL_WALL - 0.25)
     out["normalFacets"] = len(hits) - len(thick) - out["thinFacets"]
     bins = [(0.0, LAYER), (LAYER, NOZZLE), (NOZZLE, NOMINAL_WALL - 0.25),
             (NOMINAL_WALL - 0.25, THICK_AT), (THICK_AT, 2.0), (2.0, 4.0)]
@@ -390,15 +413,16 @@ def wall_map(m, max_depth=4.0, cell=1.0, samples=6000, report=False):
         # much and where, this says which facets, so the generator code that
         # made the sliver can be found from the point
         under = []
-        for i, t in hits:
+        for i, t, j, incidence in hits:
             if t < NOZZLE:
                 c, n = cen[i], nor[i]
                 under.append({"facet": i, "at": [round(v, 3) for v in c],
                               "wall": round(t, 4), "area": round(fac_area[i], 4),
-                              "normal": [round(v, 4) for v in n]})
+                              "normal": [round(v, 4) for v in n], "hitFacet": j,
+                              "incidence": round(incidence, 4)})
         under.sort(key=lambda d_: d_["wall"])
         out["underFacets"] = under
-    slim = [(i, t) for i, t in hits if t < NOZZLE]
+    slim = [(i, t) for i, t, _, _ in hits if t < NOZZLE]
     slim_blobs = group_blobs(slim, cen, fac_area)
     out["underArea"] = round(sum(b_["area"] for b_ in slim_blobs), 1)
     out["underBlobs"] = slim_blobs[:14]
@@ -467,9 +491,10 @@ def thin_report_lines(th):
              cx, cy, cz, math.hypot(cx, cy), cz,
              math.degrees(math.atan2(cy, cx))))
         for x in sorted(g, key=lambda q_: q_["at"]):
-            lines.append("      facet (%8.2f, %8.2f, %8.2f) wall %6.3f mm "
-                         "area %6.3f mm2 n=(%5.2f,%5.2f,%5.2f)" %
-                         (*x["at"], x["wall"], x["area"], *x["normal"]))
+            lines.append("      facet %d -> %d (%8.2f, %8.2f, %8.2f) wall %6.3f mm "
+                         "area %6.3f mm2 incidence %.3f n=(%5.2f,%5.2f,%5.2f)" %
+                         (x["facet"], x["hitFacet"], *x["at"], x["wall"], x["area"],
+                          x["incidence"], *x["normal"]))
     return lines
 
 
