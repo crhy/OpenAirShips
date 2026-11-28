@@ -76,7 +76,8 @@ FLOOR_Z = -B + (43.0 if LARGE else 32.7)   # fan-housing ceiling (the shroud ove
 INTAKE_R = 12.0            # the skin arc rolls into the shaft over this radius (bellmouth)
 
 RIB = float(os.environ.get("OAS_RIB", "2.0"))   # lattice web width (a seam rib is RIB/2 on each slice);
-                                                # 1.2 = lightest printable (3 lines), for builds where stiffness doesn't matter
+                                                # 1.5 = three dependable 0.4 mm-nozzle lines; the 2.0 default
+                                                # leaves four lines after slicer path fitting
 MIN_WEB = 0.0              # rhY f118 item 4: the lattice runs right out to the edges. This
                          #   margin used to keep every window this far inside the skin band, inside
                          #   the slice's seam planes, away from the duct's air and from its
@@ -359,10 +360,14 @@ CREST_BAND_SEE_DUCTS = True  # the solid band along each duct's crest is defined
 # columns of ovals (split by a centre rib). Every row is the same length along
 # the skin: ROWS_ABOVE_EQ of them fill the top half, and the bottom half gets
 # as many of that height as fit. Where four ovals meet, the junction is a
-# hollow window that takes all the skin more than RIB from the ovals. Printed lying on the seam, each oval's top is a
-# small round arch, which prints without supports.
+# hollow window that takes all the skin more than RIB from the ovals. Printed
+# lying on the seam, each oval's print-high half climbs on two straight sides
+# into a small rounded point, avoiding the old shallow arch and its curling tips.
 ROWS_ABOVE_EQ = 6          # skin rows between the equator and the intake bellmouth
-OVAL_N = 1.8               # oval shape: superellipse exponent (2 = ellipse)
+OVAL_N = 1.8               # lower oval: superellipse exponent (2 = ellipse)
+OVAL_TOP_N = 1.0           # f172: print-high half is a diamond cap, so both sides climb
+                           #   continuously to the next rib instead of leaving curling prongs
+OVAL_TOP_ROUND = 0.6       # mm radius on that cap's point and its joins to the lower oval
 
 # Printing (Prusa MK3S+, 0.4 nozzle, 0.2 layers, 0.45 lines): the slice lies
 # on its -22.5 deg (hole) seam. UP is the print's +Z in model coordinates.
@@ -1467,7 +1472,10 @@ def oval_on_skin(p0, p1, side, n=96):
     points on the skin's mid-surface with their normals. It is laid out on the
     real curved skin: at every height it spans the column between its edges,
     and from bottom to top it spans the row, so it touches each of the four
-    rib lines (RIB/2 in) at one point and fills the cell."""
+    rib lines (RIB/2 in) at one point and fills the cell.  The print-high half
+    is a rounded diamond cap rather than a superellipse: its two sides climb
+    directly to their junction instead of ending as separate, nearly horizontal
+    prongs that can curl into the nozzle (f172)."""
     q0 = p0 + (RIB / 2) / ds_dpsi(p0)
     q1 = p1 - (RIB / 2) / ds_dpsi(p1)
     outer = crest_half_cell(p0, p1)   # one bound for the whole cell: the oval stays a
@@ -1478,8 +1486,9 @@ def oval_on_skin(p0, p1, side, n=96):
     for i in range(n):
         t = 2 * math.pi * i / n
         c_, s_ = math.cos(t), math.sin(t)
-        a_ = math.copysign(abs(c_) ** (2 / OVAL_N), c_)
-        b_ = math.copysign(abs(s_) ** (2 / OVAL_N), s_)
+        exponent = OVAL_TOP_N if c_ >= 0 else OVAL_N
+        a_ = math.copysign(abs(c_) ** (2 / exponent), c_)
+        b_ = math.copysign(abs(s_) ** (2 / exponent), s_)
         psi = (q0 + q1) / 2 + b_ * (q1 - q0) / 2
         lo, hi = column_bounds(psi, side, outer)
         out.append(surface(psi, (lo + hi) / 2 + a_ * (hi - lo) / 2))
@@ -1943,8 +1952,8 @@ def lattice_band():
 
 def clip_window(poly, psi, theta, to_uv, to_skin, sgn, others=(), tip=0.6):
     """A window polygon, clipped to the skin band, the slice's seam planes, the solid
-    skin the duct's air needs and the windows around it, with its tips rounded by `tip`
-    (0 for an oval: it has no tips, and rounding a 96-point outline only loses area).
+    skin the duct's air needs and the windows around it, with its tips rounded by `tip`.
+    Ovals pass OVAL_TOP_ROUND here to soften their pointed print-high cap and shoulder joins.
     Returns the polygon, or None if nothing printable is left.
 
     f151 item A (rhY: the middle of the slice was "an hourglass of solid skin"):
@@ -2428,7 +2437,11 @@ def windows():
         from shapely.geometry import Polygon
         psi = (rows[k] + rows[k + 1]) / 2
         to_uv, to_skin, sgn = skin_frame(psi, 0.0)
-        g = clip_window(Polygon([to_uv(p) for p, _ in ring]), psi, 0.0, to_uv, to_skin, sgn, tip=0.0)
+        # The upper half is deliberately straight-sided, then this physical-space
+        # radius leaves a small blunt point with material behind it.  It also rounds
+        # the two joins to the unchanged lower oval, avoiding stress corners.
+        g = clip_window(Polygon([to_uv(p) for p, _ in ring]), psi, 0.0,
+                        to_uv, to_skin, sgn, tip=OVAL_TOP_ROUND)
         if g is None:
             return None
         ring = list(g.exterior.coords)[:-1]

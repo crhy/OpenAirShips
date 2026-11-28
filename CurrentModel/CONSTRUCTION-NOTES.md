@@ -21,15 +21,15 @@ Everything below is measured unless it says otherwise, and the task that measure
 
 - 0 INDEX: 20-51
 - 1 FRAMES: 52-132
-- 2 GENERATOR MAP: 133-343
-- 3 DESIGN RULES: 344-451
-- 4 JOINTS: 452-509
-- 5 LATTICE AND KEEP-OUTS: 510-583
-- 6 DUCTS, BULB, STEM, SERVO, BRACE: 584-627
-- 7 BUILD AND CHECK WORKFLOW: 628-745
-- 8 FAILURE MODES AND FIXES: 746-778
-- 9 rhY's REVIEW HISTORY: 779-799
-- 10 LESSONS LOG: 800-999
+- 2 GENERATOR MAP: 133-345
+- 3 DESIGN RULES: 346-453
+- 4 JOINTS: 454-511
+- 5 LATTICE AND KEEP-OUTS: 512-593
+- 6 DUCTS, BULB, STEM, SERVO, BRACE: 594-637
+- 7 BUILD AND CHECK WORKFLOW: 638-768
+- 8 FAILURE MODES AND FIXES: 769-801
+- 9 rhY's REVIEW HISTORY: 802-823
+- 10 LESSONS LOG: 824-1032
 
 Read first, by kind of edit:
 
@@ -132,7 +132,7 @@ rotate -90 about X, then -HALF about Z (f117's probes call this to_model()).
 
 ## 2 GENERATOR MAP
 
-`CurrentModel/CAD Files/SimplifiedSlice/airship_slice.py`, 2832 lines at f151. Line numbers are
+`CurrentModel/CAD Files/SimplifiedSlice/airship_slice.py`, 3498 lines at f172. Line numbers are
 from that file at this commit. Variant switches are environment variables, read once at import:
 `OAS_VARIANT` (8T/4T), `OAS_SIDE` (L/R/P), `OAS_SLICES` (8, or 12 for the double-Kobra build),
 `OAS_THRUSTER` (L/S), `OAS_PIECES`, `OAS_SCALE`, `OAS_TAG`, `OAS_RIB`.
@@ -140,10 +140,11 @@ from that file at this commit. Variant switches are environment variables, read 
 ### 2.1 Constant groups (what each group is for)
 
 - Variant and size: `VARIANT` 51, `SIDE` 52, `FOUR` 53, `N` 54, `LARGE` 55, `PIECES` 56,
-  `SCALE` 64, `TAG` 65, `A`/`B` 70, `HALF` 72, `UP` 244.
+  `SCALE` 64, `TAG` 65, `A`/`B` 70, `HALF` 72, `UP` 374.
 - Wall and lattice widths: `T` 71, `RIB` 78, `MIN_WEB` 80 (now 0.0), `POLY_CLOSE` 169,
-  `MIN_OPEN_AREA` 117, `MIN_KEEP` 119, `CELL_CLOSE` 129, `NOZZLE` 135, `OVAL_N` 240,
-  `ROWS_ABOVE_EQ` 239.
+  `MIN_OPEN_AREA` 117, `MIN_KEEP` 119, `CELL_CLOSE` 129, `NOZZLE` 135, `OVAL_N` 367,
+  `OVAL_TOP_N` 368, `OVAL_TOP_ROUND` 370,
+  `ROWS_ABOVE_EQ` 366.
 - Cutter geometry: `SKIN_MARGIN` 178, `CUT_OUT` 186, `CUT_IN` 194, `CUT_MESH` 199, `RING_WELD` 211,
   `OUT_MESH` 222, `TILE_EDGE` 244 (f154).
 - Keep-out standoffs: `CREST_EDGE_CLEAR` 91, `SERVO_WALL` 102, `BRACE_EDGE_CLEAR` 109,
@@ -196,19 +197,20 @@ Skin ribs and the lattice band:
 - `cut_ribs` 764 — the ribs the pieces are cut along (OAS_PIECES). pieces().
 - `lattice_band` 1934 — where the lattice-bearing skin actually is (first ring rib outside the
   housing wall to the bellmouth). clip_window(), crest_psi_range().
-- `crest_half` 1316 / `crest_half_cell` — how far in from the seam plane the solid skin over a
+- `crest_half` 1321 / `crest_half_cell` 1359 — how far in from the seam plane the solid skin over a
   duct actually reaches at psi (computed from the duct envelope plus `AIR_KEEP` and
   `CUT_FACE_CLEAR`, then maximised over a cell); 0 beyond the duct. column_bounds(), clip_window().
-- `column_bounds` 1452 — one column's edge azimuths. windows(), oval_on_skin().
-- `oval_on_skin` 1465 — the oval of a cell, laid out on the curved skin so it touches all four rib
-  lines. windows().
-- `junction` 2227 — the hollow window where four ovals meet, clipped to the two rows it sits in
+- `column_bounds` 1457 — one column's edge azimuths. windows(), oval_on_skin().
+- `oval_on_skin` 1470 — the oval of a cell, laid out on the curved skin so it touches all four rib
+  lines. Its lower half uses `OVAL_N`; its print-high half uses `OVAL_TOP_N` so both sides climb to
+  the rounded cap. windows().
+- `junction` 2236 — the hollow window where four ovals meet, clipped to the two rows it sits in
   (`rows=` argument, f151). windows().
-- `clip_window` 1944 — the one place a window polygon is decided: band ends, seam planes, column
+- `clip_window` 1953 — the one place a window polygon is decided: band ends, seam planes, column
   edge, the cell's two rows, the crest band, the outlet rings and the brace corridor, then the
   printability gates (`MIN_OPEN_AREA`, the `NOZZLE` erosion). Returns None when nothing printable
   is left. windows().
-- `windows` 2402 — the whole lattice: builds every oval and junction, turns each into a solid
+- `windows` 2411 — the whole lattice: builds every oval and junction, turns each into a solid
   cutter, then applies the 3D keep-out guards. build().
 
 Cutters (the boolean that makes the windows):
@@ -517,6 +519,14 @@ its cell, touching all four rib lines; every junction where ovals meet is a holl
 (`junction`) that takes all the skin more than `RIB` from the ovals. What is left is a web of
 `RIB`-wide ribs and nothing thicker.
 
+- **Print-high oval closures climb into a rounded point (f172).** The lower half keeps the oval
+  profile (`OVAL_N` = 1.8); the upper half uses `OVAL_TOP_N` = 1.0, so both sides are straight,
+  continuously rising runs rather than a nearly horizontal arch ending in two isolated tips.
+  `OVAL_TOP_ROUND` = 0.6 mm rounds the apex and the two shoulder joins in `clip_window()`. The
+  production `RIB` remains 2.0 mm (at least four 0.45 mm extrusion widths, more conservative than
+  the requested three-line 1.4--1.6 mm minimum), and the point meets the existing rib/junction
+  material instead of hanging over an open window.
+
 - **The crest boundary follows the duct instead of stepping at 12 mm (f156).** `crest_half()`
   samples the duct envelope at the cutter floor and adds the air and cut-face clearances;
   `crest_half_cell()` takes the maximum over the cell's psi range. `snap_rib_to_crest()` remains
@@ -667,6 +677,19 @@ Earlier tasks left a wrapper, `CurrentModel/Analysis/build/f149/rebuild.sh <scal
 joints.json as arguments 2-5). It is scratch and may not exist in a fresh checkout — the two
 commands above are the whole thing, so write your own wrapper in your own build folder.
 
+For a full-scale lattice-only print test, `CurrentModel/Analysis/make_lattice_coupon.py` imports
+the production generator, builds the complete solid, then crops upper-hull row cells 8 and 9
+(34.8--59.7 degrees, including their 48.0-degree junction) from one outer column along the centres
+of the four surrounding production ribs. It deliberately refuses
+output under `CAD Files` or `Print Files`; write the STEP and STL under the task's scratch folder:
+
+    /home/rhy/.venvs/cadquery/bin/python CurrentModel/Analysis/make_lattice_coupon.py \
+        --scale 1.41 --first-cell 8 \
+        --output CurrentModel/Analysis/build/f172/lattice-coupon
+
+The report includes the conservative sampled web gap and both print-high cap angles. This is a
+geometry/mesh gate and a cheap physical coupon, not a substitute for the release STL gate.
+
 ### 7.2 Check
 
     nice -n 10 flatpak run --command=freecadcmd org.freecad.FreeCAD \
@@ -796,6 +819,7 @@ lattice or the outlet: the current shapes are answers to specific complaints.
 | 2026-11-18 | f150's CR-10 Pro print | "Not quite. Also the equator brace isn't thick enough to support the servo bracket." | the >= 50 % clipped-cell rule (36 -> 58 windows); `BRACE_W` 6.0 x `BRACE_D` 3.0 and the servo pad | f151 |
 | 2026-11-18 | the trade-off itself | "Lighter is better but we need it to be structurally solid. These are competing requests... we are going to have to do some educated guesses." | a documented load estimate and SAFETY_FACTOR sizing the pad and beam | f152 |
 | 2026-11-18 | the scattered knowledge | "Make sure Strata makes note of all AirShip construction details so that future edits are faster and easier." | this manual, AGENTS.md, and the checker that keeps them honest | f153 |
+| 2026-11-28 | the failed full-scale lattice print: clean base/lower walls, then curled isolated tips and loose strands where the oval tops close | keep the oval appearance, make every rib at least three lines wide, make the top climb to a slightly pointed rounded junction, and print a full-scale two-cell test first | retained the 2.0 mm production web, changed only the print-high oval half to straight rising sides with a 0.6 mm rounded cap, and added the production-derived two-cell coupon | f172 |
 
 ## 10 LESSONS LOG
 
@@ -997,3 +1021,12 @@ the branch was parked (its changes may still be inherited by the next task).
   and peel SF 916. Lesson: after a crash, checkpoint first, then prove both the recovered artifacts
   and a clean source regeneration before publishing; an unachievable round-number mass target is
   not grounds to reintroduce invalid coincident faces.
+- **f172 printable lattice closure — OK.** The failed print showed that nominal web width was not
+  the problem: the 2.0 mm ribs exceeded the requested 1.4--1.6 mm minimum, but the old oval cap
+  closed through a shallow overhang into flexible tips. The replacement climbs continuously to a
+  0.6 mm-rounded point. The production-derived coupon is 97.0 x 43.3 x 83.2 mm: its sampled row
+  web is 1.997 mm and its cap slopes are 65.9--71.0 degrees above the bed. STEP re-import is one
+  valid 1,159.021 mm3 solid. The 4,836-facet STL is one watertight, consistently wound body with
+  zero boundary, non-manifold or degenerate faces; its volume is within 0.1 % of STEP. Worked:
+  change the unsupported topology while preserving the clean base, wall, keep-outs and web width.
+  A slicer preview must still certify three continuous paths before the physical coupon is printed.
